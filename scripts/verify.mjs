@@ -1,5 +1,24 @@
-import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
+import { execSync } from "node:child_process";
+import { createRequire } from "node:module";
+
+// Playwright is intentionally NOT a project dependency (it would bloat / break
+// the Vercel build). Install it on demand, unsaved, the first time you verify.
+const require = createRequire(import.meta.url);
+function ensurePlaywright() {
+  try {
+    require.resolve("playwright");
+    return;
+  } catch {
+    console.log("→ Installing playwright locally (not saved to package.json)…");
+    execSync("npm install --no-save playwright", { stdio: "inherit" });
+    console.log("→ Ensuring Chromium is downloaded…");
+    execSync("npx playwright install chromium", { stdio: "inherit" });
+  }
+}
+ensurePlaywright();
+const pw = await import("playwright");
+const chromium = pw.chromium ?? pw.default?.chromium;
 
 const BASE = process.env.BASE || "http://localhost:3100";
 const routes = ["/", "/services", "/about", "/location"];

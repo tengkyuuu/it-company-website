@@ -112,7 +112,9 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
 ### Verification
 `scripts/verify.mjs` drives headless Chromium (Playwright) over all routes at desktop
 (1440) + mobile (390): checks console errors, horizontal overflow, and writes screenshots
-to `.verify/`. Run: `npx next build && npx next start -p 3100 &` then `node scripts/verify.mjs`.
+to `.verify/`. Playwright is **not** a project dependency (it would break the Vercel build);
+the script installs it on demand with `--no-save`, so it never touches `package.json`/lockfile.
+Run: `npm run build && npx next start -p 3100 &` then `npm run verify`.
 
 ### ⚠️ OneDrive caveat
 This project lives under OneDrive, which has **twice silently removed binary files**
