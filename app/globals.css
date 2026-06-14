@@ -1,0 +1,331 @@
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   MYKT design tokens — slate neutrals + one magenta→gold accent gradient.
+   Tailwind v4 reads @theme to generate utilities (bg-paper, text-ink, …).
+---------------------------------------------------------------------------- */
+@theme {
+  --color-paper: #f8fafc; /* Neutral  — page background        */
+  --color-mist: #cbd5e1; /* Primary  — borders, muted fills    */
+  --color-slatey: #94a3b8; /* Tertiary — secondary text          */
+  --color-ink: #1e293b; /* Secondary— headings, dark sections */
+  --color-ink-700: #334155;
+  --color-ink-900: #0f172a;
+
+  --color-accent-from: #9d5a8f; /* magenta-purple */
+  --color-accent-mid: #b85c7a; /* mauve-rose     */
+  --color-accent-to: #e0a23a; /* gold           */
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  --accent: linear-gradient(
+    115deg,
+    var(--color-accent-from) 0%,
+    var(--color-accent-mid) 45%,
+    var(--color-accent-to) 100%
+  );
+}
+
+* {
+  border-color: var(--color-mist);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-accent-to);
+  color: var(--color-ink);
+}
+
+/* ----------------------------------------------------------------------------
+   Reusable brand helpers
+---------------------------------------------------------------------------- */
+
+/* Gradient text — the signature MYKT move. Use on ONE word per view. */
+.text-accent {
+  background: var(--accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-accent {
+  background: var(--accent);
+}
+
+/* Animated aurora gradient used for soft hero glows */
+.aurora {
+  background: radial-gradient(
+      40% 50% at 20% 30%,
+      color-mix(in oklab, var(--color-accent-from) 55%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      45% 55% at 80% 25%,
+      color-mix(in oklab, var(--color-accent-to) 50%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 60% at 55% 80%,
+      color-mix(in oklab, var(--color-accent-mid) 45%, transparent) 0%,
+      transparent 75%
+    );
+  filter: blur(40px);
+  animation: aurora-drift 18s var(--ease-soft) infinite alternate;
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(4%, 3%, 0) scale(1.12);
+  }
+}
+
+/* Fine grain/noise overlay for a printed, designed feel */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Thin gradient hairline (dividers / accents) */
+.hr-accent {
+  height: 1px;
+  background: var(--accent);
+  border: 0;
+}
+
+/* Marquee for the trusted-by strip */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes scrollcue {
+  0% {
+    transform: translateY(-16px);
+  }
+  100% {
+    transform: translateY(48px);
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Animated icons — subtle, distinctive motion per service icon.
+---------------------------------------------------------------------------- */
+@keyframes icon-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
+}
+@keyframes icon-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@keyframes icon-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes icon-dash {
+  to { stroke-dashoffset: 0; }
+}
+.ic-float { animation: icon-float 3.2s var(--ease-soft) infinite; }
+.ic-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: icon-pulse 2.4s ease-in-out infinite;
+}
+.ic-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: icon-spin 10s linear infinite;
+}
+.ic-draw {
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  animation: icon-dash 2.2s var(--ease-soft) infinite alternate;
+}
+
+/* ----------------------------------------------------------------------------
+   Ambient background — slow-drifting gray gradient clouds behind every page.
+   Sits in front of the body bg but behind all content (negative z-index child).
+---------------------------------------------------------------------------- */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ambient-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  will-change: transform;
+}
+.ambient-orb--1 {
+  width: 60vw;
+  height: 60vw;
+  left: -12vw;
+  top: -12vw;
+  opacity: 0.55;
+  background: radial-gradient(circle at center, #cbd5e1 0%, transparent 68%);
+  animation: drift1 26s var(--ease-soft) infinite alternate;
+}
+.ambient-orb--2 {
+  width: 52vw;
+  height: 52vw;
+  right: -14vw;
+  top: 24vh;
+  opacity: 0.4;
+  background: radial-gradient(circle at center, #94a3b8 0%, transparent 70%);
+  animation: drift2 34s var(--ease-soft) infinite alternate;
+}
+.ambient-orb--3 {
+  width: 48vw;
+  height: 48vw;
+  left: 18vw;
+  bottom: -18vh;
+  opacity: 0.45;
+  background: radial-gradient(circle at center, #b8c4d4 0%, transparent 70%);
+  animation: drift3 30s var(--ease-soft) infinite alternate;
+}
+@keyframes drift1 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(9vw, 7vh, 0) scale(1.18);
+  }
+}
+@keyframes drift2 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  to {
+    transform: translate3d(-8vw, -6vh, 0) scale(1);
+  }
+}
+@keyframes drift3 {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6vw, -8vh, 0) scale(1.2);
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Lenis smooth scroll (recommended base styles)
+---------------------------------------------------------------------------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ----------------------------------------------------------------------------
+   Scroll-reveal: only hide elements once JS has marked the doc ready, so
+   content is never stuck invisible if JS is disabled. GSAP animates them in.
+---------------------------------------------------------------------------- */
+html.reveal-ready [data-animate] {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* ----------------------------------------------------------------------------
+   Custom cursor — only on fine-pointer (desktop) devices. Native cursor is
+   hidden only while the custom one is active.
+---------------------------------------------------------------------------- */
+@media (hover: hover) and (pointer: fine) {
+  html.has-cursor,
+  html.has-cursor * {
+    cursor: none;
+  }
+}
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  pointer-events: none;
+  border-radius: 9999px;
+  mix-blend-mode: difference;
+  will-change: transform;
+}
+.cursor-dot {
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  background: #fff;
+}
+.cursor-ring {
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  transition: width 0.25s var(--ease-soft), height 0.25s var(--ease-soft),
+    margin 0.25s var(--ease-soft), opacity 0.25s var(--ease-soft);
+}
+.cursor-ring.is-hovering {
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+/* clip-reveal helper for images */
+.clip-reveal {
+  clip-path: inset(0 0 100% 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.reveal-ready [data-animate] {
+    opacity: 1 !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
