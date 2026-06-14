@@ -19,7 +19,8 @@ The impression to leave: *we make software and we innovate, with taste.*
 **Nav:** logo mark (`public/brand/logo.png`) + MYKT wordmark, top-left.
 
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
-Hero (2-col, photo + parallax + scroll cue) → client marquee → **Services** (interactive
+Hero → **tech-stack marquee** (`TechMarquee`, velocity-reactive, real logos via
+`simple-icons`, colorise on hover) → showreel → **Services** (interactive
 index + sticky dark panel, `ServicesShowcase`) → **Selected Work** (asymmetric image tiles
 7/5·5/7, hover zoom, `SelectedWork`) → **Testimonials** (auto-rotating carousel) →
 **Stats** (borderless editorial row) → **Process** (vertical timeline) → belief band → footer.
@@ -111,6 +112,8 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
   to full-bleed while the clip **scrubs with scroll**; mobile = contained autoplay loop),
   `ServicesPinned` (desktop horizontal pinned scroll via `gsap.matchMedia`; mobile stacks),
   `StatsCounter` (count-up on enter), `ProcessTimeline` (scrubbed draw-line).
+- `Button` is **magnetic** (springs toward the cursor on mouse). A subtle filmic
+  **grain** overlay sits site-wide (`.grain`, fixed, z-40) over the ambient gray gradients.
 - **All motion respects `prefers-reduced-motion`.**
 
 ### Verification

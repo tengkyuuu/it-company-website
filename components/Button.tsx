@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
-import type { ReactNode } from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useRef, type ReactNode } from "react";
 
 type Variant = "solid" | "outline" | "ghost";
 
@@ -28,11 +28,32 @@ export default function Button({
   className?: string;
   arrow?: boolean;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const x = useSpring(mx, { stiffness: 250, damping: 18, mass: 0.4 });
+  const y = useSpring(my, { stiffness: 250, damping: 18, mass: 0.4 });
+
+  const onMove = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    // magnetic pull toward the cursor, capped near the button bounds
+    mx.set((e.clientX - (r.left + r.width / 2)) * 0.35);
+    my.set((e.clientY - (r.top + r.height / 2)) * 0.4);
+  };
+  const reset = () => {
+    mx.set(0);
+    my.set(0);
+  };
+
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      whileTap={{ y: 0, scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 22 }}
+      ref={ref}
+      onPointerMove={onMove}
+      onPointerLeave={reset}
+      whileTap={{ scale: 0.97 }}
+      style={{ x, y }}
       className="inline-block"
     >
       <Link href={href} className={`${base} ${variants[variant]} ${className}`}>

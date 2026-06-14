@@ -55,6 +55,8 @@ export default function RootLayout({
           <Footer />
         </SmoothScroll>
         <ScrollFX />
+        {/* filmic grain over the whole page (under nav/cursor) */}
+        <div className="grain pointer-events-none fixed inset-0 z-40" aria-hidden />
       </body>
     </html>
   );

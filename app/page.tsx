@@ -1,6 +1,6 @@
 import Hero from "@/components/hero/Hero";
 import Section, { SectionHeader, Eyebrow } from "@/components/Section";
-import VelocityMarquee from "@/components/landing/VelocityMarquee";
+import TechMarquee from "@/components/landing/TechMarquee";
 import ServicesPinned from "@/components/landing/ServicesPinned";
 import VideoReveal from "@/components/landing/VideoReveal";
 import StatsCounter from "@/components/landing/StatsCounter";
@@ -10,23 +10,18 @@ import Testimonials from "@/components/Testimonials";
 import Button from "@/components/Button";
 import { Reveal } from "@/components/Reveal";
 
-const clients = [
-  "Northwind",
-  "Lumio",
-  "Atlas Pay",
-  "Verda",
-  "Hapinoy",
-  "Cebu Air",
-  "Kalibrr",
-  "Brightspot",
-];
-
 export default function Home() {
   return (
     <>
       <Hero />
 
-      <VelocityMarquee items={clients} />
+      {/* Our stack */}
+      <div className="border-y border-mist/60">
+        <Reveal className="mx-auto flex max-w-6xl justify-center px-6 pt-7">
+          <Eyebrow>The stack we build on</Eyebrow>
+        </Reveal>
+        <TechMarquee />
+      </div>
 
       {/* Showreel — scroll-driven expand + scrub */}
       <VideoReveal />
