@@ -68,9 +68,9 @@ export default function Footer() {
         <div className="relative">
           <div
             aria-hidden
-            className="select-none pt-6 text-center text-[22vw] font-bold leading-[0.8] tracking-tighter text-paper/[0.06] md:text-[16rem]"
+            className="select-none pt-6 text-center font-display text-[17vw] font-bold leading-[0.8] tracking-tight text-paper/[0.06] md:text-[12rem]"
           >
-            MYK<span className="text-accent opacity-90">T</span>
+            MYKTECH
           </div>
         </div>
 

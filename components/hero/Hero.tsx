@@ -112,7 +112,7 @@ export default function Hero() {
           <Eyebrow>IT Studio · Dipolog City</Eyebrow>
         </div>
 
-        <h1 className="mt-6 text-5xl font-semibold leading-[1.03] tracking-[-0.02em] sm:text-6xl md:text-7xl lg:text-[5.25rem]">
+        <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.03] tracking-[-0.02em] sm:text-6xl md:text-7xl lg:text-[5.25rem]">
           <span className="hero-line block overflow-hidden">
             <span className="block">We build</span>
           </span>

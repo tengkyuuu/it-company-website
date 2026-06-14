@@ -1,5 +1,5 @@
 export const site = {
-  name: "MYKT",
+  name: "MYKTECH",
   tagline: "Software, designed with intent.",
   email: "hello@mykt.studio",
   phone: "+63 65 212 3344",

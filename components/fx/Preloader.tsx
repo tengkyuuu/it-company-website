@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
+import Wordmark from "@/components/Wordmark";
 
 /** First-load intro: counts to 100, then wipes up to reveal the page. */
 export default function Preloader() {
@@ -88,9 +89,11 @@ export default function Preloader() {
       </div>
 
       <div className="overflow-hidden">
-        <div className="pl-word text-[18vw] font-bold leading-[0.85] tracking-tighter md:text-[12rem]">
-          MYK<span className="text-accent">T</span>
-        </div>
+        <Wordmark
+          href={null}
+          invert
+          className="pl-word text-[15vw] md:text-[9rem]"
+        />
       </div>
 
       <div className="flex items-end justify-between">

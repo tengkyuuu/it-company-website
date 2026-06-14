@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { Syne } from "next/font/google";
 import "./globals.css";
+
+// Brand / display typeface (free look-alike for "Inline" by Letters from Sweden)
+const syne = Syne({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-syne",
+  display: "swap",
+});
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ScrollProgress from "@/components/ScrollProgress";
@@ -13,14 +22,14 @@ import ScrollFX from "@/components/fx/ScrollFX";
 
 export const metadata: Metadata = {
   title: {
-    default: "MYKT — Software, designed with intent",
-    template: "%s · MYKT",
+    default: "MYKTECH — Software, designed with intent",
+    template: "%s · MYKTECH",
   },
   description:
-    "MYKT is an IT studio building web, mobile, and cloud products. We make software and innovate — with taste.",
+    "MYKTECH is an IT studio building web, mobile, and cloud products. We make software and innovate — with taste.",
   metadataBase: new URL("https://mykt.studio"),
   openGraph: {
-    title: "MYKT — Software, designed with intent",
+    title: "MYKTECH — Software, designed with intent",
     description:
       "Web, mobile, cloud, AI and design — built by a team that sweats the details.",
     type: "website",
@@ -33,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      className={`${GeistSans.variable} ${GeistMono.variable} ${syne.variable}`}
     >
       <body className="min-h-screen antialiased">
         <AmbientBackground />

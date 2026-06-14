@@ -44,7 +44,7 @@ export function SectionHeader({
       }`}
     >
       <Eyebrow>{eyebrow}</Eyebrow>
-      <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
+      <h2 className="text-balance font-display text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
         {title}
       </h2>
       {intro && (

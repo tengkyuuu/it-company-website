@@ -36,9 +36,10 @@ Global: `ScrollProgress` gradient bar fixed at top. Work images in `public/work/
 ## Brand
 
 ### Logo
-- Wordmark **MYKT** (also stacked "MY / KT" in a shield/keyhole mark).
-- The signature move: the final letter (**T** / the **KT** descender) carries a
-  **magenta→gold gradient**. Everything else is near-black on light, or white on dark.
+- Wordmark **MYKTECH**, set in the display face (Syne). The **K** is a custom geometric
+  mark (`components/KMark.tsx`: stem + chevron) carrying the **magenta→gold gradient** — the
+  signature move. Rendered by `components/Wordmark.tsx` (MY + KMark + TECH); everything else
+  near-black on light / white on dark. Used in Nav, Footer, Preloader.
 - Assets in repo root: `logo.png` (shield, gradient KT), `myktech logo.png` (business-card
   mockup), `myktech no logo.png` (horizontal MYKT wordmark on laptop). Keep generous clear
   space around the mark.
@@ -62,7 +63,10 @@ Reserve the gradient for: the logo's letter, one key word in a headline, CTA hov
 a single hero glow, link/active states. If a second thing on screen uses it, remove one.
 
 ### Typography
-- **Geist** (Geist Sans for everything; Geist Mono only for tiny labels/code chips).
+- **Display/brand: Syne** (`--font-display`, via next/font) — free stand-in for the paid
+  "Inline" by Letters from Sweden. Used for the MYKTECH wordmark + big headings (Hero h1,
+  `SectionHeader` titles). Swap in real Inline `.woff2` via next/font/local if licensed.
+- **Geist** (Geist Sans for body/UI; Geist Mono only for tiny labels/code chips).
 - Big, confident display headings (tight tracking, weight 600–700). Generous body line-height.
 - Scale leans editorial — let headings breathe with whitespace, not effects.
 

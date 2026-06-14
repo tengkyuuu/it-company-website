@@ -1,8 +1,9 @@
 import Link from "next/link";
+import KMark from "./KMark";
 
 /**
- * The MYKT wordmark. "MYK" in ink, the final "T" carries the brand
- * magenta→gold gradient — the signature move from the logo.
+ * The MYKTECH wordmark, set in the brand display face (Syne). The "K" is the
+ * custom geometric mark carrying the magenta→gold gradient.
  */
 export default function Wordmark({
   className = "",
@@ -15,18 +16,24 @@ export default function Wordmark({
 }) {
   const mark = (
     <span
-      className={`font-sans font-bold tracking-tight leading-none select-none ${
+      className={`inline-flex items-center font-display font-bold leading-none tracking-tight select-none ${
         invert ? "text-paper" : "text-ink"
       } ${className}`}
     >
-      MYK<span className="text-accent">T</span>
+      MY
+      <KMark className="mx-[0.03em] h-[0.74em] w-auto translate-y-[0.015em]" />
+      TECH
     </span>
   );
 
   if (href === null) return mark;
 
   return (
-    <Link href={href} aria-label="MYKT — home" className="inline-flex items-end">
+    <Link
+      href={href}
+      aria-label="MYKTECH — home"
+      className="inline-flex items-center"
+    >
       {mark}
     </Link>
   );
