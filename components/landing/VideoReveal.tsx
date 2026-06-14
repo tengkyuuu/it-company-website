@@ -31,6 +31,10 @@ export default function VideoReveal() {
         () => {
           // The video is eased toward the scroll target every frame so seeking
           // is glass-smooth (the clip is re-encoded all-keyframes for this).
+          // The clip only plays AFTER the frame has zoomed to full-bleed.
+          // Scroll progress 0→EXPAND_END = zoom (video held on frame 0);
+          // EXPAND_END→1 = the video scrubs through.
+          const EXPAND_END = 0.4;
           const state = { target: 0, current: 0 };
           let raf = 0;
           const tick = () => {
@@ -45,18 +49,20 @@ export default function VideoReveal() {
             scrollTrigger: {
               trigger: section.current,
               start: "top top",
-              end: "+=240%",
+              end: "+=300%",
               pin: true,
               scrub: 1,
               anticipatePin: 1,
               invalidateOnRefresh: true,
               onUpdate: (self) => {
-                state.target = self.progress;
+                const p = self.progress;
+                state.target =
+                  p <= EXPAND_END ? 0 : (p - EXPAND_END) / (1 - EXPAND_END);
               },
             },
           });
 
-          // margins → full-bleed over the first ~45% of the scroll
+          // margins → full-bleed over the first EXPAND_END of the scroll
           tl.fromTo(
             fr,
             {
@@ -73,7 +79,7 @@ export default function VideoReveal() {
               right: "0vw",
               borderRadius: "0rem",
               ease: "power2.inOut",
-              duration: 0.45,
+              duration: EXPAND_END,
             },
             0
           );
