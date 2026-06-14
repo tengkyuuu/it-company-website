@@ -29,40 +29,26 @@ export default function VideoReveal() {
       mm.add(
         "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
         () => {
-          // The video is eased toward the scroll target every frame so seeking
-          // is glass-smooth (the clip is re-encoded all-keyframes for this).
-          // The clip only plays AFTER the frame has zoomed to full-bleed.
-          // Scroll progress 0→EXPAND_END = zoom (video held on frame 0);
-          // EXPAND_END→1 = the video scrubs through.
-          const EXPAND_END = 0.4;
-          const state = { target: 0, current: 0 };
-          let raf = 0;
-          const tick = () => {
-            state.current += (state.target - state.current) * 0.13;
-            if (vid.duration)
-              vid.currentTime = state.current * (vid.duration - 0.05);
-            raf = requestAnimationFrame(tick);
-          };
-          raf = requestAnimationFrame(tick);
+          // Two tweens on ONE scrubbed timeline. The zoom occupies [0, EXPAND_END];
+          // the video scrub occupies [EXPAND_END, 1] — so GSAP guarantees the clip
+          // cannot advance until the frame has fully zoomed in. Both share the same
+          // playhead, so they can never desync.
+          const EXPAND_END = 0.34;
+          const scrub = { t: 0 };
 
           const tl = gsap.timeline({
             scrollTrigger: {
               trigger: section.current,
               start: "top top",
-              end: "+=300%",
+              end: "+=320%",
               pin: true,
-              scrub: 1,
+              scrub: 1.2,
               anticipatePin: 1,
               invalidateOnRefresh: true,
-              onUpdate: (self) => {
-                const p = self.progress;
-                state.target =
-                  p <= EXPAND_END ? 0 : (p - EXPAND_END) / (1 - EXPAND_END);
-              },
             },
           });
 
-          // margins → full-bleed over the first EXPAND_END of the scroll
+          // 1) margins → full-bleed
           tl.fromTo(
             fr,
             {
@@ -84,7 +70,20 @@ export default function VideoReveal() {
             0
           );
 
-          return () => cancelAnimationFrame(raf);
+          // 2) scrub the clip — starts only once the zoom tween is finished
+          tl.fromTo(
+            scrub,
+            { t: 0 },
+            {
+              t: 1,
+              ease: "none",
+              duration: 1 - EXPAND_END,
+              onUpdate: () => {
+                if (vid.duration) vid.currentTime = scrub.t * (vid.duration - 0.05);
+              },
+            },
+            EXPAND_END
+          );
         }
       );
 
