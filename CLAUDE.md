@@ -21,9 +21,10 @@ The impression to leave: *we make software and we innovate, with taste.*
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
 Hero → **tech-stack marquee** (`TechMarquee`, velocity-reactive, real logos via
 `simple-icons`, colorise on hover) → showreel → **Services** (interactive
-index + sticky dark panel, `ServicesShowcase`) → **Selected Work** (asymmetric image tiles
-7/5·5/7, hover zoom, `SelectedWork`) → **Testimonials** (auto-rotating carousel) →
-**Stats** (borderless editorial row) → **Process** (vertical timeline) → belief band → footer.
+index + sticky dark panel, `ServicesShowcase`) → **Selected Work** (browser-frame project previews, 3D tilt, `SelectedWork`) →
+**Process** (vertical timeline) → belief band → footer.
+(Removed the testimonials carousel — it used famous design quotes, misleading as
+"client" quotes — and the invented stats row, per client feedback.)
 Global: `ScrollProgress` gradient bar fixed at top. Work images in `public/work/` (Pexels).
 
 ## Services (prototype set — refine later)

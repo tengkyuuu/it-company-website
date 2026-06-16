@@ -3,10 +3,8 @@ import Section, { SectionHeader, Eyebrow } from "@/components/Section";
 import TechMarquee from "@/components/landing/TechMarquee";
 import ServicesPinned from "@/components/landing/ServicesPinned";
 import VideoReveal from "@/components/landing/VideoReveal";
-import StatsCounter from "@/components/landing/StatsCounter";
 import ProcessTimeline from "@/components/landing/ProcessTimeline";
 import SelectedWork from "@/components/SelectedWork";
-import Testimonials from "@/components/Testimonials";
 import Button from "@/components/Button";
 import { Reveal } from "@/components/Reveal";
 
@@ -52,19 +50,6 @@ export default function Home() {
         <SelectedWork />
       </Section>
 
-      {/* Testimonials */}
-      <Section className="pt-28 md:pt-36">
-        <Reveal className="mb-4 flex justify-center">
-          <Eyebrow>What clients say</Eyebrow>
-        </Reveal>
-        <Testimonials />
-      </Section>
-
-      {/* Stats — count up on scroll */}
-      <Section className="pt-24 md:pt-32">
-        <StatsCounter />
-      </Section>
-
       {/* Process — draw-line timeline */}
       <Section className="pt-24 md:pt-32">
         <SectionHeader
@@ -87,7 +72,7 @@ export default function Home() {
               meant to work this way.
             </p>
             <p className="mt-8 font-mono text-xs uppercase tracking-widest text-paper/50">
-              — The MYKT studio
+              — The MYKTECH studio
             </p>
           </div>
         </Reveal>
