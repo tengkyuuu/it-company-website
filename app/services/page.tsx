@@ -8,7 +8,8 @@ import { services } from "@/lib/services";
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Web, mobile, cloud, AI, design and consulting — the full toolkit for building modern software at MYKT.",
+    "Web, mobile, cloud, AI, design and consulting — the full toolkit for building modern software at MYKTECH.",
+  alternates: { canonical: "/services" },
 };
 
 const engagements = [

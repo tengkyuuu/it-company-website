@@ -7,7 +7,8 @@ import { site, socials } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Location & Contact",
   description:
-    "Find MYKT in Dipolog City, Zamboanga del Norte — or start a conversation with the studio.",
+    "Find MYKTECH in Dipolog City, Zamboanga del Norte — or start a conversation with the studio.",
+  alternates: { canonical: "/location" },
 };
 
 const details = [
@@ -77,6 +78,9 @@ export default function LocationPage() {
               <a
                 key={s.label}
                 href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${s.label} (opens in a new tab)`}
                 className="group inline-flex items-center text-sm text-ink/70 transition-colors hover:text-ink"
               >
                 <span className="relative">

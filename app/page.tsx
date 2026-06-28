@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Hero from "@/components/hero/Hero";
 import Section, { SectionHeader, Eyebrow } from "@/components/Section";
 import TechMarquee from "@/components/landing/TechMarquee";
@@ -7,6 +8,13 @@ import ProcessTimeline from "@/components/landing/ProcessTimeline";
 import SelectedWork from "@/components/SelectedWork";
 import Button from "@/components/Button";
 import { Reveal } from "@/components/Reveal";
+
+export const metadata: Metadata = {
+  title: { absolute: "MYKTECH — Software, designed with intent" },
+  description:
+    "MYKTECH is an IT studio in Dipolog City crafting web, mobile, and cloud products — with the eye of a design house.",
+  alternates: { canonical: "/" },
+};
 
 export default function Home() {
   return (

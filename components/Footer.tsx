@@ -84,6 +84,9 @@ export default function Footer() {
               <Link
                 key={s.label}
                 href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${s.label} (opens in a new tab)`}
                 className="transition-colors hover:text-paper"
               >
                 {s.label}

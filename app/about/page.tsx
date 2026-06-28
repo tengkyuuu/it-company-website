@@ -7,7 +7,8 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/Reveal";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "MYKT is a small, senior IT studio in Dipolog City that builds software with the care of a design house.",
+    "MYKTECH is a small, senior IT studio in Dipolog City that builds software with the care of a design house.",
+  alternates: { canonical: "/about" },
 };
 
 const values = [

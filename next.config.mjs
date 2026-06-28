@@ -1,10 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "images.pexels.com" },
-    ],
-  },
+  // All imagery is served locally from /public — no remote patterns needed.
 };
 
 export default nextConfig;

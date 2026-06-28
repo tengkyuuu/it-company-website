@@ -117,6 +117,26 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
   **grain** overlay sits site-wide (`.grain`, fixed, z-40) over the ambient gray gradients.
 - **All motion respects `prefers-reduced-motion`.**
 
+### Backend & production
+- **Contact form (working)**: a **Server Action** `app/actions/contact.ts` (not an API
+  route) validates with a shared Zod schema (`lib/contact-schema.ts`, service list derived
+  from `lib/services.ts`) and emails via **Resend** (`lib/email.ts` — studio notification
+  with `replyTo` = lead + best-effort auto-reply). Client `ContactForm.tsx` uses
+  `useActionState` (pending/success/error/field-errors, `aria-live`/`aria-invalid`).
+  **Spam**: hidden honeypot (`company`) + `startedAt` time-trap (<3s = silent drop). No DB.
+  **Env** (`.env.example`): `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` —
+  set in `.env.local` and on Vercel. Until set, submit returns a graceful error banner.
+- **SEO**: per-page metadata + canonicals + twitter card; `app/sitemap.ts`, `app/robots.ts`,
+  dynamic `app/opengraph-image.tsx` (+ `twitter-image`), JSON-LD `ProfessionalService`
+  (Organization/LocalBusiness) in `app/layout.tsx`. Canonical base = `site.url`
+  (`NEXT_PUBLIC_SITE_URL` override).
+- **Robustness**: `app/not-found.tsx` (branded 404) + `app/error.tsx` boundary.
+- **Analytics**: `@vercel/analytics` + `@vercel/speed-insights` in layout (the
+  `/_vercel/*/script.js` 404s seen under local `next start` are expected — they resolve on
+  Vercel).
+- **To finalize (content)**: real social URLs + verified email/phone in `lib/site.ts`;
+  verify the Resend sending domain.
+
 ### Verification
 `scripts/verify.mjs` drives headless Chromium (Playwright) over all routes at desktop
 (1440) + mobile (390): checks console errors, horizontal overflow, and writes screenshots

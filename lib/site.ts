@@ -1,6 +1,9 @@
 export const site = {
   name: "MYKTECH",
   tagline: "Software, designed with intent.",
+  // Canonical production URL (used for metadata, sitemap, JSON-LD). Update when
+  // the custom domain is live; override with NEXT_PUBLIC_SITE_URL if needed.
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://mykt.studio",
   email: "hello@mykt.studio",
   phone: "+63 65 212 3344",
   address: {
@@ -8,6 +11,8 @@ export const site = {
     line2: "Estaka, Dipolog City",
     region: "Zamboanga del Norte, Philippines 7100",
   },
+  // approximate geo for LocalBusiness structured data (Dipolog City)
+  geo: { lat: 8.5889, lng: 123.4167 },
   hours: "Mon–Fri · 9:00–18:00 PHT",
 };
 
