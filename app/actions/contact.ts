@@ -44,11 +44,13 @@ export async function submitContact(
   try {
     await sendContactEmail(data);
     return { status: "success" };
-  } catch {
-    const to = process.env.CONTACT_TO_EMAIL || site.email;
+  } catch (err) {
+    // Log the real cause server-side (visible in Vercel function logs);
+    // never expose the private receiving inbox to visitors — show the public address.
+    console.error("[contact] send failed:", err);
     return {
       status: "error",
-      message: `Something went wrong sending your message. Please email us directly at ${to}.`,
+      message: `Something went wrong on our end. Please email us directly at ${site.email}.`,
     };
   }
 }
