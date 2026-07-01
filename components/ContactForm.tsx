@@ -1,26 +1,45 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { submitContact } from "@/app/actions/contact";
 import { serviceOptions, type ContactState } from "@/lib/contact-schema";
+import { site } from "@/lib/site";
 
 const fieldCls =
   "w-full rounded-xl border border-mist bg-paper px-4 py-3 text-ink placeholder:text-slatey transition-colors duration-200 focus:border-ink/40 focus:outline-none focus:ring-4 focus:ring-ink/5 aria-[invalid=true]:border-red-400 aria-[invalid=true]:ring-red-500/10";
 
-const initial: ContactState = { status: "idle" };
-
 export default function ContactForm() {
-  const [state, formAction, pending] = useActionState(submitContact, initial);
+  const [state, setState] = useState<ContactState>({ status: "idle" });
+  const [pending, setPending] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const startedAt = useRef(Date.now());
 
-  useEffect(() => {
-    if (state.status === "success") setShowSuccess(true);
-  }, [state]);
-
   const errorFor = (name: string) =>
     state.status === "invalid" ? state.fieldErrors[name] : undefined;
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (pending) return;
+    setPending(true);
+    const payload = Object.fromEntries(new FormData(e.currentTarget));
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = (await res.json()) as ContactState;
+      setState(data);
+      if (data.status === "success") setShowSuccess(true);
+    } catch {
+      setState({
+        status: "error",
+        message: `Couldn’t reach the server. Please email us directly at ${site.email}.`,
+      });
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <div className="beam relative rounded-3xl border border-mist/70 bg-white p-7 md:p-9">
@@ -45,7 +64,10 @@ export default function ContactForm() {
               within one business day.
             </p>
             <button
-              onClick={() => setShowSuccess(false)}
+              onClick={() => {
+                setShowSuccess(false);
+                setState({ status: "idle" });
+              }}
               className="mt-6 text-sm font-medium text-ink/70 underline-offset-4 hover:underline"
             >
               Send another
@@ -53,7 +75,7 @@ export default function ContactForm() {
           </motion.div>
         ) : (
           <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <form action={formAction} className="flex flex-col gap-4" noValidate>
+            <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Name" htmlFor="cf-name" error={errorFor("name")}>
                   <input

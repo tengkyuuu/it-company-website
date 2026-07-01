@@ -1,17 +1,19 @@
-"use server";
-
-import { contactSchema, type ContactState } from "@/lib/contact-schema";
+import { NextResponse } from "next/server";
+import { contactSchema } from "@/lib/contact-schema";
 import { sendContactEmail } from "@/lib/email";
 import { site } from "@/lib/site";
 
-export async function submitContact(
-  _prev: ContactState,
-  formData: FormData
-): Promise<ContactState> {
-  const parsed = contactSchema.safeParse(Object.fromEntries(formData));
+// Stable endpoint (no per-build hashed IDs → immune to deployment-skew errors).
+export async function POST(req: Request) {
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ status: "error", message: "Invalid request." });
+  }
 
+  const parsed = contactSchema.safeParse(body);
   if (!parsed.success) {
-    // Friendly fallbacks (zod's generic "Invalid input" → clear copy).
     const FRIENDLY: Record<string, string> = {
       name: "Please enter your name.",
       email: "Enter a valid email address.",
@@ -29,28 +31,26 @@ export async function submitContact(
       }
     }
     // honeypot tripped → look like success, give bots no signal
-    if (fieldErrors.company) return { status: "success" };
-    return { status: "invalid", fieldErrors };
+    if (fieldErrors.company) return NextResponse.json({ status: "success" });
+    return NextResponse.json({ status: "invalid", fieldErrors });
   }
 
   const data = parsed.data;
 
   // anti-spam: filled honeypot or submitted suspiciously fast → silently drop
-  if (data.company) return { status: "success" };
+  if (data.company) return NextResponse.json({ status: "success" });
   if (data.startedAt && Date.now() - data.startedAt < 3000) {
-    return { status: "success" };
+    return NextResponse.json({ status: "success" });
   }
 
   try {
     await sendContactEmail(data);
-    return { status: "success" };
+    return NextResponse.json({ status: "success" });
   } catch (err) {
-    // Log the real cause server-side (visible in Vercel function logs);
-    // never expose the private receiving inbox to visitors — show the public address.
     console.error("[contact] send failed:", err);
-    return {
+    return NextResponse.json({
       status: "error",
       message: `Something went wrong on our end. Please email us directly at ${site.email}.`,
-    };
+    });
   }
 }

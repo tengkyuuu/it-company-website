@@ -121,11 +121,12 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
 - **All motion respects `prefers-reduced-motion`.**
 
 ### Backend & production
-- **Contact form (working)**: a **Server Action** `app/actions/contact.ts` (not an API
-  route) validates with a shared Zod schema (`lib/contact-schema.ts`, service list derived
-  from `lib/services.ts`) and emails via **Resend** (`lib/email.ts` — studio notification
-  with `replyTo` = lead + best-effort auto-reply). Client `ContactForm.tsx` uses
-  `useActionState` (pending/success/error/field-errors, `aria-live`/`aria-invalid`).
+- **Contact form (working)**: a **Route Handler** `app/api/contact/route.ts` (chosen over a
+  Server Action to avoid deployment-skew "Failed to find Server Action" errors — a stable
+  URL survives redeploys) validates with a shared Zod schema (`lib/contact-schema.ts`,
+  service list derived from `lib/services.ts`) and emails via **Resend** (`lib/email.ts` —
+  studio notification with `replyTo` = lead + best-effort auto-reply). Client
+  `ContactForm.tsx` `fetch`es it (pending/success/error/field-errors, `aria-live`/`aria-invalid`).
   **Spam**: hidden honeypot (`company`) + `startedAt` time-trap (<3s = silent drop). No DB.
   **Env** (`.env.example`): `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` —
   set in `.env.local` and on Vercel. Until set, submit returns a graceful error banner.
