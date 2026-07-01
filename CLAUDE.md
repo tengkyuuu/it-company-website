@@ -98,8 +98,9 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
 - Run: `npm run dev` → http://localhost:3000
 
 ### Motion architecture (the "awwwards" layer)
-- `components/fx/`: `AmbientBackground` (CSS-only drifting **gray** gradient clouds behind
-  every page — accent stays reserved), `SmoothScroll` (Lenis↔GSAP), `Cursor` (dot+ring, fine-pointer only),
+- `components/fx/`: `AmbientBackground` (drifting **gray** gradient clouds + a depth veil +
+  a soft **cursor-following spotlight** on desktop — accent stays reserved),
+  `SmoothScroll` (Lenis↔GSAP), `Cursor` (dot+ring, fine-pointer only),
   `Preloader` (first-load counter wipe, sessionStorage-gated, dispatches `mykt:ready`),
   `ScrollFX` (global `[data-animate]` reveal via `ScrollTrigger.batch`; adds `reveal-ready`
   to `<html>` so content is never stuck hidden with JS off). `app/template.tsx` = per-route
@@ -115,6 +116,8 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
   `StatsCounter` (count-up on enter), `ProcessTimeline` (scrubbed draw-line).
 - `Button` is **magnetic** (springs toward the cursor on mouse). A subtle filmic
   **grain** overlay sits site-wide (`.grain`, fixed, z-40) over the ambient gray gradients.
+- `.beam` utility (`globals.css`, via `@property --beam-angle`) draws an animated accent
+  border-comet — used sparingly (the contact card). One accent moment per view.
 - **All motion respects `prefers-reduced-motion`.**
 
 ### Backend & production

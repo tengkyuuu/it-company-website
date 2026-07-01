@@ -219,6 +219,77 @@ body {
   background: radial-gradient(circle at center, #b8c4d4 0%, transparent 70%);
   animation: drift3 30s var(--ease-soft) infinite alternate;
 }
+/* soft cursor-following spotlight (adds depth; fine-pointer only, via JS) */
+.ambient-spot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.8s var(--ease-soft);
+  background: radial-gradient(
+    460px circle at var(--mx, 50%) var(--my, 22%),
+    rgba(148, 163, 184, 0.22),
+    rgba(148, 163, 184, 0.06) 38%,
+    transparent 68%
+  );
+}
+.ambient--spot .ambient-spot {
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------------------------
+   Border beam — a subtle accent "comet" that travels around an element's
+   border. Use sparingly on one hero element per view.
+---------------------------------------------------------------------------- */
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.beam {
+  position: relative;
+}
+.beam::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0deg,
+    transparent 250deg,
+    var(--color-accent-from) 300deg,
+    var(--color-accent-mid) 325deg,
+    var(--color-accent-to) 345deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: beam-spin 7s linear infinite;
+  pointer-events: none;
+}
+@keyframes beam-spin {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .beam::before {
+    animation: none;
+  }
+}
+/* faint top-down light + bottom vignette for page depth */
+.ambient-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(120% 50% at 50% 115%, rgba(30, 41, 59, 0.05), transparent 55%);
+}
 @keyframes drift1 {
   from {
     transform: translate3d(0, 0, 0) scale(1);
