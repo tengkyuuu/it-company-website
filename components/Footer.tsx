@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Button from "./Button";
+import KeySwitch from "./fx/KeySwitch";
 import { Reveal } from "./Reveal";
 import { nav, site, socials } from "@/lib/site";
 import { services } from "@/lib/services";
@@ -18,9 +19,12 @@ export default function Footer() {
             <br />
             worth <span className="text-accent">shipping.</span>
           </h2>
-          <Button href="/location" arrow className="shrink-0">
-            Start a project
-          </Button>
+          <div className="flex shrink-0 items-center gap-6">
+            <KeySwitch size={54} tint="red" className="hidden sm:block" />
+            <Button href="/location" arrow>
+              Start a project
+            </Button>
+          </div>
         </Reveal>
 
         {/* Columns */}

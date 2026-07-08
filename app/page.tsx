@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Hero from "@/components/hero/Hero";
 import Section, { SectionHeader, Eyebrow } from "@/components/Section";
 import TechMarquee from "@/components/landing/TechMarquee";
-import ServicesPinned from "@/components/landing/ServicesPinned";
 import VideoReveal from "@/components/landing/VideoReveal";
-import ProcessTimeline from "@/components/landing/ProcessTimeline";
-import SelectedWork from "@/components/SelectedWork";
-import Button from "@/components/Button";
+import ServicesGalaxy from "@/components/landing/ServicesGalaxy";
+import WorkGallery from "@/components/landing/WorkGallery";
+import ProcessDeck from "@/components/landing/ProcessDeck";
+import BeliefScrub from "@/components/landing/BeliefScrub";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
+      {/* 3D constellation hero — scroll scatters the system */}
       <Hero />
 
       {/* Our stack */}
@@ -32,58 +33,27 @@ export default function Home() {
       {/* Showreel — scroll-driven expand + scrub */}
       <VideoReveal />
 
-      {/* Services — horizontal pinned scroll */}
-      <ServicesPinned />
+      {/* Services — dark band, sticky morphing 3D glyph + scrolling index */}
+      <ServicesGalaxy />
 
-      {/* Selected Work */}
-      <Section className="pt-24 md:pt-32">
-        <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
-          <SectionHeader
-            eyebrow="Selected work"
-            title={
-              <>
-                A few things we’re
-                <br className="hidden sm:block" /> proud to have shipped.
-              </>
-            }
-            intro="Real products, in real hands — across fintech, retail, and beyond."
-          />
-          <Reveal delay={0.1}>
-            <Button href="/location" variant="outline" arrow>
-              Start a project
-            </Button>
-          </Reveal>
-        </div>
+      {/* Selected Work — pinned horizontal gallery with parallax plates */}
+      <div className="pt-24 md:pt-32">
+        <WorkGallery />
+      </div>
 
-        <SelectedWork />
-      </Section>
-
-      {/* Process — draw-line timeline */}
+      {/* Process — sticky card deck */}
       <Section className="pt-24 md:pt-32">
         <SectionHeader
           eyebrow="How we work"
           title="A calm, predictable way to ship."
           intro="No mystery, no theatrics. Four steps, weekly check-ins, and a build you can see from day one."
         />
-        <ProcessTimeline />
+        <ProcessDeck />
       </Section>
 
-      {/* Belief band */}
+      {/* Belief band — words ink in as you scroll */}
       <Section className="pt-24 md:pt-32">
-        <Reveal className="relative overflow-hidden rounded-[2rem] bg-ink px-8 py-16 text-paper grain md:px-16 md:py-24">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 opacity-50 aurora" />
-          <div className="relative">
-            <Eyebrow>Our belief</Eyebrow>
-            <p className="mt-6 max-w-3xl text-balance text-3xl font-medium leading-snug tracking-tight md:text-4xl">
-              Good software shouldn’t announce itself. It should feel{" "}
-              <span className="text-accent">obvious</span> — like it was always
-              meant to work this way.
-            </p>
-            <p className="mt-8 font-mono text-xs uppercase tracking-widest text-paper/50">
-              — The MYKTECH studio
-            </p>
-          </div>
-        </Reveal>
+        <BeliefScrub />
       </Section>
     </>
   );

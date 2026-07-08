@@ -12,20 +12,25 @@ The impression to leave: *we make software and we innovate, with taste.*
 4. **Location** — where to find us, map, contact.
 
 **HQ:** Dipolog City, Zamboanga del Norte (single source of truth: `lib/site.ts`).
-**Hero:** WebGL gradient blob (no photo). **Selected Work = real client projects**
-(FameCRM, PhysioPano, SHM, Rally's Equities, Coffee Shop) — screenshots in `public/work/`.
+**Hero:** immersive WebGL "constellation" (no photo). **Selected Work = real client projects**
+(FameCRM, PhysioPano, SHM, Rally's Equities, Coffee Shop) — screenshots in `public/work/`,
+data in `lib/work.ts`.
 **Team (real):** Jhade Banquiao (Project Lead), James Calunsag (Frontend), Haron Diniay
 (Backend), Ralph Andilab (Mobile), Sean Jacinto (AI Automation), Hasnain Fayyaz (Marketing).
 **Nav:** logo mark (`public/brand/logo.png`) + MYKT wordmark, top-left.
 
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
-Hero → **tech-stack marquee** (`TechMarquee`, velocity-reactive, real logos via
-`simple-icons`, colorise on hover) → showreel → **Services** (interactive
-index + sticky dark panel, `ServicesShowcase`) → **Selected Work** (browser-frame project previews, 3D tilt, `SelectedWork`) →
-**Process** (vertical timeline) → belief band → footer.
+**3D hero** (`Hero` — sticky 175vh stage; scroll scatters the constellation) →
+**tech-stack marquee** (`TechMarquee`, velocity-reactive, real logos via `simple-icons`,
+colorise on hover) → showreel (`VideoReveal`) → **Services** (`ServicesGalaxy` — dark band,
+sticky WebGL glyph morphs per service as the index scrolls) → **Selected Work**
+(`WorkGallery` — pinned horizontal gallery, parallax plates, live counter) →
+**Process** (`ProcessDeck` — sticky stacked cards) → belief band (`BeliefScrub` —
+words ink in with scroll) → footer.
 (Removed the testimonials carousel — it used famous design quotes, misleading as
 "client" quotes — and the invented stats row, per client feedback.)
-Global: `ScrollProgress` gradient bar fixed at top. Work images in `public/work/` (Pexels).
+Global: `ScrollProgress` gradient bar fixed at top. Work images in `public/work/` (real
+client screenshots).
 
 ## Services (prototype set — refine later)
 - Web Development
@@ -90,9 +95,11 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
 - **Next.js 15** (App Router) + **React 19** + **TypeScript**
 - **Tailwind CSS v4** (CSS-first config in `app/globals.css` via `@theme`)
 - **Motion engine: GSAP + ScrollTrigger** (scroll choreography) and **Lenis** (smooth scroll),
-  synced via the GSAP ticker. **Framer Motion** still used for small component-level reveals
-  (`Reveal`, nav, testimonials).
-- **Three.js + @react-three/fiber + drei** — the hero's soft gradient blob only.
+  synced via the GSAP ticker. **Framer Motion** for component-level interaction
+  (`Reveal`, nav, accordion, roster orb, magnetic `Button`).
+- **Three.js + @react-three/fiber + drei** — two scenes in `components/three/`:
+  `HeroScene` (constellation) and `GlyphScene` (per-service morphing glyphs). Gating util:
+  `lib/webgl.ts` (`wants3D()` = desktop + WebGL + no reduced-motion; CSS gradient fallback otherwise).
 - **Geist** font (`geist` package: `GeistSans`, `GeistMono`)
 - Brand assets live in `public/` (logo, mockups, `work/` tiles).
 - Run: `npm run dev` → http://localhost:3000
@@ -105,17 +112,37 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
   `ScrollFX` (global `[data-animate]` reveal via `ScrollTrigger.batch`; adds `reveal-ready`
   to `<html>` so content is never stuck hidden with JS off). `app/template.tsx` = per-route
   fade (opacity-only — a transform would break `position:fixed`/sticky descendants).
-- `components/hero/`: `Hero` (kinetic line-mask headline, gated on `mykt:ready`),
-  `BlobScene` (R3F, two accent point-lights paint the magenta→gold gradient; window-pointer
-  parallax so the canvas can sit behind content). WebGL is desktop + WebGL-capable only;
-  mobile/reduced-motion get a CSS gradient fallback.
-- `components/landing/`: `VelocityMarquee` (speed/skew react to scroll velocity),
-  `VideoReveal` (`public/brand/landing-page-vid.mp4` — starts inset/rounded, pins + expands
-  to full-bleed while the clip **scrubs with scroll**; mobile = contained autoplay loop),
-  `ServicesPinned` (desktop horizontal pinned scroll via `gsap.matchMedia`; mobile stacks),
-  `StatsCounter` (count-up on enter), `ProcessTimeline` (scrubbed draw-line).
+- `components/hero/`: `Hero` — sticky stage inside a 175vh section. Kinetic line-mask
+  headline (one line outlined via `.text-stroke`, one gradient word), gated on `mykt:ready`;
+  a scrubbed ScrollTrigger pipes progress into `HeroScene` (satellites scatter, camera pulls
+  back) and lifts the copy away. Extras: rotating circular-text badge, live PHT clock
+  (`fx/LocalTime`), geo coordinates from `lib/site.ts`. Accent point-lights paint the
+  magenta→gold gradient onto near-white meshes (the "one gradient" rule, in 3D).
+- `components/landing/`: `TechMarquee` (speed/skew react to scroll velocity),
+  `VideoReveal` (160-frame webp sequence in `public/brand/reel/` — pins + expands to
+  full-bleed while **scrubbing with scroll**; mobile = contained loop),
+  `ServicesGalaxy` (dark band; left panel sticky with `GlyphScene` — IntersectionObserver
+  marks the row crossing mid-viewport "active", glyph + label crossfade; mobile stacks with
+  animated `Icon`s), `WorkGallery` (pinned horizontal scroll via `gsap.matchMedia`; per-plate
+  screenshot parallax via `containerAnimation`; live `01/05` counter + progress rail;
+  mobile stacks), `ProcessDeck` (position-sticky card stack; GSAP scales covered cards back),
+  `BeliefScrub` (scrubbed per-word opacity; words default visible so no-JS still reads).
+- Inner pages: Services = `services/ServiceIndex` (framer-motion accordion, outlined
+  numerals) + `services/ServicesGlyph` (cycling `GlyphScene`); About = outline-type marquee
+  band + `about/TeamRoster` (cursor-following gradient monogram orb, rows recede on hover);
+  Location = giant `mailto:` typographic moment + live clock, hairline detail rows,
+  grayscale→color map hover.
 - `Button` is **magnetic** (springs toward the cursor on mouse). A subtle filmic
   **grain** overlay sits site-wide (`.grain`, fixed, z-40) over the ambient gray gradients.
+- `fx/KeySwitch` — the site-wide mascot object (client request, ref. midu.design): two
+  client-supplied alpha-AVIF renders layered in CSS — `public/brand/keyswitch.avif`
+  (housing, stays neutral) under `public/brand/keycap.avif` (translucent resin cap).
+  Hover presses the cap down onto the housing and flares an under-cap glow (`.keyswitch`
+  CSS in `globals.css`: fast press w/ overshoot, slow spring release; reduced-motion = no
+  travel). A `tint` prop hue-rotates cap+glow together (red/gold/plum/rose/sky/mint) so
+  **each placement wears a different color**: hero=gold, ServicesGalaxy=plum,
+  WorkGallery=sky, ProcessDeck=rose, BeliefScrub=mint, Services page=rose, About=sky,
+  Location=plum, Footer=red. Decorative (`aria-hidden`).
 - `.beam` utility (`globals.css`, via `@property --beam-angle`) draws an animated accent
   border-comet — used sparingly (the contact card). One accent moment per view.
 - **All motion respects `prefers-reduced-motion`.**
@@ -148,11 +175,21 @@ to `.verify/`. Playwright is **not** a project dependency (it would break the Ve
 the script installs it on demand with `--no-save`, so it never touches `package.json`/lockfile.
 Run: `npm run build && npx next start -p 3100 &` then `npm run verify`.
 
+### ⚠️ Stale `.next` cache (build/dev collision)
+`next build` (production) and `next dev` write **different** client-reference/module
+manifests into the same `.next`. Running one after the other — e.g. `npm run verify`
+(which does `next build` + `next start`) while a `next dev` server is up — leaves mismatched
+artifacts and throws runtime errors like `Cannot read properties of undefined (reading 'call')`
+or `Invariant: Expected clientReferenceManifest to be defined`. **These are cache artifacts,
+not code bugs.** Fix: `npm run clean` (removes `.next`) then restart the dev server. OneDrive
+syncing `.next` mid-write makes it worse (see below). Rule of thumb: don't leave `.next` in a
+production-built state under an active dev server.
+
 ### ⚠️ OneDrive caveat
 This project lives under OneDrive, which has **twice silently removed binary files**
-(`public/work/*.jpg`, and once a `.tsx`). If images 404 / a component "vanishes", re-download
-work tiles (Pexels IDs in `SelectedWork.tsx`) or restore the file. Consider moving the repo
-outside OneDrive.
+(`public/work/*.jpg`, and once a `.tsx`). If images 404 / a component "vanishes", restore the
+file from git (`git checkout -- <path>`); work-tile paths live in `lib/work.ts`. Consider
+moving the repo outside OneDrive.
 
 ## Conventions
 - Mobile-first, fully responsive. Accessible (semantic HTML, focus states, alt text, contrast).

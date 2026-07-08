@@ -119,6 +119,95 @@ body {
   border: 0;
 }
 
+/* ----------------------------------------------------------------------------
+   Keyswitch — the site-wide easter egg (components/fx/KeySwitch.tsx).
+   Two layered renders: the housing sits still, the tinted cap floats above.
+   Hover presses the cap home onto the housing and flares its glow.
+---------------------------------------------------------------------------- */
+.keyswitch {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  cursor: pointer;
+}
+.keyswitch .ks-base {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 84%;
+  height: auto;
+}
+.keyswitch .ks-capwrap {
+  position: absolute;
+  left: 2%;
+  top: 0;
+  width: 78%;
+  filter: var(--ks-tint, none);
+  /* the slower spring-back travel */
+  transition: transform 0.34s var(--ease-soft);
+  will-change: transform;
+}
+.keyswitch:hover .ks-capwrap {
+  /* the fast press toward the housing — overshoot reads as the "clack" */
+  transform: translate(6%, 26%);
+  transition: transform 0.13s cubic-bezier(0.2, 0.9, 0.3, 1.35);
+}
+.keyswitch:active .ks-capwrap {
+  transform: translate(7%, 30%);
+}
+.keyswitch .ks-capimg {
+  position: relative;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 8px 9px rgba(15, 23, 42, 0.35));
+  transition: filter 0.34s var(--ease-soft);
+}
+.keyswitch:hover .ks-capimg {
+  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.45)) brightness(1.1)
+    saturate(1.08);
+  transition: filter 0.13s ease-out;
+}
+/* under-cap glow; hue-rotates with the cap since it shares .ks-capwrap */
+.keyswitch .ks-glow {
+  position: absolute;
+  inset: -20%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 92, 31, 0.75),
+    rgba(255, 92, 31, 0) 70%
+  );
+  filter: blur(8px);
+  opacity: 0.2;
+  transition: opacity 0.34s var(--ease-soft), transform 0.34s var(--ease-soft);
+}
+.keyswitch:hover .ks-glow {
+  opacity: 1;
+  transform: scale(1.12);
+  transition: opacity 0.13s ease-out, transform 0.13s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .keyswitch .ks-capwrap,
+  .keyswitch .ks-capimg,
+  .keyswitch .ks-glow {
+    transition: none;
+  }
+}
+
+/* Outlined display type — the editorial counterpoint to solid ink headings. */
+.text-stroke {
+  -webkit-text-stroke: 1.5px var(--color-ink);
+  color: transparent;
+}
+.text-stroke-paper {
+  -webkit-text-stroke: 1.5px rgba(248, 250, 252, 0.8);
+  color: transparent;
+}
+.text-stroke-soft {
+  -webkit-text-stroke: 1px var(--color-mist);
+  color: transparent;
+}
+
 /* Marquee for the trusted-by strip */
 @keyframes marquee {
   from {
