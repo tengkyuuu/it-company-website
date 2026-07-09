@@ -4,12 +4,13 @@ import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
 
 const team = [
+  { name: "Hasnain Fayyaz", role: "Founder · Head of Marketing", initials: "HF" },
+  { name: "Sean Myk Daniel Jacinto", role: "Co-founder · AI Automation", initials: "SJ" },
   { name: "Jhade Japhet Banquiao", role: "Project Lead", initials: "JB" },
-  { name: "James Vincent Calunsag", role: "Frontend Developer", initials: "JC" },
+  { name: "James Vincent Calunsag", role: "UI/UX Designer", initials: "JC" },
   { name: "Haron Ian Diniay", role: "Backend Developer", initials: "HD" },
   { name: "Ralph Wyndril Andilab", role: "Mobile Developer", initials: "RA" },
-  { name: "Sean Myk Daniel Jacinto", role: "AI Automation Specialist", initials: "SJ" },
-  { name: "Hasnain Fayyaz", role: "Head of Marketing", initials: "HF" },
+  { name: "Rhett Wayne Manubag", role: "Mobile / Web App Developer", initials: "RM" },
 ];
 
 /** Each member gets their own tilt of the brand gradient. */
