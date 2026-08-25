@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------------------
-   MYKT design tokens — slate neutrals + one magenta→gold accent gradient.
+   mykTech() design tokens — slate neutrals + one magenta→gold accent gradient.
    Tailwind v4 reads @theme to generate utilities (bg-paper, text-ink, …).
 ---------------------------------------------------------------------------- */
 @theme {
   --color-paper: #f8fafc; /* Neutral  — page background        */
+  --color-surface: #ffffff; /* raised cards on top of paper     */
   --color-mist: #cbd5e1; /* Primary  — borders, muted fills    */
   --color-slatey: #94a3b8; /* Tertiary — secondary text          */
   --color-ink: #1e293b; /* Secondary— headings, dark sections */
@@ -26,6 +27,11 @@
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Make Tailwind's `dark:` variant follow our data-theme attribute instead of the
+   OS preference, so `dark:` and the token flip below can never disagree. Rarely
+   needed on the marketing pages (the tokens handle it) but handy in the admin. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --accent: linear-gradient(
     115deg,
@@ -33,6 +39,76 @@
     var(--color-accent-mid) 45%,
     var(--color-accent-to) 100%
   );
+
+  /* ambient graphic (see .ambient-* below) — tuned per theme */
+  --amb-1: #cbd5e1;
+  --amb-2: #94a3b8;
+  --amb-3: #b8c4d4;
+  --amb-opacity: 1;
+  --amb-spot: rgba(148, 163, 184, 0.22);
+  --amb-veil-top: rgba(255, 255, 255, 0.5);
+  --amb-veil-bottom: rgba(30, 41, 59, 0.05);
+
+  color-scheme: light;
+}
+
+/* ----------------------------------------------------------------------------
+   Dark theme. Tailwind v4 compiles `bg-paper`/`text-ink`/… to var(--color-*),
+   so re-declaring the ramp here flips the whole site — no `dark:` variants in
+   markup. These rules are UNLAYERED, so they beat Tailwind's @layer theme
+   defaults regardless of specificity ties with :root.
+   `data-theme` is stamped on <html> by components/theme/ThemeScript.
+---------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  --color-paper: #0b1220; /* page background — deep slate, never pure black */
+  --color-surface: #131d30; /* raised cards                                */
+  --color-mist: #2a3647; /* borders, dividers                             */
+  --color-slatey: #8496b0; /* secondary text (6.4:1 on paper)             */
+  --color-ink: #e6edf7; /* body + headings                                */
+  --color-ink-700: #c3cedd;
+  --color-ink-900: #f4f8fc;
+
+  /* the gradient reads muddy at full saturation on a dark ground */
+  --color-accent-from: #c173b0;
+  --color-accent-mid: #d97e9c;
+  --color-accent-to: #f0b650;
+
+  --amb-1: #1b2740;
+  --amb-2: #24344f;
+  --amb-3: #172033;
+  --amb-opacity: 0.75;
+  --amb-spot: rgba(148, 176, 214, 0.14);
+  --amb-veil-top: rgba(148, 176, 214, 0.05);
+  --amb-veil-bottom: rgba(0, 0, 0, 0.35);
+
+  color-scheme: dark;
+}
+
+/* ----------------------------------------------------------------------------
+   `.band` — a section that is deliberately dark in BOTH themes (footer,
+   ServicesGalaxy, BeliefScrub, the last ProcessDeck card, work plates…).
+   It pins the neutral ramp to its light-on-dark values locally, so the
+   descendants inside it keep using bg-ink / text-paper / text-slatey and read
+   correctly either way. In dark mode the band sits slightly ABOVE the page
+   background, so it reads as an elevated surface rather than a hole.
+---------------------------------------------------------------------------- */
+.band {
+  --color-paper: #f8fafc;
+  --color-surface: #ffffff;
+  --color-mist: #cbd5e1;
+  --color-slatey: #94a3b8;
+  --color-ink: #1e293b;
+  --color-ink-700: #334155;
+  --color-ink-900: #0f172a;
+}
+[data-theme="dark"] .band {
+  --color-paper: #e9eef7;
+  --color-surface: #f8fafc;
+  --color-mist: #33415a;
+  --color-slatey: #8fa0ba;
+  --color-ink: #141f33;
+  --color-ink-700: #22304a;
+  --color-ink-900: #0b1220;
 }
 
 * {
@@ -41,6 +117,7 @@
 
 html {
   scroll-behavior: smooth;
+  background: var(--color-paper);
 }
 
 body {
@@ -51,24 +128,29 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Theme swaps are driven by the toggle's own animation, not per-property
+   transitions (those would stagger across thousands of nodes). */
+
 ::selection {
   background: var(--color-accent-to);
-  color: var(--color-ink);
+  /* the ground is always gold here, so keep the text fixed-dark */
+  color: #10192b;
 }
 
 /* ----------------------------------------------------------------------------
    Reusable brand helpers
 ---------------------------------------------------------------------------- */
 
-/* Gradient text — the signature MYKT move. Use on ONE word per view. */
-.text-accent {
+/* Gradient text — the signature mykTech() move. Use on ONE word per view.
+   Declared as @utility (not plain classes) so hover:/group-hover: variants work. */
+@utility text-accent {
   background: var(--accent);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-.bg-accent {
+@utility bg-accent {
   background: var(--accent);
 }
 
@@ -122,7 +204,8 @@ body {
 /* ----------------------------------------------------------------------------
    Keyswitch — the site-wide easter egg (components/fx/KeySwitch.tsx).
    Two layered renders: the housing sits still, the tinted cap floats above.
-   Hover presses the cap home onto the housing and flares its glow.
+   Hover only flares the under-cap glow; the actual press (cap travels home
+   onto the housing) is reserved for :active, so the click has its own payoff.
 ---------------------------------------------------------------------------- */
 .keyswitch {
   position: relative;
@@ -139,21 +222,20 @@ body {
 }
 .keyswitch .ks-capwrap {
   position: absolute;
-  left: 2%;
-  top: 0;
+  /* measured against the renders: cap centered over the housing's stem */
+  left: 21.5%;
+  top: 15%;
   width: 78%;
   filter: var(--ks-tint, none);
   /* the slower spring-back travel */
   transition: transform 0.34s var(--ease-soft);
   will-change: transform;
 }
-.keyswitch:hover .ks-capwrap {
-  /* the fast press toward the housing — overshoot reads as the "clack" */
-  transform: translate(6%, 26%);
-  transition: transform 0.13s cubic-bezier(0.2, 0.9, 0.3, 1.35);
-}
+/* hover deliberately does NOT move the cap — see .ks-glow below */
 .keyswitch:active .ks-capwrap {
-  transform: translate(7%, 30%);
+  /* the press: cap travels home onto the housing, overshoot reads as the "clack" */
+  transform: translate(-2%, 10%);
+  transition: transform 0.13s cubic-bezier(0.2, 0.9, 0.3, 1.35);
 }
 .keyswitch .ks-capimg {
   position: relative;
@@ -162,10 +244,16 @@ body {
   filter: drop-shadow(0 8px 9px rgba(15, 23, 42, 0.35));
   transition: filter 0.34s var(--ease-soft);
 }
+/* hover lifts the resin only; the shadow holds since the cap hasn't moved */
 .keyswitch:hover .ks-capimg {
-  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.45)) brightness(1.1)
+  filter: drop-shadow(0 8px 9px rgba(15, 23, 42, 0.35)) brightness(1.1)
     saturate(1.08);
   transition: filter 0.13s ease-out;
+}
+/* pressed home, the cap is closer to the housing — so its shadow tightens */
+.keyswitch:active .ks-capimg {
+  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.45)) brightness(1.12)
+    saturate(1.1);
 }
 /* under-cap glow; hue-rotates with the cap since it shares .ks-capwrap */
 .keyswitch .ks-glow {
@@ -181,15 +269,266 @@ body {
   opacity: 0.2;
   transition: opacity 0.34s var(--ease-soft), transform 0.34s var(--ease-soft);
 }
+/* the whole hover payoff lives here — glow flares, nothing travels */
 .keyswitch:hover .ks-glow {
   opacity: 1;
   transform: scale(1.12);
   transition: opacity 0.13s ease-out, transform 0.13s ease-out;
 }
+/* the press blooms it once more so the click lands. Sets opacity too, not just
+   scale: on touch there is no :hover, so the tap has to raise the glow itself. */
+.keyswitch:active .ks-glow {
+  opacity: 1;
+  transform: scale(1.26);
+}
 @media (prefers-reduced-motion: reduce) {
   .keyswitch .ks-capwrap,
   .keyswitch .ks-capimg,
   .keyswitch .ks-glow {
+    transition: none;
+  }
+  /* no travel — the glow alone carries hover + press */
+  .keyswitch:active .ks-capwrap {
+    transform: none;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   The mykTech() wordmark (components/Logo.tsx).
+
+   Eight typefaces in one lockup → it can only be a raster. Painted as a CSS
+   *mask* over `currentColor` rather than an <img>, so it inherits the text
+   colour and follows light/dark + `.band` with no extra work.
+   `wordmark-outline.png` is the same silhouette dilated minus itself — a real
+   ring, which sidesteps CSS drop-shadow (filters are applied BEFORE masking, so
+   a shadow on a masked element gets clipped straight back off).
+---------------------------------------------------------------------------- */
+.wm,
+.wm-outline {
+  display: block;
+  /* intrinsic ratio of the trimmed asset — set one axis, the other follows */
+  aspect-ratio: 1199 / 370;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.wm {
+  -webkit-mask-image: url("/brand/wordmark.png");
+  mask-image: url("/brand/wordmark.png");
+}
+.wm-outline {
+  -webkit-mask-image: url("/brand/wordmark-outline.png");
+  mask-image: url("/brand/wordmark-outline.png");
+}
+
+/* ----------------------------------------------------------------------------
+   Preloader — plays on every full load (components/fx/Preloader.tsx).
+   Gray mark → a raked band of white light sweeps left→right, leaving the mark
+   white behind it → resolves to black with a thin white outline. On #111a24.
+---------------------------------------------------------------------------- */
+.pl {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  /* a fixed brand colour in both themes — this is a splash, not a surface */
+  background: #111a24;
+}
+.pl-stage {
+  --pl-w: min(74vw, 720px);
+  position: relative;
+  width: var(--pl-w);
+  aspect-ratio: 1199 / 370;
+}
+.pl-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pl-gray {
+  color: #5b6a80;
+}
+.pl-white,
+.pl-ring {
+  color: #ffffff;
+}
+.pl-black {
+  color: #000000;
+}
+
+/* The white state is revealed left→right by sliding the wrapper in while its
+   child slides the opposite way, so the mark stays put. Both are transforms —
+   the whole sequence therefore composites, which is the point: it has to stay
+   smooth while React hydrates and the hero's WebGL scene boots. Animating
+   `width` here instead cost ~4fps under that load. */
+.pl-white-wrap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  transform: translateX(-100%);
+  animation: pl-reveal 0.68s var(--ease-soft) 0.25s forwards;
+}
+.pl-white-wrap .pl-layer {
+  transform: translateX(100%);
+  animation: pl-reveal-inner 0.68s var(--ease-soft) 0.25s forwards;
+}
+@keyframes pl-reveal {
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes pl-reveal-inner {
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* the travelling light, clipped to the letterforms so it reads as the mark
+   catching the light rather than a bar sliding across it */
+.pl-ray {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  -webkit-mask-image: url("/brand/wordmark.png");
+  mask-image: url("/brand/wordmark.png");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.pl-ray-band {
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: 0;
+  width: 15%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 32%,
+    #ffffff 50%,
+    rgba(255, 255, 255, 0.45) 68%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  filter: blur(5px);
+  opacity: 0;
+  transform: translateX(-120%) skewX(-14deg);
+  /* SAME duration/delay/easing as the reveal above — that's what keeps the light
+     sitting on the edge it is supposedly creating. Given a different easing the
+     reveal races ahead and the flash trails uselessly behind it. */
+  animation: pl-ray 0.68s var(--ease-soft) 0.25s forwards;
+}
+@keyframes pl-ray {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%) skewX(-14deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(640%) skewX(-14deg);
+  }
+}
+
+/* resolved state: the ring sits beneath an opaque black fill, so only the ring
+   is left showing around the letters */
+.pl-final {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: pl-resolve 0.38s var(--ease-soft) 0.98s forwards;
+}
+@keyframes pl-resolve {
+  to {
+    opacity: 1;
+  }
+}
+
+/* …then the whole panel lifts away. This is the animation the component
+   listens for to know the sequence is over. */
+.pl {
+  animation: pl-out 0.58s cubic-bezier(0.76, 0, 0.24, 1) 1.56s forwards;
+}
+@keyframes pl-out {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/* Reduced motion: the global rule collapses every duration to ~0, but not the
+   delays — zero those too so the panel doesn't just sit there. */
+@media (prefers-reduced-motion: reduce) {
+  .pl,
+  .pl-white-wrap,
+  .pl-white-wrap .pl-layer,
+  .pl-ray-band,
+  .pl-final {
+    animation-delay: 0s !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Footer wordmark — the outlined mark inks in with the accent gradient under a
+   cursor-following spotlight (components/FooterWordmark.tsx).
+---------------------------------------------------------------------------- */
+.fw {
+  position: relative;
+}
+/* the always-there outlined ghost */
+.fw-ghost {
+  color: rgba(248, 250, 252, 0.24);
+}
+/* the gradient fill, visible only where the cursor spotlight allows */
+.fw-reveal {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-soft);
+  -webkit-mask-image: radial-gradient(
+    260px circle at var(--fw-x, 50%) var(--fw-y, 60%),
+    #000 35%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    260px circle at var(--fw-x, 50%) var(--fw-y, 60%),
+    #000 35%,
+    transparent 100%
+  );
+}
+.fw:hover .fw-reveal {
+  opacity: 1;
+}
+/* .wm paints currentColor; layer the accent gradient over it */
+.fw-grad {
+  background-image: var(--accent);
+}
+/* no hover (touch): show a quiet full-width gradient fill instead */
+@media (hover: none) {
+  .fw-reveal {
+    opacity: 0.4;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fw-reveal {
     transition: none;
   }
 }
@@ -286,8 +625,8 @@ body {
   height: 60vw;
   left: -12vw;
   top: -12vw;
-  opacity: 0.55;
-  background: radial-gradient(circle at center, #cbd5e1 0%, transparent 68%);
+  opacity: calc(0.55 * var(--amb-opacity));
+  background: radial-gradient(circle at center, var(--amb-1) 0%, transparent 68%);
   animation: drift1 26s var(--ease-soft) infinite alternate;
 }
 .ambient-orb--2 {
@@ -295,8 +634,8 @@ body {
   height: 52vw;
   right: -14vw;
   top: 24vh;
-  opacity: 0.4;
-  background: radial-gradient(circle at center, #94a3b8 0%, transparent 70%);
+  opacity: calc(0.4 * var(--amb-opacity));
+  background: radial-gradient(circle at center, var(--amb-2) 0%, transparent 70%);
   animation: drift2 34s var(--ease-soft) infinite alternate;
 }
 .ambient-orb--3 {
@@ -304,8 +643,8 @@ body {
   height: 48vw;
   left: 18vw;
   bottom: -18vh;
-  opacity: 0.45;
-  background: radial-gradient(circle at center, #b8c4d4 0%, transparent 70%);
+  opacity: calc(0.45 * var(--amb-opacity));
+  background: radial-gradient(circle at center, var(--amb-3) 0%, transparent 70%);
   animation: drift3 30s var(--ease-soft) infinite alternate;
 }
 /* soft cursor-following spotlight (adds depth; fine-pointer only, via JS) */
@@ -316,8 +655,7 @@ body {
   transition: opacity 0.8s var(--ease-soft);
   background: radial-gradient(
     460px circle at var(--mx, 50%) var(--my, 22%),
-    rgba(148, 163, 184, 0.22),
-    rgba(148, 163, 184, 0.06) 38%,
+    var(--amb-spot),
     transparent 68%
   );
 }
@@ -376,8 +714,8 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(120% 60% at 50% -10%, rgba(255, 255, 255, 0.5), transparent 60%),
-    radial-gradient(120% 50% at 50% 115%, rgba(30, 41, 59, 0.05), transparent 55%);
+    radial-gradient(120% 60% at 50% -10%, var(--amb-veil-top), transparent 60%),
+    radial-gradient(120% 50% at 50% 115%, var(--amb-veil-bottom), transparent 55%);
 }
 @keyframes drift1 {
   from {
@@ -475,6 +813,62 @@ html.reveal-ready [data-animate] {
 /* clip-reveal helper for images */
 .clip-reveal {
   clip-path: inset(0 0 100% 0);
+}
+
+/* ----------------------------------------------------------------------------
+   Theme swap — the incoming theme is revealed by a circle expanding out of the
+   toggle. The clip-path itself is animated in JS (components/theme/ThemeToggle)
+   because it needs the button's live coordinates; these rules just disable the
+   browser's default cross-fade and stack the two snapshots. Browsers without
+   the View Transitions API repaint instantly, and reduced-motion skips it.
+---------------------------------------------------------------------------- */
+@supports (view-transition-name: none) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(root) {
+    z-index: 1;
+  }
+  ::view-transition-new(root) {
+    z-index: 2;
+  }
+}
+
+/* The toggle: a pill whose thumb slides and whose sun/moon crossfade. Visual
+   state is keyed off <html data-theme> (not React) so it is correct on the
+   very first paint, before hydration. */
+.tt-thumb {
+  transition: transform 0.45s var(--ease-soft), background-color 0.45s var(--ease-soft);
+}
+[data-theme="dark"] .tt-thumb {
+  transform: translateX(100%);
+}
+.tt-icon {
+  transition: opacity 0.35s var(--ease-soft), transform 0.5s var(--ease-soft);
+}
+.tt-sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+.tt-moon {
+  opacity: 0;
+  transform: rotate(-70deg) scale(0.6);
+}
+[data-theme="dark"] .tt-sun {
+  opacity: 0;
+  transform: rotate(70deg) scale(0.6);
+}
+[data-theme="dark"] .tt-moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-thumb,
+  .tt-icon {
+    transition: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

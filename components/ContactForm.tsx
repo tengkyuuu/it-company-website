@@ -42,7 +42,7 @@ export default function ContactForm() {
   }
 
   return (
-    <div className="beam relative rounded-3xl border border-mist/70 bg-white p-7 md:p-9">
+    <div className="beam relative rounded-3xl border border-mist/70 bg-surface p-7 md:p-9">
       <AnimatePresence mode="wait">
         {showSuccess ? (
           <motion.div

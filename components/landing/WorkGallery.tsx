@@ -8,15 +8,18 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Button from "@/components/Button";
 import KeySwitch from "@/components/fx/KeySwitch";
-import { projects } from "@/lib/work";
+import type { Project } from "@/lib/work";
 
 /**
  * Selected work as a pinned horizontal gallery. The wheel drives the track
- * sideways; each plate's screenshot drifts against the travel direction
- * (parallax via containerAnimation) under a giant outlined index numeral.
- * A live counter + progress rail sit at the bottom. Mobile: vertical stack.
+ * sideways; each plate is tinted with the project's own signature color and
+ * layers one or two browser-framed screenshots (contained at native aspect —
+ * never cover-cropped or upscaled, the sources are only ~1536px wide). The
+ * frames drift vertically against the travel (translate-only parallax, no
+ * scaling → no blur). A live counter + progress rail sit at the bottom.
+ * Mobile: vertical stack, main shot only.
  */
-export default function WorkGallery() {
+export default function WorkGallery({ projects }: { projects: Project[] }) {
   const section = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
@@ -59,13 +62,14 @@ export default function WorkGallery() {
             },
           });
 
-          // counter-drift parallax inside each plate
-          gsap.utils.toArray<HTMLElement>(".work-plate-img").forEach((img) => {
+          // vertical counter-drift inside each plate; sign flips direction
+          gsap.utils.toArray<HTMLElement>(".work-shot-drift").forEach((img) => {
+            const depth = parseFloat(img.dataset.depth ?? "4");
             gsap.fromTo(
               img,
-              { xPercent: -6 },
+              { yPercent: depth },
               {
-                xPercent: 6,
+                yPercent: -depth,
                 ease: "none",
                 scrollTrigger: {
                   trigger: img.closest(".work-plate") as HTMLElement,
@@ -107,8 +111,8 @@ export default function WorkGallery() {
             beyond.
           </p>
           <div className="mt-8">
-            <Button href="/location" variant="outline" arrow>
-              Start a project
+            <Button href="/projects" variant="outline" arrow>
+              See all projects
             </Button>
           </div>
           <span className="mt-10 hidden items-center gap-3 font-mono text-xs uppercase tracking-widest text-ink/40 md:inline-flex">
@@ -131,43 +135,68 @@ export default function WorkGallery() {
               {String(i + 1).padStart(2, "0")}
             </span>
 
-            <div className="relative overflow-hidden rounded-[1.75rem] border border-mist/70 bg-white shadow-[0_30px_80px_-45px_rgba(15,23,42,0.5)] md:h-[64vh]">
+            <div
+              className="band relative overflow-hidden rounded-[1.75rem] border border-white/10 text-paper shadow-[0_30px_80px_-45px_rgba(15,23,42,0.55)] md:h-[64vh] md:min-h-[540px]"
+              style={{ background: p.dots[2] }}
+            >
+              {/* the project's own colors as a soft ambience */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background: `radial-gradient(85% 70% at 18% 0%, color-mix(in oklab, ${p.dots[0]} 28%, transparent), transparent 62%), radial-gradient(70% 60% at 88% 100%, color-mix(in oklab, ${p.dots[1]} 20%, transparent), transparent 70%)`,
+                }}
+              />
+
               <Link
-                href="/services"
+                href={`/projects/${p.slug}`}
                 className="absolute inset-0 z-30"
-                aria-label={p.name}
+                aria-label={`${p.name} — project detail`}
                 data-cursor
               />
 
-              {/* screenshot with room to drift */}
-              <div className="relative aspect-[1536/900] md:absolute md:inset-0 md:aspect-auto">
-                <div className="work-plate-img absolute inset-0 scale-[1.15]">
-                  <Image
+              {/* main shot — browser-framed, contained at native aspect */}
+              <div
+                className={`relative z-10 p-4 pb-0 md:absolute md:p-0 ${
+                  p.img2
+                    ? "md:left-[6%] md:top-[9%] md:w-[64%]"
+                    : "md:left-1/2 md:top-[11%] md:w-[76%] md:-translate-x-1/2"
+                }`}
+              >
+                <div className="work-shot-drift" data-depth="4">
+                  <Shot
                     src={p.img}
                     alt={`${p.name} — ${p.category}`}
-                    fill
-                    quality={90}
-                    sizes="(max-width: 768px) 100vw, 56vw"
-                    className="object-cover object-top transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                    sizes={
+                      p.img2
+                        ? "(max-width: 768px) 92vw, 36vw"
+                        : "(max-width: 768px) 92vw, 43vw"
+                    }
+                    chrome={{ url: p.url, dots: p.dots }}
+                    glare
+                    className="transition-transform duration-700 ease-out group-hover:-translate-y-1.5"
                   />
                 </div>
-                {/* glare sweep */}
-                <div className="pointer-events-none absolute inset-0 z-10 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-[1100ms] ease-out group-hover:translate-x-full" />
               </div>
 
-              {/* meta overlay */}
-              <div className="relative z-20 flex items-end justify-between gap-4 bg-gradient-to-t from-ink via-ink/60 to-transparent p-6 text-paper md:absolute md:inset-x-0 md:bottom-0 md:p-8">
+              {/* secondary shot floating in from the opposite corner */}
+              {p.img2 && (
+                <div className="absolute bottom-[24%] right-[5%] z-20 hidden w-[44%] md:block">
+                  <div className="work-shot-drift" data-depth="-7">
+                    <Shot
+                      src={p.img2}
+                      alt={`${p.name} — interface detail`}
+                      sizes="25vw"
+                      className="transition-transform duration-700 ease-out group-hover:translate-y-1.5"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* meta */}
+              <div className="relative z-20 flex items-end justify-between gap-4 p-6 md:absolute md:inset-x-0 md:bottom-0 md:p-8">
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-paper/60">
-                    <span className="flex items-center gap-1" aria-hidden>
-                      {p.dots.map((c, j) => (
-                        <span
-                          key={j}
-                          style={{ background: c }}
-                          className="h-2 w-2 rounded-full ring-1 ring-white/20"
-                        />
-                      ))}
-                    </span>
+                  <p className="font-mono text-[11px] uppercase tracking-widest text-paper/60">
                     {p.category} · {p.year}
                   </p>
                   <h3 className="mt-1.5 truncate font-display text-2xl font-semibold tracking-tight md:text-3xl">
@@ -211,5 +240,59 @@ export default function WorkGallery() {
         </div>
       </div>
     </section>
+  );
+}
+
+/** A screenshot in a minimal browser frame. All work sources are ~1536×743,
+ *  so the fixed aspect shows them whole — displayed smaller than the source,
+ *  which is what keeps them crisp. */
+function Shot({
+  src,
+  alt,
+  sizes,
+  chrome,
+  glare = false,
+  className = "",
+}: {
+  src: string;
+  alt: string;
+  sizes: string;
+  /** title bar with the project's signature dots + live URL (main shot only) */
+  chrome?: { url: string; dots: Project["dots"] };
+  glare?: boolean;
+  className?: string;
+}) {
+  return (
+    <figure
+      className={`overflow-hidden rounded-xl border border-white/10 bg-ink-900 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.65)] ${className}`}
+    >
+      {chrome && (
+        <figcaption className="flex items-center gap-1.5 border-b border-white/10 bg-white/[0.04] px-3.5 py-2">
+          {chrome.dots.map((c, j) => (
+            <span
+              key={j}
+              style={{ background: c }}
+              className="h-1.5 w-1.5 rounded-full ring-1 ring-white/20"
+            />
+          ))}
+          <span className="ml-2 truncate font-mono text-[10px] tracking-wider text-paper/40">
+            {chrome.url}
+          </span>
+        </figcaption>
+      )}
+      <div className="relative aspect-[1536/743]">
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          quality={90}
+          sizes={sizes}
+          className="object-cover object-top"
+        />
+        {glare && (
+          <div className="pointer-events-none absolute inset-0 z-10 -translate-x-full bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-[1100ms] ease-out group-hover:translate-x-full" />
+        )}
+      </div>
+    </figure>
   );
 }

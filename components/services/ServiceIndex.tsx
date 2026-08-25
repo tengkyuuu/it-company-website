@@ -70,7 +70,7 @@ export default function ServiceIndex() {
                       {s.deliverables.map((d) => (
                         <span
                           key={d}
-                          className="rounded-full border border-mist/70 bg-white px-3 py-1 text-xs text-ink/60"
+                          className="rounded-full border border-mist/70 bg-surface px-3 py-1 text-xs text-ink/60"
                         >
                           {d}
                         </span>

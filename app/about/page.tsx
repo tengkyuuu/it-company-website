@@ -9,7 +9,7 @@ import { Reveal, RevealGroup, RevealItem } from "@/components/Reveal";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "MYKTECH is a small, senior IT studio in Dipolog City that builds software with the care of a design house.",
+    "mykTech() is a small, senior IT studio in Dipolog City that builds software with the care of a design house.",
   alternates: { canonical: "/about" },
 };
 
@@ -49,7 +49,7 @@ export default function AboutPage() {
         />
         <div className="grid items-end gap-12 md:grid-cols-2">
           <SectionHeader
-            eyebrow="About MYKT"
+            eyebrow="About mykTech()"
             title={
               <>
                 A small studio that
@@ -61,7 +61,7 @@ export default function AboutPage() {
           <Reveal delay={0.1}>
             <p className="text-pretty text-lg leading-relaxed text-ink/60">
               We’re a tight team of designers and engineers in Dipolog City who got
-              tired of software that felt like a chore. MYKT exists to prove
+              tired of software that felt like a chore. mykTech() exists to prove
               that serious technology can also be warm, clear, and a little
               beautiful.
             </p>
@@ -96,10 +96,10 @@ export default function AboutPage() {
 
       {/* Brand visual */}
       <Section className="pt-16 md:pt-24">
-        <Reveal className="group overflow-hidden rounded-[2rem] border border-mist/70 bg-white">
+        <Reveal className="group overflow-hidden rounded-[2rem] border border-mist/70 bg-surface">
           <Image
             src="/brand/card-mockup.png"
-            alt="MYKT brand identity on business cards"
+            alt="mykTech() brand identity on business cards"
             width={1600}
             height={1200}
             className="h-auto w-full transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
@@ -117,7 +117,7 @@ export default function AboutPage() {
           {values.map((v) => (
             <RevealItem
               key={v.title}
-              className="group relative overflow-hidden rounded-3xl border border-mist/70 bg-white p-8 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_30px_70px_-40px_rgba(15,23,42,0.4)] md:p-10"
+              className="group relative overflow-hidden rounded-3xl border border-mist/70 bg-surface p-8 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_30px_70px_-40px_rgba(15,23,42,0.4)] md:p-10"
             >
               <span
                 aria-hidden

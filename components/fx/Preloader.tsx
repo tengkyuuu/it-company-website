@@ -1,113 +1,105 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import Wordmark from "@/components/Wordmark";
+import { useEffect, useRef, useState } from "react";
+import Logo from "@/components/Logo";
 
-/** First-load intro: counts to 100, then wipes up to reveal the page. */
+/**
+ * Opening sequence, played on every full load of the site.
+ *
+ * 1. the mykTech() mark sits in gray on #111a24
+ * 2. a raked band of white light sweeps left→right, leaving the mark white behind it
+ * 3. it resolves to black with a thin white outline
+ * 4. the panel lifts away and dispatches `mykt:ready` (the Hero headline waits on it)
+ *
+ * Every state is the same wordmark mask in a different colour, so there's no font
+ * swap and no reflow. The choreography is **CSS**, not GSAP (see `.pl-*` in
+ * globals.css): it therefore starts at first paint instead of waiting for React to
+ * hydrate, and it runs on the compositor, so it stays smooth while hydration, the
+ * hero's WebGL scene and the showreel preload all fight for the main thread.
+ * This component only decides when the sequence is over.
+ *
+ * No sessionStorage gate — the client asked for this on each opening. It replays
+ * on a real page load only; client-side route changes don't remount it.
+ */
+const TOTAL_MS = 2140; // keep in sync with the pl-out delay + duration in globals.css
+
 export default function Preloader() {
   const [done, setDone] = useState(false);
   const root = useRef<HTMLDivElement>(null);
-  const numRef = useRef<HTMLSpanElement>(null);
+  const finished = useRef(false);
+  const finishRef = useRef<() => void>(() => {});
 
-  useGSAP(
-    () => {
-      const seen = (() => {
-        try {
-          return !!sessionStorage.getItem("mykt-preloaded");
-        } catch {
-          return false;
-        }
-      })();
-      if (seen) {
-        setDone(true);
-        return;
-      }
-      const finish = () => {
-        try {
-          sessionStorage.setItem("mykt-preloaded", "1");
-        } catch {}
-        document.documentElement.classList.remove("lenis-stopped");
-        window.dispatchEvent(new Event("mykt:ready"));
-        setDone(true);
-      };
-      const reduce = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-      ).matches;
-      if (reduce) {
-        finish();
-        return;
-      }
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.add("lenis-stopped");
 
-      document.documentElement.classList.add("lenis-stopped");
-      const counter = { v: 0 };
-      const tl = gsap.timeline({ onComplete: finish });
+    const finish = () => {
+      if (finished.current) return;
+      finished.current = true;
+      html.classList.remove("lenis-stopped");
+      window.dispatchEvent(new Event("mykt:ready"));
+      setDone(true);
+    };
+    finishRef.current = finish;
 
-      tl.to(counter, {
-        v: 100,
-        duration: 1.2,
-        ease: "power2.inOut",
-        onUpdate: () => {
-          if (numRef.current)
-            numRef.current.textContent = String(Math.round(counter.v)).padStart(
-              3,
-              "0"
-            );
-        },
-      })
-        .to(".pl-bar", { scaleX: 1, duration: 1.2, ease: "power2.inOut" }, 0)
-        .to(
-          [".pl-word", ".pl-meta"],
-          { yPercent: -120, opacity: 0, duration: 0.6, ease: "power3.in", stagger: 0.05 },
-          "+=0.1"
-        )
-        .to(
-          root.current,
-          { yPercent: -100, duration: 0.8, ease: "power4.inOut" },
-          "-=0.2"
-        );
-    },
-    { scope: root }
-  );
+    // Hand over on the animation's OWN clock, not on its animationend event.
+    // The sequence is composited, so it finishes on time visually — but the
+    // event dispatches on the main thread, which is busy hydrating and booting
+    // WebGL, and measured ~700ms late. Waiting for it kept the scroll locked
+    // long after the panel had already slid away.
+    //
+    // Read the animation off the element rather than by name: .pl carries
+    // exactly one (pl-out), and a CSS minifier is free to rename keyframes.
+    const anim = root.current?.getAnimations()?.[0];
+    let remaining = TOTAL_MS;
+    if (anim) {
+      // currentTime counts up through the delay, so this is time-to-end
+      const elapsed = Number(anim.currentTime ?? 0);
+      if (Number.isFinite(elapsed)) remaining = Math.max(0, TOTAL_MS - elapsed);
+      // belt and braces: whichever resolves first wins, finish() is idempotent
+      anim.finished.then(finish).catch(() => {});
+    }
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timer = window.setTimeout(finish, reduce ? 300 : remaining);
+
+    return () => {
+      window.clearTimeout(timer);
+      html.classList.remove("lenis-stopped");
+    };
+  }, []);
 
   if (done) return null;
 
   return (
     <div
       ref={root}
-      className="fixed inset-0 z-[100] flex flex-col justify-between bg-ink p-6 text-paper md:p-10"
+      className="pl"
       aria-hidden
+      // only .pl carries the lift-away animation, so its end is the sequence's end
+      onAnimationEnd={(e) => {
+        if (e.target === root.current) finishRef.current();
+      }}
     >
-      <div className="flex items-start justify-between">
-        <span className="pl-meta font-mono text-xs uppercase tracking-[0.2em] text-paper/50">
-          MYKT Studio
-        </span>
-        <span className="pl-meta font-mono text-xs uppercase tracking-[0.2em] text-paper/50">
-          Dipolog · PH
-        </span>
-      </div>
+      <div className="pl-stage">
+        {/* resting state */}
+        <Logo className="pl-layer pl-gray" />
 
-      <div className="overflow-hidden">
-        <Wordmark
-          href={null}
-          invert
-          className="pl-word text-[15vw] md:text-[9rem]"
-        />
-      </div>
-
-      <div className="flex items-end justify-between">
-        <span className="pl-meta max-w-xs text-sm text-paper/50">
-          Software, designed with intent.
+        {/* white, revealed left→right as the light passes */}
+        <span className="pl-white-wrap">
+          <Logo className="pl-layer pl-white" />
         </span>
-        <span className="pl-meta font-mono text-5xl font-semibold tabular-nums md:text-7xl">
-          <span ref={numRef}>000</span>
-        </span>
-      </div>
 
-      {/* progress bar */}
-      <div className="absolute inset-x-0 bottom-0 h-[3px] bg-white/10">
-        <div className="pl-bar h-full origin-left scale-x-0 bg-accent" />
+        {/* the light itself, clipped to the letterforms */}
+        <span className="pl-ray">
+          <span className="pl-ray-band" />
+        </span>
+
+        {/* resolved: white ring beneath a black fill */}
+        <span className="pl-final">
+          <Logo variant="outline" className="pl-layer pl-ring" />
+          <Logo className="pl-layer pl-black" />
+        </span>
       </div>
     </div>
   );

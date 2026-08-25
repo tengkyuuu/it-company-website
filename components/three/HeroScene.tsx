@@ -4,6 +4,19 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, MeshDistortMaterial } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { useTheme } from "@/components/theme/ThemeProvider";
+
+/**
+ * Theme palette for the scene. In dark mode the meshes keep a light albedo (so
+ * the accent point-lights still paint the magenta→gold gradient onto them) but
+ * the ambient fill drops right down, letting the unlit faces fall into shadow.
+ * That's what stops the forms from reading as blown-out white blobs on a dark
+ * page — the gradient does the work instead.
+ */
+const PALETTE = {
+  light: { core: "#ece7ee", sat: "#e6e1e9", dot: "#94a3b8", ambient: 0.5, dotOpacity: 0.65 },
+  dark: { core: "#d5cbdb", sat: "#cdc4d4", dot: "#93a6c4", ambient: 0.14, dotOpacity: 0.5 },
+} as const;
 
 /**
  * The hero constellation: a distorted core orbited by geometric satellites
@@ -44,7 +57,9 @@ function SatelliteGeometry({ kind }: { kind: (typeof SATELLITES)[number]["kind"]
   }
 }
 
-function Constellation({ progress }: Drive) {
+type Palette = (typeof PALETTE)[keyof typeof PALETTE];
+
+function Constellation({ progress, p: pal }: Drive & { p: Palette }) {
   const system = useRef<THREE.Group>(null);
   const sats = useRef<(THREE.Group | null)[]>([]);
   const pointer = useRef({ x: 0, y: 0 });
@@ -105,7 +120,7 @@ function Constellation({ progress }: Drive) {
         <mesh scale={1.2}>
           <icosahedronGeometry args={[1.15, 64]} />
           <MeshDistortMaterial
-            color="#ece7ee"
+            color={pal.core}
             distort={0.42}
             speed={1.3}
             roughness={0.12}
@@ -125,7 +140,7 @@ function Constellation({ progress }: Drive) {
           <Float speed={1 + s.spin} rotationIntensity={0.3} floatIntensity={0.8}>
             <mesh scale={s.scale}>
               <SatelliteGeometry kind={s.kind} />
-              <meshStandardMaterial color="#e6e1e9" roughness={0.18} metalness={0.55} />
+              <meshStandardMaterial color={pal.sat} roughness={0.18} metalness={0.55} />
             </mesh>
           </Float>
         </group>
@@ -134,7 +149,7 @@ function Constellation({ progress }: Drive) {
   );
 }
 
-function Particles({ progress }: Drive) {
+function Particles({ progress, p: pal }: Drive & { p: Palette }) {
   const ref = useRef<THREE.Points>(null);
   const positions = useMemo(() => {
     const n = 280;
@@ -160,9 +175,9 @@ function Particles({ progress }: Drive) {
       </bufferGeometry>
       <pointsMaterial
         size={0.035}
-        color="#94a3b8"
+        color={pal.dot}
         transparent
-        opacity={0.65}
+        opacity={pal.dotOpacity}
         sizeAttenuation
         depthWrite={false}
       />
@@ -171,6 +186,9 @@ function Particles({ progress }: Drive) {
 }
 
 export default function HeroScene({ progress }: Drive) {
+  const { theme } = useTheme();
+  const pal = PALETTE[theme === "dark" ? "dark" : "light"];
+
   return (
     <Canvas
       dpr={[1, 1.75]}
@@ -178,13 +196,13 @@ export default function HeroScene({ progress }: Drive) {
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       style={{ background: "transparent" }}
     >
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={pal.ambient} />
       {/* the brand gradient, painted with light */}
       <pointLight position={[-6, 3, 4]} intensity={3} color="#9d5a8f" decay={0} />
       <pointLight position={[6, -3, 4]} intensity={3} color="#e0a23a" decay={0} />
       <pointLight position={[0, 4, 2]} intensity={1.2} color="#b85c7a" decay={0} />
-      <Particles progress={progress} />
-      <Constellation progress={progress} />
+      <Particles progress={progress} p={pal} />
+      <Constellation progress={progress} p={pal} />
     </Canvas>
   );
 }

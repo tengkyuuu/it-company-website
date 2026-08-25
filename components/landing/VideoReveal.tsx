@@ -48,13 +48,24 @@ export default function VideoReveal() {
         ctx.drawImage(im, 0, 0, FRAME_W, FRAME_H);
         cv.dataset.frame = String(idx);
       };
-      for (let i = 0; i < FRAME_COUNT; i++) {
-        const im = new Image();
-        im.decoding = "async";
-        im.src = frameSrc(i);
-        if (i === 0) im.onload = () => draw(0, true);
-        images[i] = im;
-      }
+      // Kicking off 160 image requests during the opening sequence starves it of
+      // frames, so hold them until the preloader has handed over. draw() no-ops
+      // on a frame that hasn't arrived, so starting late is harmless.
+      let preloadStarted = false;
+      const startPreload = () => {
+        if (preloadStarted) return;
+        preloadStarted = true;
+        for (let i = 0; i < FRAME_COUNT; i++) {
+          const im = new Image();
+          im.decoding = "async";
+          im.src = frameSrc(i);
+          if (i === 0) im.onload = () => draw(0, true);
+          images[i] = im;
+        }
+      };
+      window.addEventListener("mykt:ready", startPreload, { once: true });
+      // …and a backstop in case that event never lands
+      const preloadFallback = window.setTimeout(startPreload, 4000);
 
       const mm = gsap.matchMedia();
 
@@ -151,6 +162,11 @@ export default function VideoReveal() {
         });
         draw(0, true);
       });
+
+      return () => {
+        window.removeEventListener("mykt:ready", startPreload);
+        window.clearTimeout(preloadFallback);
+      };
     },
     { scope: section }
   );
@@ -159,11 +175,11 @@ export default function VideoReveal() {
     <section
       ref={section}
       className="relative h-screen overflow-hidden"
-      aria-label="MYKT showreel"
+      aria-label="mykTech() showreel"
     >
       <div
         ref={frame}
-        className="absolute overflow-hidden bg-ink shadow-[0_50px_140px_-50px_rgba(15,23,42,0.55)]"
+        className="band absolute overflow-hidden bg-ink shadow-[0_50px_140px_-50px_rgba(15,23,42,0.55)]"
         style={{
           top: "16vh",
           bottom: "16vh",
@@ -175,7 +191,7 @@ export default function VideoReveal() {
         <canvas
           ref={canvas}
           className="block h-full w-full object-cover"
-          aria-label="MYKT showreel"
+          aria-label="mykTech() showreel"
         />
         <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
         <span className="pointer-events-none absolute left-5 top-5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/70">

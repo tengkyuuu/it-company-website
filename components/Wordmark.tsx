@@ -1,9 +1,12 @@
 import Link from "next/link";
-import KMark from "./KMark";
 
 /**
- * The MYKTECH wordmark, set in the brand display face (Syne). The "K" is the
- * custom geometric mark carrying the magenta→gold gradient.
+ * The mykTech() wordmark, set in the brand display face (Syne). Casing is
+ * deliberate and fixed: lowercase "myk", capital "T", trailing "()".
+ *
+ * The parens carry the magenta→gold gradient — they're the signature moment now
+ * that the name has no capital K for KMark to render, and reading the wordmark
+ * as a function call is the point. Everything else stays ink / paper.
  */
 export default function Wordmark({
   className = "",
@@ -20,9 +23,8 @@ export default function Wordmark({
         invert ? "text-paper" : "text-ink"
       } ${className}`}
     >
-      MY
-      <KMark className="mx-[0.03em] h-[0.74em] w-auto translate-y-[0.015em]" />
-      TECH
+      mykTech
+      <span className="text-accent">()</span>
     </span>
   );
 
@@ -31,7 +33,7 @@ export default function Wordmark({
   return (
     <Link
       href={href}
-      aria-label="MYKTECH — home"
+      aria-label="mykTech() — home"
       className="inline-flex items-center"
     >
       {mark}

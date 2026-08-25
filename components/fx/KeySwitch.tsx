@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { CSSProperties } from "react";
 
 /**
- * The MYKT keyswitch — two layered renders (public/brand/keycap.avif +
+ * The mykTech() keyswitch — two layered renders (public/brand/keycap.avif +
  * keyswitch.avif, both alpha AVIF). The cap floats above the housing; hover
  * presses it home and flares an under-cap glow. The cap is recolored per
  * placement with a hue-rotate tint (the housing stays neutral), so the same

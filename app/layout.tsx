@@ -13,37 +13,33 @@ const syne = Syne({
 });
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Nav from "@/components/Nav";
+import SiteChrome from "@/components/SiteChrome";
 import Footer from "@/components/Footer";
-import ScrollProgress from "@/components/ScrollProgress";
-import SmoothScroll from "@/components/fx/SmoothScroll";
-import AmbientBackground from "@/components/fx/AmbientBackground";
-import Cursor from "@/components/fx/Cursor";
-import Preloader from "@/components/fx/Preloader";
-import ScrollFX from "@/components/fx/ScrollFX";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import ThemeScript from "@/components/theme/ThemeScript";
 import { site, socials } from "@/lib/site";
 
 const description =
-  "MYKTECH is an IT studio in Dipolog City building web, mobile, and cloud products. We make software and innovate — with taste.";
+  "mykTech() is an IT studio in Dipolog City building web, mobile, and cloud products. We make software and innovate — with taste.";
 
 export const metadata: Metadata = {
   title: {
-    default: "MYKTECH — Software, designed with intent",
-    template: "%s · MYKTECH",
+    default: "mykTech() — Software, designed with intent",
+    template: "%s · mykTech()",
   },
   description,
   metadataBase: new URL(site.url),
   alternates: { canonical: "/" },
   openGraph: {
-    title: "MYKTECH — Software, designed with intent",
+    title: "mykTech() — Software, designed with intent",
     description,
     url: site.url,
-    siteName: "MYKTECH",
+    siteName: "mykTech()",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "MYKTECH — Software, designed with intent",
+    title: "mykTech() — Software, designed with intent",
     description,
   },
 };
@@ -80,23 +76,24 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
+    // data-theme is written by ThemeScript before hydration
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${GeistSans.variable} ${GeistMono.variable} ${syne.variable}`}
     >
+      <head>
+        <ThemeScript />
+        {/* the wordmark masks drive the preloader's first frame — fetch them
+            with the document so the opening sequence never starts empty */}
+        <link rel="preload" as="image" href="/brand/wordmark.png" />
+        <link rel="preload" as="image" href="/brand/wordmark-outline.png" />
+      </head>
       <body className="min-h-screen antialiased">
-        <AmbientBackground />
-        <Preloader />
-        <Cursor />
-        <ScrollProgress />
-        <SmoothScroll>
-          <Nav />
-          <main>{children}</main>
-          <Footer />
-        </SmoothScroll>
-        <ScrollFX />
-        {/* filmic grain over the whole page (under nav/cursor) */}
-        <div className="grain pointer-events-none fixed inset-0 z-40" aria-hidden />
+        <ThemeProvider>
+          {/* marketing chrome; skipped entirely on /admin */}
+          <SiteChrome footer={<Footer />}>{children}</SiteChrome>
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
         <script

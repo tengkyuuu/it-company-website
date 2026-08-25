@@ -188,9 +188,10 @@ export default function Hero() {
                 <stop offset="100%" stopColor="#e0a23a" />
               </linearGradient>
             </defs>
-            <text className="fill-slatey font-mono text-[9px] uppercase tracking-[0.32em]">
+            {/* no `uppercase` here — it would render the wordmark as MYKTECH() */}
+            <text className="fill-slatey font-mono text-[9px] tracking-[0.32em]">
               <textPath href="#hero-circ">
-                myktech · software · design · innovation ·
+                mykTech() · software · design · innovation ·
               </textPath>
             </text>
             <circle cx="60" cy="60" r="5" fill="url(#hero-grad)" />

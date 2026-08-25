@@ -1,5 +1,8 @@
 /node_modules
 /.next
+# alternate build dir used to verify a production build without clobbering the
+# manifests an active `next dev` is using (see next.config.mjs distDir)
+/.next-verify
 /out
 /build
 .DS_Store
@@ -11,3 +14,7 @@ next-env.d.ts
 /.verify
 /test-results
 *.orig.mp4
+
+# TypeScript incremental build cache (rewritten on every tsc/next build)
+tsconfig.tsbuildinfo
+*.tsbuildinfo

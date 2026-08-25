@@ -9,7 +9,7 @@ import { site, socials } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Location & Contact",
   description:
-    "Find MYKTECH in Dipolog City, Zamboanga del Norte — or start a conversation with the studio.",
+    "Find mykTech() in Dipolog City, Zamboanga del Norte — or start a conversation with the studio.",
   alternates: { canonical: "/location" },
 };
 
@@ -99,7 +99,7 @@ export default function LocationPage() {
 
           <div className="group overflow-hidden rounded-[2rem] border border-mist/70">
             <iframe
-              title="MYKT studio location — Dipolog City"
+              title="mykTech() studio location — Dipolog City"
               src={mapSrc}
               loading="lazy"
               className="h-[320px] w-full grayscale-[0.55] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.015] group-hover:grayscale-0 md:h-[380px]"

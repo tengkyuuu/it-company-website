@@ -8,6 +8,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 let lenis: Lenis | null = null;
 
+/** Smooth-scroll back to the top (footer control); falls back to native. */
+export function scrollToTop() {
+  if (lenis) lenis.scrollTo(0, { duration: 1.4 });
+  else window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 /** Lenis smooth scroll synced to the GSAP ticker + ScrollTrigger. */
 export default function SmoothScroll({
   children,

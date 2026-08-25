@@ -13,9 +13,14 @@ const GlyphScene = dynamic(() => import("@/components/three/GlyphScene"), {
 });
 
 /**
- * The dark band. Desktop: a sticky panel holds a WebGL glyph that morphs as
- * the visitor scrolls the service index on the right; each service has its
- * own 3D form. Mobile: the index stacks, each row carrying its animated icon.
+ * Desktop: a sticky panel holds a WebGL glyph that morphs as the visitor
+ * scrolls the service index on the right; each service has its own 3D form.
+ * Mobile: the index stacks, each row carrying its animated icon.
+ *
+ * Follows the theme rather than using `.band` — it sits on `bg-surface`, which
+ * is white in light mode and an elevated slate in dark, so the section still
+ * reads as its own movement either way. That means no hardcoded white/XX
+ * alphas inside: everything goes through the neutral ramp.
  */
 export default function ServicesGalaxy() {
   const root = useRef<HTMLElement>(null);
@@ -47,7 +52,11 @@ export default function ServicesGalaxy() {
   const current = services[active];
 
   return (
-    <section ref={root} className="relative bg-ink text-paper" aria-label="Services">
+    <section
+      ref={root}
+      className="relative bg-surface text-ink"
+      aria-label="Services"
+    >
       <div className="mx-auto max-w-7xl px-6">
         <div className="md:grid md:grid-cols-[0.95fr_1.05fr] md:gap-16">
           {/* sticky glyph panel (desktop) */}
@@ -63,7 +72,7 @@ export default function ServicesGalaxy() {
                   <GlyphScene active={active} />
                 ) : (
                   <div className="flex h-full items-center justify-center">
-                    <div className="flex h-32 w-32 items-center justify-center rounded-[2rem] border border-white/10 text-paper">
+                    <div className="flex h-32 w-32 items-center justify-center rounded-[2rem] border border-mist text-ink">
                       <Icon name={current.icon} className="h-14 w-14" />
                     </div>
                   </div>
@@ -96,7 +105,7 @@ export default function ServicesGalaxy() {
                   <span
                     key={s.slug}
                     className={`h-1 rounded-full transition-all duration-500 ${
-                      i === active ? "w-8 bg-accent" : "w-3 bg-white/20"
+                      i === active ? "w-8 bg-accent" : "w-3 bg-mist"
                     }`}
                   />
                 ))}
@@ -116,7 +125,7 @@ export default function ServicesGalaxy() {
               <h2 className="mt-5 max-w-lg text-balance font-display text-4xl font-semibold tracking-tight md:mt-0 md:text-5xl">
                 One studio, the whole product journey.
               </h2>
-              <p className="mt-5 max-w-sm text-pretty leading-relaxed text-paper/60">
+              <p className="mt-5 max-w-sm text-pretty leading-relaxed text-slatey">
                 Six core practices, one team. Most clients start with one and
                 grow into the rest.
               </p>
@@ -126,7 +135,7 @@ export default function ServicesGalaxy() {
               <article
                 key={s.slug}
                 data-service-row={i}
-                className={`flex flex-col justify-center border-t border-white/10 py-12 transition-opacity duration-500 md:min-h-[62vh] md:py-0 ${
+                className={`flex flex-col justify-center border-t border-mist py-12 transition-opacity duration-500 md:min-h-[62vh] md:py-0 ${
                   i === active ? "md:opacity-100" : "md:opacity-35"
                 }`}
               >
@@ -135,21 +144,21 @@ export default function ServicesGalaxy() {
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   {/* icon shows where the glyph can't (mobile / no WebGL) */}
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 md:hidden">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-mist md:hidden">
                     <Icon name={s.icon} />
                   </span>
                 </div>
                 <h3 className="mt-4 font-display text-3xl font-semibold tracking-tight md:text-4xl">
                   {s.title}
                 </h3>
-                <p className="mt-3 max-w-md text-pretty leading-relaxed text-paper/60">
+                <p className="mt-3 max-w-md text-pretty leading-relaxed text-slatey">
                   {s.detail}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2">
                   {s.deliverables.map((d) => (
                     <span
                       key={d}
-                      className="rounded-full border border-white/15 px-3 py-1 text-xs text-paper/60"
+                      className="rounded-full border border-mist px-3 py-1 text-xs text-slatey"
                     >
                       {d}
                     </span>

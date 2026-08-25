@@ -8,15 +8,18 @@ import WorkGallery from "@/components/landing/WorkGallery";
 import ProcessDeck from "@/components/landing/ProcessDeck";
 import BeliefScrub from "@/components/landing/BeliefScrub";
 import { Reveal } from "@/components/Reveal";
+import { getProjects } from "@/lib/cms";
 
 export const metadata: Metadata = {
-  title: { absolute: "MYKTECH — Software, designed with intent" },
+  title: { absolute: "mykTech() — Software, designed with intent" },
   description:
-    "MYKTECH is an IT studio in Dipolog City crafting web, mobile, and cloud products — with the eye of a design house.",
+    "mykTech() is an IT studio in Dipolog City crafting web, mobile, and cloud products — with the eye of a design house.",
   alternates: { canonical: "/" },
 };
 
-export default function Home() {
+export default async function Home() {
+  const projects = await getProjects();
+
   return (
     <>
       {/* 3D constellation hero — scroll scatters the system */}
@@ -38,7 +41,7 @@ export default function Home() {
 
       {/* Selected Work — pinned horizontal gallery with parallax plates */}
       <div className="pt-24 md:pt-32">
-        <WorkGallery />
+        <WorkGallery projects={projects} />
       </div>
 
       {/* Process — sticky card deck */}

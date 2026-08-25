@@ -1,8 +1,12 @@
 import { useId } from "react";
 
 /**
- * The MYKTECH "K" — a geometric stem + chevron mark carrying the brand
- * magenta→gold gradient. Scales with font-size (set height in em).
+ * A geometric "K" — stem + chevron carrying the brand magenta→gold gradient.
+ * Scales with font-size (set height in em).
+ *
+ * NOTE: unused since the name became mykTech() — the wordmark has no capital K,
+ * so Wordmark.tsx now puts the gradient on the trailing parens instead. Kept
+ * because public/brand/logo.png (the shield) still shows the gradient KT.
  */
 export default function KMark({ className = "" }: { className?: string }) {
   const id = useId();

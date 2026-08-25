@@ -5,8 +5,9 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Wordmark from "./Wordmark";
+import Logo from "./Logo";
 import Button from "./Button";
+import ThemeToggle from "./theme/ThemeToggle";
 import { nav } from "@/lib/site";
 
 export default function Nav() {
@@ -37,19 +38,20 @@ export default function Nav() {
       >
         <Link
           href="/"
-          aria-label="MYKT — home"
+          aria-label="mykTech() — home"
           data-cursor
           className="flex items-center gap-2.5"
         >
           <Image
             src="/brand/logo.png"
-            alt="MYKT logo"
+            alt=""
             width={40}
             height={52}
             priority
             className="h-9 w-auto"
           />
-          <Wordmark href={null} className="text-2xl" />
+          {/* the link above carries the accessible name, so this is decorative */}
+          <Logo className="h-[26px]" />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -74,32 +76,36 @@ export default function Nav() {
           })}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           <Button href="/location" arrow>
             Get in touch
           </Button>
         </div>
 
-        {/* Mobile toggle */}
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-mist/70 md:hidden"
-          aria-label="Toggle menu"
-          aria-expanded={open}
-        >
-          <div className="space-y-1.5">
-            <span
-              className={`block h-px w-5 bg-ink transition-transform duration-300 ${
-                open ? "translate-y-[3px] rotate-45" : ""
-              }`}
-            />
-            <span
-              className={`block h-px w-5 bg-ink transition-transform duration-300 ${
-                open ? "-translate-y-[3px] -rotate-45" : ""
-              }`}
-            />
-          </div>
-        </button>
+        {/* Mobile controls */}
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-mist/70"
+            aria-label="Toggle menu"
+            aria-expanded={open}
+          >
+            <div className="space-y-1.5">
+              <span
+                className={`block h-px w-5 bg-ink transition-transform duration-300 ${
+                  open ? "translate-y-[3px] rotate-45" : ""
+                }`}
+              />
+              <span
+                className={`block h-px w-5 bg-ink transition-transform duration-300 ${
+                  open ? "-translate-y-[3px] -rotate-45" : ""
+                }`}
+              />
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Mobile sheet */}

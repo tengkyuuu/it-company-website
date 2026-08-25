@@ -9,7 +9,7 @@ import KeySwitch from "@/components/fx/KeySwitch";
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Web, mobile, cloud, AI, design and consulting — the full toolkit for building modern software at MYKTECH.",
+    "Web, mobile, cloud, AI, design and consulting — the full toolkit for building modern software at mykTech().",
   alternates: { canonical: "/services" },
 };
 
@@ -64,7 +64,7 @@ export default function ServicesPage() {
           {engagements.map((e) => (
             <RevealItem
               key={e.title}
-              className="group rounded-3xl border border-mist/70 bg-white p-8 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_30px_70px_-40px_rgba(15,23,42,0.4)]"
+              className="group rounded-3xl border border-mist/70 bg-surface p-8 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_30px_70px_-40px_rgba(15,23,42,0.4)]"
             >
               <div className="flex items-center justify-between">
                 <Eyebrow>{e.title}</Eyebrow>

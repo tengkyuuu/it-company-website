@@ -44,7 +44,7 @@ export default function BeliefScrub() {
   return (
     <div
       ref={root}
-      className="relative overflow-hidden rounded-[2rem] bg-ink px-8 py-16 text-paper grain md:px-16 md:py-24"
+      className="band relative overflow-hidden rounded-[2rem] bg-ink px-8 py-16 text-paper grain md:px-16 md:py-24"
     >
       <div
         className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 opacity-50 aurora"
@@ -68,7 +68,7 @@ export default function BeliefScrub() {
           ))}
         </p>
         <p className="mt-10 flex items-center gap-4 font-mono text-xs uppercase tracking-widest text-paper/50">
-          — The MYKTECH studio
+          — The mykTech() studio
           <KeySwitch size={42} tint="mint" />
         </p>
       </div>

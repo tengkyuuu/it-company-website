@@ -1,13 +1,21 @@
 import Link from "next/link";
 import Button from "./Button";
 import KeySwitch from "./fx/KeySwitch";
+import LocalTime from "./fx/LocalTime";
+import BackToTop from "./fx/BackToTop";
+import FooterWordmark from "./FooterWordmark";
 import { Reveal } from "./Reveal";
-import { nav, site, socials } from "@/lib/site";
+import { nav } from "@/lib/site";
 import { services } from "@/lib/services";
+import { getSiteContent } from "@/lib/cms";
 
-export default function Footer() {
+export default async function Footer() {
+  // editable in the admin panel; falls back to lib/site.ts when there's no DB
+  const site = await getSiteContent();
+  const socials = site.socials;
+
   return (
-    <footer className="relative mt-24 overflow-hidden bg-ink text-paper grain">
+    <footer className="band relative mt-24 overflow-hidden bg-ink text-paper grain">
       {/* soft accent glow */}
       <div className="pointer-events-none absolute -top-32 right-0 h-80 w-80 rounded-full opacity-40 aurora" />
 
@@ -34,8 +42,23 @@ export default function Footer() {
               {site.name} is an IT studio building web, mobile, and cloud
               products — with the care of a design house.
             </p>
-            <p className="mt-4 font-mono text-xs uppercase tracking-widest text-paper/40">
-              {site.hours}
+            {site.availability && (
+              <p className="mt-5 inline-flex items-center gap-2.5 text-sm text-paper/75">
+                <span className="relative flex h-2 w-2" aria-hidden>
+                  {site.available && (
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-to opacity-70 motion-reduce:animate-none" />
+                  )}
+                  <span
+                    className={`relative inline-flex h-2 w-2 rounded-full ${
+                      site.available ? "bg-accent-to" : "bg-paper/40"
+                    }`}
+                  />
+                </span>
+                {site.availability}
+              </p>
+            )}
+            <p className="mt-3 font-mono text-xs uppercase tracking-widest text-paper/40">
+              {site.hours} · <LocalTime />
             </p>
           </div>
 
@@ -68,37 +91,47 @@ export default function Footer() {
           </FooterCol>
         </div>
 
-        {/* Giant wordmark */}
-        <div className="relative">
-          <div
-            aria-hidden
-            className="select-none pt-6 text-center font-display text-[17vw] font-bold leading-[0.8] tracking-tight text-paper/[0.06] md:text-[12rem]"
-          >
-            MYKTECH
-          </div>
+        {/* Giant wordmark — inks in with the gradient under the cursor */}
+        <div className="pt-6">
+          <FooterWordmark />
         </div>
 
         {/* Bottom bar */}
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 py-7 text-sm text-paper/50 md:flex-row">
-          <p>
-            © {2026} {site.name} Studio. All rights reserved.
-          </p>
-          <div className="flex items-center gap-5">
-            {socials.map((s) => (
-              <Link
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${s.label} (opens in a new tab)`}
-                className="transition-colors hover:text-paper"
-              >
-                {s.label}
-              </Link>
-            ))}
+        <div className="border-t border-white/10 py-8">
+          <div className="flex flex-col items-center justify-between gap-6 text-sm text-paper/50 md:flex-row">
+            <p>
+              © {2026} {site.name} Studio. All rights reserved.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2.5">
+              {socials.map((s) => (
+                <Link
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${s.label} (opens in a new tab)`}
+                  className="group inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3.5 py-1.5 text-xs text-paper/70 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/45 hover:text-paper"
+                >
+                  {s.label}
+                  <span
+                    aria-hidden
+                    className="inline-block text-paper/40 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  >
+                    ↗
+                  </span>
+                </Link>
+              ))}
+            </div>
+            <div className="flex items-center gap-5">
+              <p className="font-mono text-xs uppercase tracking-widest text-paper/40">
+                Designed in Dipolog ✦
+              </p>
+              <BackToTop />
+            </div>
           </div>
-          <p className="font-mono text-xs uppercase tracking-widest text-paper/40">
-            Designed in Dipolog ✦
+          <p className="mt-8 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-paper/35">
+            Developed by <span className="text-paper/70">mykTech()</span> · for{" "}
+            <span className="text-paper/70">mykTech()</span>
           </p>
         </div>
       </div>
@@ -133,7 +166,7 @@ function FooterLink({
   return (
     <Link
       href={href}
-      className="group inline-flex w-fit items-center text-sm text-paper/75 transition-colors hover:text-paper"
+      className="group inline-flex w-fit items-center text-sm text-paper/75 transition-[color,transform] duration-300 hover:translate-x-0.5 hover:text-paper"
     >
       <span className="relative">
         {children}

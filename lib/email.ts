@@ -24,7 +24,11 @@ export async function sendContactEmail(data: ContactInput) {
   if (!apiKey) throw new Error("RESEND_API_KEY is not set");
 
   const to = process.env.CONTACT_TO_EMAIL || site.email;
-  const from = process.env.CONTACT_FROM_EMAIL || "MYKTECH <onboarding@resend.dev>";
+  // The display name is QUOTED on purpose: "()" are comment delimiters in an
+  // RFC 5322 address, so an unquoted mykTech() would be parsed as the name
+  // "mykTech" plus an empty comment — and the parens would vanish in clients.
+  const from =
+    process.env.CONTACT_FROM_EMAIL || `"mykTech()" <onboarding@resend.dev>`;
   const resend = new Resend(apiKey);
 
   const name = esc(data.name);

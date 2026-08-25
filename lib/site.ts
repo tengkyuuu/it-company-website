@@ -1,5 +1,6 @@
 export const site = {
-  name: "MYKTECH",
+  // Casing is deliberate and fixed — lowercase "myk", capital "T", trailing "()".
+  name: "mykTech()",
   tagline: "Software, designed with intent.",
   // Canonical production URL (used for metadata, sitemap, JSON-LD). Update when
   // the custom domain is live; override with NEXT_PUBLIC_SITE_URL if needed.
@@ -19,6 +20,7 @@ export const site = {
 export const nav = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
+  { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
   { label: "Location", href: "/location" },
 ];
