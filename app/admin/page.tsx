@@ -3,10 +3,11 @@ import { createClient, getProfile } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type LeadRow } from "@/lib/supabase/types";
 import { services as staticServices } from "@/lib/services";
 import { team as staticTeam } from "@/lib/team";
+import { isJobClosed, manilaToday } from "@/lib/cms";
 import { Card, Notice, Pill } from "@/components/admin/ui";
 import SetupNotice from "@/components/admin/SetupNotice";
 import { describeDbError, isMissingTable } from "./_lib/server";
-import { LEAD_LITE_COLUMNS, threadLeads, type LeadLite } from "./_lib/inbox";
+import { LEAD_KIND_LABEL, LEAD_LITE_COLUMNS, threadLeads, type LeadLite } from "./_lib/inbox";
 
 export const metadata = { title: "Overview", robots: { index: false } };
 
@@ -23,7 +24,16 @@ export default async function AdminHome() {
   const profile = await getProfile();
   const supabase = await createClient();
 
-  const [projectsRes, servicesRes, rosterRes, teamRes, leadsRes] = await Promise.all([
+  const [
+    projectsRes,
+    servicesRes,
+    rosterRes,
+    teamRes,
+    leadsRes,
+    productsRes,
+    jobsRes,
+    postsRes,
+  ] = await Promise.all([
     supabase
       .from("projects")
       .select("id, name, published, img, updated_at")
@@ -36,11 +46,22 @@ export default async function AdminHome() {
       .select(`${LEAD_LITE_COLUMNS}, name, email, message`)
       .order("created_at", { ascending: false })
       .limit(300),
+    supabase.from("products").select("id, published"),
+    supabase.from("jobs").select("id, published, closes_at"),
+    supabase.from("posts").select("id, published"),
   ]);
 
   const projects = projectsRes.data ?? [];
   const services = servicesRes.data ?? [];
   const roster = rosterRes.data ?? [];
+  const products = productsRes.data ?? [];
+  const posts = postsRes.data ?? [];
+  const today = manilaToday();
+  const jobs = (jobsRes.data ?? []).map((j) => ({
+    published: Boolean(j.published),
+    closed: isJobClosed(j.closes_at as string | null, today),
+  }));
+  const openJobs = jobs.filter((j) => j.published && !j.closed).length;
   const threads = threadLeads(
     (leadsRes.data ?? []) as unknown as (LeadLite & Pick<LeadRow, "name" | "email" | "message">)[]
   );
@@ -80,6 +101,18 @@ export default async function AdminHome() {
             }),
     },
     {
+      label: "Products",
+      href: "/admin/products",
+      ...(productsRes.error
+        ? failed(productsRes.error)
+        : products.length === 0
+          ? { value: "None yet", sub: "Hidden on the site" }
+          : {
+              value: `${products.filter((p) => p.published).length} live`,
+              sub: `${products.filter((p) => !p.published).length} draft`,
+            }),
+    },
+    {
       label: "Services",
       href: "/admin/services",
       ...(servicesRes.error
@@ -89,6 +122,30 @@ export default async function AdminHome() {
           : {
               value: `${services.filter((s) => s.published).length} live`,
               sub: `${services.filter((s) => !s.published).length} hidden`,
+            }),
+    },
+    {
+      label: "Blog",
+      href: "/admin/blog",
+      ...(postsRes.error
+        ? failed(postsRes.error)
+        : posts.length === 0
+          ? { value: "None yet", sub: "Hidden on the site" }
+          : {
+              value: `${posts.filter((p) => p.published).length} published`,
+              sub: `${posts.filter((p) => !p.published).length} draft`,
+            }),
+    },
+    {
+      label: "Careers",
+      href: "/admin/careers",
+      ...(jobsRes.error
+        ? failed(jobsRes.error)
+        : jobs.length === 0
+          ? { value: "None yet", sub: "Hidden on the site" }
+          : {
+              value: `${openJobs} open`,
+              sub: `${jobs.filter((j) => !j.published).length} draft · ${jobs.filter((j) => j.published && j.closed).length} closed`,
             }),
     },
     {
@@ -112,12 +169,22 @@ export default async function AdminHome() {
     },
   ];
 
-  const anyFailed = [projectsRes, servicesRes, rosterRes, teamRes, leadsRes].find(
-    (r) => r.error && !isMissingTable(r.error)
-  );
+  const anyFailed = [
+    projectsRes,
+    servicesRes,
+    rosterRes,
+    teamRes,
+    leadsRes,
+    productsRes,
+    jobsRes,
+    postsRes,
+  ].find((r) => r.error && !isMissingTable(r.error));
 
   const quick = [
     { href: "/admin/projects/new", label: "Add a project" },
+    { href: "/admin/blog/new", label: "Write a post" },
+    { href: "/admin/careers/new", label: "Post a role" },
+    { href: "/admin/products/new", label: "Add a product" },
     { href: "/admin/services", label: "Edit services" },
     { href: "/admin/settings", label: "Edit contact details" },
     ...(isOwner ? [{ href: "/admin/team", label: "Invite a teammate" }] : []),
@@ -142,9 +209,10 @@ export default async function AdminHome() {
         </Notice>
       )}
 
-      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      {/* eight tiles: 4 rows of 2 on phones, 2 rows of 4 on desktop */}
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {tiles.map((t) => (
-          <li key={t.label} className={t.label === "Inbox" ? "col-span-2 lg:col-span-1" : ""}>
+          <li key={t.label}>
             <Link
               href={t.href}
               className="group block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
@@ -184,22 +252,22 @@ export default async function AdminHome() {
           ) : openThreads.length === 0 ? (
             <p className="text-sm text-ink/55">
               {threads.length === 0
-                ? "No enquiries or conversations yet."
+                ? "No enquiries, applications or conversations yet."
                 : "All caught up — nothing open."}
             </p>
           ) : (
             <ul className="divide-y divide-mist/70">
               {openThreads.slice(0, 5).map(({ head }) => (
                 <li key={head.id} className="flex items-start gap-3 py-2.5">
-                  <Pill tone={head.kind === "contact" ? "live" : "muted"}>
-                    {head.kind === "contact" ? "Enquiry" : "Chat"}
+                  <Pill tone={head.kind === "chat" ? "muted" : "live"}>
+                    {LEAD_KIND_LABEL[head.kind] ?? head.kind}
                   </Pill>
                   <Link
-                    href={head.kind === "contact" ? "/admin/inbox?kind=contact" : "/admin/inbox?kind=chat"}
+                    href={`/admin/inbox?kind=${head.kind}`}
                     className="min-w-0 flex-1 text-sm transition-colors hover:text-accent"
                   >
                     <span className="block truncate font-medium">
-                      {head.kind === "contact" ? head.name || head.email || "(no name)" : "Website visitor"}
+                      {head.kind === "chat" ? "Website visitor" : head.name || head.email || "(no name)"}
                     </span>
                     <span className="block truncate text-ink/55">{head.message || "(empty)"}</span>
                   </Link>

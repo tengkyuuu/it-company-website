@@ -4,11 +4,13 @@ import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { serviceOptions, type ContactState } from "@/lib/contact-schema";
 import { site } from "@/lib/site";
+import { useI18n } from "@/components/i18n/I18nProvider";
 
 const fieldCls =
   "w-full rounded-xl border border-mist bg-paper px-4 py-3 text-ink placeholder:text-slatey transition-colors duration-200 focus:border-ink/40 focus:outline-none focus:ring-4 focus:ring-ink/5 aria-[invalid=true]:border-red-400 aria-[invalid=true]:ring-red-500/10";
 
 export default function ContactForm() {
+  const { t } = useI18n();
   const [state, setState] = useState<ContactState>({ status: "idle" });
   const [pending, setPending] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -34,7 +36,7 @@ export default function ContactForm() {
     } catch {
       setState({
         status: "error",
-        message: `Couldn’t reach the server. Please email us directly at ${site.email}.`,
+        message: t("contact.networkError", { email: site.email }),
       });
     } finally {
       setPending(false);
@@ -57,11 +59,10 @@ export default function ContactForm() {
               ✦
             </div>
             <h3 className="mt-6 text-2xl font-semibold tracking-tight">
-              Message on its way.
+              {t("contact.successTitle")}
             </h3>
             <p className="mt-2 max-w-sm text-ink/60">
-              Thanks for reaching out — a real human from the studio will reply
-              within one business day.
+              {t("contact.successBody")}
             </p>
             <button
               onClick={() => {
@@ -70,33 +71,33 @@ export default function ContactForm() {
               }}
               className="mt-6 text-sm font-medium text-ink/70 underline-offset-4 hover:underline"
             >
-              Send another
+              {t("contact.sendAnother")}
             </button>
           </motion.div>
         ) : (
           <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Name" htmlFor="cf-name" error={errorFor("name")}>
+                <Field label={t("contact.name")} htmlFor="cf-name" error={errorFor("name")}>
                   <input
                     id="cf-name"
                     name="name"
                     required
                     autoComplete="name"
-                    placeholder="Jane Dela Cruz"
+                    placeholder={t("contact.namePlaceholder")}
                     className={fieldCls}
                     aria-invalid={!!errorFor("name")}
                     aria-describedby={errorFor("name") ? "cf-name-error" : undefined}
                   />
                 </Field>
-                <Field label="Email" htmlFor="cf-email" error={errorFor("email")}>
+                <Field label={t("contact.email")} htmlFor="cf-email" error={errorFor("email")}>
                   <input
                     id="cf-email"
                     name="email"
                     type="email"
                     required
                     autoComplete="email"
-                    placeholder="jane@company.com"
+                    placeholder={t("contact.emailPlaceholder")}
                     className={fieldCls}
                     aria-invalid={!!errorFor("email")}
                     aria-describedby={errorFor("email") ? "cf-email-error" : undefined}
@@ -105,7 +106,7 @@ export default function ContactForm() {
               </div>
 
               <Field
-                label="What do you need?"
+                label={t("contact.service")}
                 htmlFor="cf-service"
                 error={errorFor("service")}
               >
@@ -121,7 +122,7 @@ export default function ContactForm() {
                   }
                 >
                   <option value="" disabled>
-                    Select a service…
+                    {t("contact.servicePlaceholder")}
                   </option>
                   {serviceOptions.map((s) => (
                     <option key={s}>{s}</option>
@@ -130,7 +131,7 @@ export default function ContactForm() {
               </Field>
 
               <Field
-                label="Tell us a little more"
+                label={t("contact.message")}
                 htmlFor="cf-message"
                 error={errorFor("message")}
               >
@@ -139,7 +140,7 @@ export default function ContactForm() {
                   name="message"
                   required
                   rows={5}
-                  placeholder="A sentence or two about what you’re building…"
+                  placeholder={t("contact.messagePlaceholder")}
                   className={`${fieldCls} resize-none`}
                   aria-invalid={!!errorFor("message")}
                   aria-describedby={
@@ -177,12 +178,12 @@ export default function ContactForm() {
               >
                 <span className="absolute inset-0 bg-accent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 <span className="relative z-10">
-                  {pending ? "Sending…" : "Send message →"}
+                  {pending ? t("contact.sending") : t("contact.submit")}
                 </span>
               </motion.button>
 
               <p className="text-center text-xs text-slatey">
-                We’ll only use your details to reply — never shared.
+                {t("contact.privacy")}
               </p>
             </form>
           </motion.div>

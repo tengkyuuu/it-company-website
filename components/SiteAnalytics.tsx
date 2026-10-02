@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
  * Vercel Analytics, minus the admin panel.
  *
  * A client wrapper only because `beforeSend` is a function, and a server
- * component (app/layout.tsx) can't pass one to a client component.
+ * component (components/DocumentShell.tsx) can't pass one to a client component.
  *
  * /admin is dropped entirely: panel traffic isn't marketing data, and the
  * invite / reset page carries a one-time token in its URL (`?t=`) that must

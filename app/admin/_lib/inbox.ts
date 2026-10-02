@@ -10,10 +10,12 @@ import type { LeadKind } from "@/lib/supabase/types";
  *
  * There's no conversation id on the row, so snapshots are chained back
  * together: same visitor (`ip_hash`), same opening message, strictly fewer
- * turns, and written within WINDOW of the next snapshot. Contact submissions
- * (and anything else that isn't a chat) are never grouped. Shared by the inbox
- * page, the overview and the nav badge so all three always agree on what
- * counts as one conversation.
+ * turns, and written within WINDOW of the next snapshot. ONLY chat rows are
+ * ever grouped: a contact submission or a job application is one person's
+ * single message, each its own entry — two applications from the same office
+ * network must never fold into one (or into a chat), or someone's application
+ * disappears behind another's. Shared by the inbox page, the overview and the
+ * nav badge so all three always agree on what counts as one conversation.
  *
  * `ip_hash` is a keyed HMAC of the visitor's IP (lib/security's `hashIp`) — the
  * raw address is never stored. It's deterministic, so it groups exactly as the
@@ -22,6 +24,13 @@ import type { LeadKind } from "@/lib/supabase/types";
  */
 
 const WINDOW_MS = 2 * 60 * 60 * 1000;
+
+/** How each kind is named in the panel (pills, filters, the overview). */
+export const LEAD_KIND_LABEL: Record<LeadKind, string> = {
+  contact: "Enquiry",
+  application: "Application",
+  chat: "Chat",
+};
 
 /** The columns grouping needs — cheap enough to fetch for the nav badge. */
 export const LEAD_LITE_COLUMNS =
@@ -55,6 +64,8 @@ export function threadLeads<T extends LeadLite>(rows: T[]): LeadThread<T>[] {
   const tails = new Map<string, { thread: LeadThread<T>; turns: number; at: number }>();
 
   for (const row of rows) {
+    // an allow-list, not a deny-list: a kind added later (like 'application'
+    // was) stays one-row-per-entry until someone decides otherwise
     if (row.kind !== "chat" || !row.ip_hash) {
       threads.push({ head: row, ids: [row.id], handled: row.handled });
       continue;

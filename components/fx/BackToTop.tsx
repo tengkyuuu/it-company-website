@@ -3,12 +3,12 @@
 import { scrollToTop } from "@/components/fx/SmoothScroll";
 
 /** Circular back-to-top control for the footer bottom bar. */
-export default function BackToTop() {
+export default function BackToTop({ label = "Back to top" }: { label?: string }) {
   return (
     <button
       type="button"
       onClick={scrollToTop}
-      aria-label="Back to top"
+      aria-label={label}
       className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-paper/70 transition-all duration-300 hover:border-transparent hover:bg-accent hover:text-ink"
     >
       <span

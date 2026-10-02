@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Button from "@/components/Button";
 import KeySwitch from "@/components/fx/KeySwitch";
+import { useI18n } from "@/components/i18n/I18nProvider";
 import type { Project } from "@/lib/work";
 
 /**
@@ -20,6 +21,8 @@ import type { Project } from "@/lib/work";
  * Mobile: vertical stack, main shot only.
  */
 export default function WorkGallery({ projects }: { projects: Project[] }) {
+  // the intro paragraph stays English (marketing copy); labels are chrome
+  const { t, href } = useI18n();
   const section = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const counter = useRef<HTMLSpanElement>(null);
@@ -91,7 +94,7 @@ export default function WorkGallery({ projects }: { projects: Project[] }) {
     <section
       ref={section}
       className="relative md:h-screen md:overflow-hidden"
-      aria-label="Selected work"
+      aria-label={t("work.sectionLabel")}
     >
       <div
         ref={track}
@@ -101,22 +104,22 @@ export default function WorkGallery({ projects }: { projects: Project[] }) {
         <div className="flex shrink-0 flex-col justify-center md:h-[70vh] md:w-[30vw]">
           <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-slatey">
             <span className="h-px w-6 bg-accent" />
-            Selected work
+            {t("work.eyebrow")}
           </span>
           <h2 className="mt-5 text-balance font-display text-4xl font-semibold tracking-tight md:text-5xl">
-            Things we’re proud to have shipped.
+            {t("work.title")}
           </h2>
           <p className="mt-5 max-w-sm text-pretty leading-relaxed text-ink/60">
             Real products, in real hands — across fintech, health, retail, and
             beyond.
           </p>
           <div className="mt-8">
-            <Button href="/projects" variant="outline" arrow>
-              See all projects
+            <Button href={href("/projects")} variant="outline" arrow>
+              {t("work.cta")}
             </Button>
           </div>
           <span className="mt-10 hidden items-center gap-3 font-mono text-xs uppercase tracking-widest text-ink/40 md:inline-flex">
-            Scroll sideways
+            {t("work.scrollHint")}
             <span aria-hidden>→</span>
             <KeySwitch size={40} tint="sky" />
           </span>
@@ -149,9 +152,9 @@ export default function WorkGallery({ projects }: { projects: Project[] }) {
               />
 
               <Link
-                href={`/projects/${p.slug}`}
+                href={href(`/projects/${p.slug}`)}
                 className="absolute inset-0 z-30"
-                aria-label={`${p.name} — project detail`}
+                aria-label={t("work.detailLabel", { name: p.name })}
               />
 
               {/* main shot — browser-framed, contained at native aspect */}
@@ -184,7 +187,7 @@ export default function WorkGallery({ projects }: { projects: Project[] }) {
                   <div className="work-shot-drift" data-depth="-7">
                     <Shot
                       src={p.img2}
-                      alt={`${p.name} — interface detail`}
+                      alt={t("work.shotDetailAlt", { name: p.name })}
                       sizes="25vw"
                       className="transition-transform duration-700 ease-out group-hover:translate-y-1.5"
                     />

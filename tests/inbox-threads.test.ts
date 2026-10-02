@@ -130,10 +130,26 @@ describe("threadLeads", () => {
   });
 
   it("never merges non-chat kinds (e.g. job applications)", () => {
-    // `application` joins LeadKind with the jobs board; cast so this compiles
-    // before and after that lands
-    const application = (m: number) =>
-      lead({ kind: "application" as string as LeadLite["kind"], created_at: at(m) });
+    const application = (m: number) => lead({ kind: "application", created_at: at(m) });
     expect(threadLeads(newestFirst([application(0), application(1)]))).toHaveLength(2);
+  });
+
+  it("an application never joins a chat thread, nor breaks one, from the same visitor", () => {
+    // same office network (same hash), even shaped like a chat snapshot — an
+    // application must stay its own entry, and the chat must still thread
+    const s1 = chat({ turns: 1, created_at: at(0) });
+    const app = lead({
+      kind: "application",
+      turns: 0,
+      first: "Hi, do you build mobile apps?",
+      created_at: at(1),
+    });
+    const s2 = chat({ turns: 2, created_at: at(2) });
+    const threads = threadLeads(newestFirst([s1, app, s2]));
+
+    expect(threads).toHaveLength(2);
+    const byHead = new Map(threads.map((t) => [t.head.id, t.ids]));
+    expect(byHead.get(s2.id)).toEqual([s2.id, s1.id]);
+    expect(byHead.get(app.id)).toEqual([app.id]);
   });
 });

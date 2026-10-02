@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { whenReady } from "@/components/fx/ready";
+import { useI18n } from "@/components/i18n/I18nProvider";
 
 /**
  * Scroll-driven showreel. Instead of scrubbing a <video> (which forces a
@@ -30,6 +31,7 @@ const frameSrc = (i: number) =>
   `/brand/reel/f-${String(i + 1).padStart(3, "0")}.webp`;
 
 export default function VideoReveal() {
+  const { t } = useI18n();
   const section = useRef<HTMLElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -254,7 +256,7 @@ export default function VideoReveal() {
     <section
       ref={section}
       className="relative h-screen overflow-hidden"
-      aria-label="R Ally's Tech showreel"
+      aria-label={t("showreel.label")}
     >
       <div
         ref={frame}
@@ -272,11 +274,11 @@ export default function VideoReveal() {
         <canvas
           ref={canvas}
           className="block h-full w-full object-cover"
-          aria-label="R Ally's Tech showreel"
+          aria-label={t("showreel.label")}
         />
         <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
         <span className="pointer-events-none absolute left-5 top-5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/70">
-          ● Inside the studio
+          ● {t("showreel.tag")}
         </span>
       </div>
     </section>

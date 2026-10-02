@@ -4,11 +4,16 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// grouped by what they edit: the work we sell (projects, products, services),
+// what we publish (blog, careers), who we are (roster), then panel admin
 const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/inbox", label: "Inbox" },
   { href: "/admin/projects", label: "Projects" },
+  { href: "/admin/products", label: "Products" },
   { href: "/admin/services", label: "Services" },
+  { href: "/admin/blog", label: "Blog" },
+  { href: "/admin/careers", label: "Careers" },
   { href: "/admin/roster", label: "Roster" },
   { href: "/admin/team", label: "Team" },
   { href: "/admin/settings", label: "Site settings" },

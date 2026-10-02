@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { whenReady } from "@/components/fx/ready";
+import { useI18n } from "@/components/i18n/I18nProvider";
 
 /**
  * The site assistant, as a launcher + panel pinned bottom-right.
@@ -18,16 +19,13 @@ import { whenReady } from "@/components/fx/ready";
 
 type Turn = { role: "user" | "assistant"; content: string };
 
-const GREETING =
-  "Hi — I can tell you about what we build, our services, or the work we've shipped. What are you after?";
-
-const SUGGESTIONS = [
-  "What services do you offer?",
-  "Can you build a mobile app?",
-  "Where are you based?",
-];
-
 export default function ChatWidget() {
+  // Only the widget's own UI is localized — the greeting and suggestion chips
+  // included. The model's replies are whatever the model writes (it tends to
+  // mirror the visitor's language); server error strings arrive in English.
+  const { t } = useI18n();
+  const greeting = t("chat.greeting");
+  const suggestions = [t("chat.suggestion1"), t("chat.suggestion2"), t("chat.suggestion3")];
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -97,7 +95,7 @@ export default function ChatWidget() {
 
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => null);
-        throw new Error(body?.error ?? "Chat is unavailable right now.");
+        throw new Error(body?.error ?? t("chat.unavailable"));
       }
 
       const reader = res.body.getReader();
@@ -137,7 +135,7 @@ export default function ChatWidget() {
       }
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
-      setError((e as Error).message || "Something went wrong.");
+      setError((e as Error).message || t("chat.genericError"));
     } finally {
       setPending(false);
       // drop the empty assistant bubble if nothing ever arrived
@@ -158,7 +156,7 @@ export default function ChatWidget() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={open ? "Close chat" : "Chat with us"}
+        aria-label={open ? t("chat.close") : t("chat.open")}
         className="fixed bottom-5 right-5 z-[45] flex h-14 w-14 items-center justify-center rounded-full bg-ink text-paper shadow-[0_12px_32px_-8px_rgba(15,23,42,0.45)] transition-transform duration-300 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to md:bottom-8 md:right-8"
       >
         <span aria-hidden className="text-xl leading-none">
@@ -170,7 +168,7 @@ export default function ChatWidget() {
         {open && (
           <motion.div
             role="dialog"
-            aria-label="Chat with R Ally's Tech"
+            aria-label={t("chat.dialogLabel")}
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -179,14 +177,14 @@ export default function ChatWidget() {
           >
             <header className="flex items-center gap-2.5 border-b border-mist/70 px-5 py-4">
               <span className="h-2 w-2 rounded-full bg-accent" aria-hidden />
-              <p className="text-sm font-medium text-ink">Ask us anything</p>
+              <p className="text-sm font-medium text-ink">{t("chat.title")}</p>
               <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-slatey">
-                AI assistant
+                {t("chat.badge")}
               </span>
             </header>
 
             <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
-              <Bubble role="assistant">{GREETING}</Bubble>
+              <Bubble role="assistant">{greeting}</Bubble>
 
               {turns.map((t, i) => (
                 <Bubble key={i} role={t.role}>
@@ -196,7 +194,7 @@ export default function ChatWidget() {
 
               {pending && !turns[turns.length - 1]?.content && (
                 <Bubble role="assistant">
-                  <span className="inline-flex gap-1" aria-label="Thinking">
+                  <span className="inline-flex gap-1" aria-label={t("chat.thinking")}>
                     {[0, 1, 2].map((d) => (
                       <span
                         key={d}
@@ -219,7 +217,7 @@ export default function ChatWidget() {
 
               {!turns.length && (
                 <div className="flex flex-wrap gap-2 pt-1">
-                  {SUGGESTIONS.map((s) => (
+                  {suggestions.map((s) => (
                     <button
                       key={s}
                       type="button"
@@ -254,21 +252,21 @@ export default function ChatWidget() {
                       send(draft);
                     }
                   }}
-                  placeholder="Ask about our services…"
-                  aria-label="Your message"
+                  placeholder={t("chat.placeholder")}
+                  aria-label={t("chat.inputLabel")}
                   className="max-h-28 flex-1 resize-none rounded-xl border border-mist/70 bg-paper px-3 py-2 text-sm text-ink placeholder:text-ink/35 focus:border-accent-to focus:outline-none focus:ring-2 focus:ring-accent-to/25"
                 />
                 <button
                   type="submit"
                   disabled={pending || !draft.trim()}
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink text-paper transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-                  aria-label="Send message"
+                  aria-label={t("chat.send")}
                 >
                   <span aria-hidden>↑</span>
                 </button>
               </div>
               <p className="mt-2 px-1 text-[10px] leading-relaxed text-slatey">
-                AI answers can be wrong — for anything binding, email us.
+                {t("chat.disclaimer")}
               </p>
             </form>
           </motion.div>

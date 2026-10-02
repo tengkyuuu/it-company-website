@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import KeySwitch from "@/components/fx/KeySwitch";
+import { useI18n } from "@/components/i18n/I18nProvider";
 
 const SENTENCE =
   "Good software shouldn’t announce itself. It should feel obvious — like it was always meant to work this way.";
@@ -14,6 +15,8 @@ const SENTENCE =
  * one by one as the band crosses the viewport. "obvious" carries the accent.
  */
 export default function BeliefScrub() {
+  // the belief sentence itself is marketing copy — English in both locales
+  const { t } = useI18n();
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -53,7 +56,7 @@ export default function BeliefScrub() {
       <div className="relative">
         <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-slatey">
           <span className="h-px w-6 bg-accent" />
-          Our belief
+          {t("belief.eyebrow")}
         </span>
         <p className="mt-8 max-w-4xl text-balance font-display text-3xl font-semibold leading-snug tracking-tight md:text-5xl">
           {SENTENCE.split(" ").map((word, i) => (
@@ -68,7 +71,7 @@ export default function BeliefScrub() {
           ))}
         </p>
         <p className="mt-10 flex items-center gap-4 font-mono text-xs uppercase tracking-widest text-paper/50">
-          — The R Ally's Tech studio
+          {t("belief.signature")}
           <KeySwitch size={42} tint="mint" />
         </p>
       </div>

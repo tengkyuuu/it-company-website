@@ -10,6 +10,7 @@ import { Eyebrow } from "@/components/Section";
 import LocalTime from "@/components/fx/LocalTime";
 import KeySwitch from "@/components/fx/KeySwitch";
 import { whenReady } from "@/components/fx/ready";
+import { useI18n } from "@/components/i18n/I18nProvider";
 import { site } from "@/lib/site";
 import { observeVisible, wants3D } from "@/lib/webgl";
 
@@ -23,6 +24,9 @@ const HeroScene = dynamic(() => import("@/components/three/HeroScene"), {
  * camera pulls back) while the headline lifts away at its own speed.
  */
 export default function Hero() {
+  // headline + sub stay English in both locales (marketing copy, and the line
+  // mask is choreographed per line); eyebrow, CTAs and the cue are chrome
+  const { t, href } = useI18n();
   const root = useRef<HTMLElement>(null);
   const progress = useRef(0);
   const [show3d, setShow3d] = useState(false);
@@ -163,7 +167,7 @@ export default function Hero() {
         {/* copy */}
         <div className="hero-copy mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-6 pt-24">
           <div className="hero-eyebrow">
-            <Eyebrow>IT Studio · Dipolog City</Eyebrow>
+            <Eyebrow>{t("hero.eyebrow")}</Eyebrow>
           </div>
 
           <h1 className="mt-6 font-display text-[clamp(3.1rem,9.5vw,8.75rem)] font-bold leading-[0.98] tracking-[-0.03em]">
@@ -187,13 +191,13 @@ export default function Hero() {
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <span className="hero-cta inline-block">
-                <Button href="/services" arrow>
-                  Explore our work
+                <Button href={href("/services")} arrow>
+                  {t("hero.primaryCta")}
                 </Button>
               </span>
               <span className="hero-cta inline-block">
-                <Button href="/about" variant="outline">
-                  Meet the studio
+                <Button href={href("/about")} variant="outline">
+                  {t("hero.secondaryCta")}
                 </Button>
               </span>
               <span className="hero-cta hidden sm:inline-block">
@@ -242,7 +246,7 @@ export default function Hero() {
         {/* scroll cue */}
         <div className="hero-cue absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex">
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-slatey">
-            Scroll
+            {t("hero.scroll")}
           </span>
           <span className="relative h-12 w-px overflow-hidden bg-mist">
             <span className="absolute left-0 top-0 h-4 w-px animate-[scrollcue_1.8s_ease-in-out_infinite] bg-accent" />

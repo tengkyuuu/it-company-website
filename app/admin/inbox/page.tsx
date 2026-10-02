@@ -5,13 +5,14 @@ import { site } from "@/lib/site";
 import { Card, CardTitle, Notice, Pill } from "@/components/admin/ui";
 import SetupNotice from "@/components/admin/SetupNotice";
 import LeadActions from "@/components/admin/LeadActions";
-import { describeDbError, isMissingTable } from "../_lib/server";
-import { threadLeads, type LeadLite } from "../_lib/inbox";
+import { describeDbError, isMissingTable, isUuid } from "../_lib/server";
+import { LEAD_KIND_LABEL, threadLeads, type LeadLite } from "../_lib/inbox";
 
 export const metadata = { title: "Inbox", robots: { index: false } };
 
 /**
- * Contact-form submissions and chatbot conversations, newest first.
+ * Contact-form submissions, job applications and chatbot conversations,
+ * newest first.
  *
  * Contact enquiries are still emailed — this is a record, not a replacement, so
  * a paused database can never swallow an enquiry (lib/leads.ts no-ops instead of
@@ -19,8 +20,8 @@ export const metadata = { title: "Inbox", robots: { index: false } };
  *
  * A chat conversation is written as several snapshot rows; they're threaded
  * back into one entry here (see ../_lib/inbox.ts), showing the newest — i.e.
- * fullest — transcript. Filters are plain links, so they work without JS and
- * survive a reload.
+ * fullest — transcript. Enquiries and applications are never threaded. Filters
+ * are plain links, so they work without JS and survive a reload.
  */
 const LIMIT = 300;
 
@@ -31,7 +32,7 @@ const fmt = (iso: string) =>
     timeZone: "Asia/Manila",
   });
 
-type Kind = "all" | "contact" | "chat";
+type Kind = "all" | "contact" | "application" | "chat";
 type Status = "open" | "handled" | "all";
 type Row = LeadRow & LeadLite;
 
@@ -39,8 +40,7 @@ function pick<T extends string>(value: string | undefined, allowed: readonly T[]
   return (allowed as readonly string[]).includes(value ?? "") ? (value as T) : fallback;
 }
 
-function replyHref(lead: LeadRow) {
-  const subject = `Re: your enquiry to ${site.name}`;
+function replyHref(lead: LeadRow, subject: string) {
   const quoted = (lead.message ?? "")
     .split("\n")
     .slice(0, 12)
@@ -50,16 +50,62 @@ function replyHref(lead: LeadRow) {
   return `mailto:${lead.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
+const replyButton =
+  "mt-3 inline-flex items-center gap-1.5 rounded-full border border-mist/70 px-3.5 py-1.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40";
+
+/** Name, email, the message, and a reply link — what enquiries and applications share. */
+function PersonLead({
+  lead,
+  detail,
+  replySubject,
+}: {
+  lead: LeadRow;
+  /** the line under the email: the service asked about, the role applied for */
+  detail?: React.ReactNode;
+  replySubject: string;
+}) {
+  return (
+    <div className="mt-3 space-y-1">
+      <h2 className="font-display text-lg font-semibold tracking-tight">
+        {lead.name || "(no name)"}
+      </h2>
+      <p className="break-words text-sm text-ink/60">
+        {lead.email ? (
+          <a
+            href={`mailto:${lead.email}`}
+            className="underline decoration-mist underline-offset-2 hover:decoration-ink"
+          >
+            {lead.email}
+          </a>
+        ) : (
+          "(no email)"
+        )}
+      </p>
+      {detail && <p className="text-sm text-ink/60">{detail}</p>}
+      <p className="whitespace-pre-wrap break-words pt-2 text-sm leading-relaxed text-ink/75">
+        {lead.message}
+      </p>
+      {lead.email && (
+        <a href={replyHref(lead, replySubject)} className={replyButton}>
+          Reply by email <span aria-hidden>↗</span>
+        </a>
+      )}
+    </div>
+  );
+}
+
 export default async function AdminInboxPage({
   searchParams,
 }: {
-  searchParams: Promise<{ kind?: string; status?: string }>;
+  searchParams: Promise<{ kind?: string; status?: string; job?: string }>;
 }) {
   if (!isSupabaseConfigured()) return <SetupNotice />;
 
   const sp = await searchParams;
-  const kind = pick<Kind>(sp.kind, ["all", "contact", "chat"], "all");
+  const kind = pick<Kind>(sp.kind, ["all", "contact", "application", "chat"], "all");
   const status = pick<Status>(sp.status, ["open", "handled", "all"], "open");
+  // "applications for this role" — linked from a role's edit page
+  const jobFilter = kind === "application" && isUuid(sp.job ?? "") ? sp.job! : null;
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -69,8 +115,34 @@ export default async function AdminInboxPage({
     .limit(LIMIT);
 
   const rows = (data ?? []) as Row[];
+
+  // Which role each application was for. A separate lookup rather than an
+  // embedded join, so the inbox still loads on a database where `jobs` (or
+  // the FK) doesn't exist yet — it just can't name the role.
+  const jobIds = [
+    ...new Set(
+      [
+        ...rows.filter((r) => r.kind === "application" && r.job_id).map((r) => r.job_id!),
+        ...(jobFilter ? [jobFilter] : []),
+      ].filter(isUuid)
+    ),
+  ];
+  const jobTitles = new Map<string, string>();
+  let jobsFailed = false;
+  if (jobIds.length) {
+    const { data: jobs, error: jobsError } = await supabase
+      .from("jobs")
+      .select("id, title")
+      .in("id", jobIds);
+    if (jobsError) jobsFailed = true;
+    for (const j of jobs ?? []) jobTitles.set(j.id as string, j.title as string);
+  }
+
   const threads = threadLeads(rows);
-  const ofKind = threads.filter((t) => kind === "all" || t.head.kind === kind);
+  const ofKind = threads.filter(
+    (t) =>
+      (kind === "all" || t.head.kind === kind) && (!jobFilter || t.head.job_id === jobFilter)
+  );
   const counts = {
     open: ofKind.filter((t) => !t.handled).length,
     handled: ofKind.filter((t) => t.handled).length,
@@ -86,6 +158,8 @@ export default async function AdminInboxPage({
     const q = new URLSearchParams();
     if (k !== "all") q.set("kind", k);
     if (s !== "open") q.set("status", s);
+    // a status change keeps the role filter; picking another type drops it
+    if (jobFilter && k === "application" && !next.kind) q.set("job", jobFilter);
     const qs = q.toString();
     return `/admin/inbox${qs ? `?${qs}` : ""}`;
   };
@@ -95,13 +169,33 @@ export default async function AdminInboxPage({
       active ? "bg-ink/[0.07] font-medium text-ink" : "text-ink/60 hover:bg-ink/[0.04] hover:text-ink"
     }`;
 
+  /** "Applied for: Frontend Developer" — or why the role can't be named. */
+  const appliedFor = (lead: LeadRow) => {
+    const title = lead.job_id ? jobTitles.get(lead.job_id) : undefined;
+    if (title) {
+      return (
+        <>
+          Applied for{" "}
+          <Link
+            href={`/admin/careers/${lead.job_id}`}
+            className="font-medium text-ink underline decoration-mist underline-offset-2 hover:decoration-ink"
+          >
+            {title}
+          </Link>
+        </>
+      );
+    }
+    if (lead.job_id && jobsFailed) return "Applied for a role (its title couldn’t be loaded)";
+    return "Applied for a role that has since been deleted";
+  };
+
   return (
     <div className="space-y-6">
       <header>
         <h1 className="font-display text-2xl font-semibold tracking-tight">Inbox</h1>
         <p className="mt-1 text-sm text-ink/55">
-          Contact submissions and chat conversations, newest first. Enquiries are
-          emailed too — this is the record.
+          Contact submissions, job applications and chat conversations, newest first.
+          Enquiries are emailed too — this is the record.
         </p>
       </header>
 
@@ -147,6 +241,7 @@ export default async function AdminInboxPage({
               [
                 ["all", "Everything"],
                 ["contact", "Enquiries"],
+                ["application", "Applications"],
                 ["chat", "Chats"],
               ] as const
             ).map(([k, label]) => (
@@ -163,6 +258,21 @@ export default async function AdminInboxPage({
         </div>
       )}
 
+      {!error && jobFilter && (
+        <p className="flex flex-wrap items-center gap-2 text-sm text-ink/60">
+          Applications for{" "}
+          <span className="font-medium text-ink">
+            {jobTitles.get(jobFilter) ?? "one role"}
+          </span>
+          <Link
+            href={href({ kind: "application" })}
+            className="rounded-full border border-mist/70 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+          >
+            All roles
+          </Link>
+        </p>
+      )}
+
       {!error && shown.length === 0 && (
         <Card>
           <CardTitle>
@@ -174,9 +284,9 @@ export default async function AdminInboxPage({
           </CardTitle>
           <p className="text-sm leading-relaxed text-ink/55">
             {rows.length === 0
-              ? "Contact-form submissions and chatbot conversations will appear here. Contact enquiries are emailed as well, so nothing depends on this page."
+              ? "Contact-form submissions, job applications and chatbot conversations will appear here. Contact enquiries are emailed as well, so nothing depends on this page."
               : status === "open"
-                ? "Every enquiry and conversation has been handled."
+                ? "Everything here has been handled."
                 : "Try another filter."}
           </p>
         </Card>
@@ -189,8 +299,8 @@ export default async function AdminInboxPage({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Pill tone={lead.kind === "contact" ? "live" : "muted"}>
-                      {lead.kind === "contact" ? "Enquiry" : "Chat"}
+                    <Pill tone={lead.kind === "chat" ? "muted" : "live"}>
+                      {LEAD_KIND_LABEL[lead.kind] ?? lead.kind}
                     </Pill>
                     <Pill tone={handled ? "muted" : "draft"}>{handled ? "Handled" : "Open"}</Pill>
                     <time dateTime={lead.created_at} className="font-mono text-[11px] text-ink/45">
@@ -200,35 +310,21 @@ export default async function AdminInboxPage({
                   </div>
 
                   {lead.kind === "contact" ? (
-                    <div className="mt-3 space-y-1">
-                      <h2 className="font-display text-lg font-semibold tracking-tight">
-                        {lead.name || "(no name)"}
-                      </h2>
-                      <p className="break-words text-sm text-ink/60">
-                        {lead.email ? (
-                          <a
-                            href={`mailto:${lead.email}`}
-                            className="underline decoration-mist underline-offset-2 hover:decoration-ink"
-                          >
-                            {lead.email}
-                          </a>
-                        ) : (
-                          "(no email)"
-                        )}
-                        {lead.service ? ` · ${lead.service}` : ""}
-                      </p>
-                      <p className="whitespace-pre-wrap break-words pt-2 text-sm leading-relaxed text-ink/75">
-                        {lead.message}
-                      </p>
-                      {lead.email && (
-                        <a
-                          href={replyHref(lead)}
-                          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-mist/70 px-3.5 py-1.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
-                        >
-                          Reply by email <span aria-hidden>↗</span>
-                        </a>
-                      )}
-                    </div>
+                    <PersonLead
+                      lead={lead}
+                      detail={lead.service ? `About: ${lead.service}` : undefined}
+                      replySubject={`Re: your enquiry to ${site.name}`}
+                    />
+                  ) : lead.kind === "application" ? (
+                    <PersonLead
+                      lead={lead}
+                      detail={appliedFor(lead)}
+                      replySubject={
+                        lead.job_id && jobTitles.get(lead.job_id)
+                          ? `Re: your application — ${jobTitles.get(lead.job_id)}`
+                          : `Re: your application to ${site.name}`
+                      }
+                    />
                   ) : (
                     <details className="group mt-3">
                       <summary className="cursor-pointer list-none rounded-lg text-sm text-ink/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 [&::-webkit-details-marker]:hidden">
@@ -270,7 +366,13 @@ export default async function AdminInboxPage({
                 <LeadActions
                   ids={ids}
                   handled={handled}
-                  label={lead.kind === "contact" ? "enquiry" : "conversation"}
+                  label={
+                    lead.kind === "contact"
+                      ? "enquiry"
+                      : lead.kind === "application"
+                        ? "application"
+                        : "conversation"
+                  }
                 />
               </div>
             </Card>

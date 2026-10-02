@@ -7,12 +7,28 @@ import { AnimatePresence, motion } from "framer-motion";
 import Logo from "./Logo";
 import Button from "./Button";
 import ThemeToggle from "./theme/ThemeToggle";
+import LanguageSwitcher from "./i18n/LanguageSwitcher";
+import { useI18n } from "./i18n/I18nProvider";
 import { nav } from "@/lib/site";
+import { navLabel } from "@/lib/i18n/nav";
+import { stripLocale } from "@/lib/i18n/paths";
 
+/**
+ * Breakpoint note: the inline links switch on at `lg`, not `md`. With the
+ * EN / FIL switcher in the bar (and Filipino labels running longer), the full
+ * row no longer fits a 768–1023px viewport — the hamburger sheet covers that
+ * range, and carries the switcher too.
+ */
 export default function Nav() {
   const pathname = usePathname();
+  const { t, href } = useI18n();
+  // locale-free path for the active state — usePathname() is the internal
+  // /en/… path while prerendering and the public one in the browser
+  const current = stripLocale(pathname ?? "/").path;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const themeLabels = { toDark: t("theme.toDark"), toLight: t("theme.toLight") };
 
   useEffect(() => {
     // only touch React state when the threshold is actually crossed — this
@@ -45,8 +61,8 @@ export default function Nav() {
         style={{ marginInline: "max(1rem, calc((100% - 72rem) / 2))" }}
       >
         <Link
-          href="/"
-          aria-label="R Ally's Tech — home"
+          href={href("/")}
+          aria-label={t("nav.homeLabel")}
           className="flex items-center gap-2.5"
         >
           {/* The `logo.png` shield used to sit here. It is the OLD brand — a
@@ -57,13 +73,14 @@ export default function Nav() {
           <Logo className="h-[26px]" />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav aria-label={t("nav.ariaLabel")} className="hidden items-center gap-1 lg:flex">
           {nav.map((item) => {
-            const active = pathname === item.href;
+            const active = current === item.href;
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={href(item.href)}
+                aria-current={active ? "page" : undefined}
                 className="relative rounded-full px-4 py-2 text-sm text-ink/70 transition-colors hover:text-ink"
               >
                 {active && (
@@ -73,26 +90,27 @@ export default function Nav() {
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
                   />
                 )}
-                <span className={active ? "text-ink" : ""}>{item.label}</span>
+                <span className={active ? "text-ink" : ""}>{navLabel(t, item)}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
-          <ThemeToggle />
-          <Button href="/location" arrow>
-            Get in touch
+        <div className="hidden items-center gap-3 lg:flex">
+          <LanguageSwitcher />
+          <ThemeToggle labels={themeLabels} />
+          <Button href={href("/location")} arrow>
+            {t("nav.cta")}
           </Button>
         </div>
 
-        {/* Mobile controls */}
-        <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
+        {/* Mobile / tablet controls */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <ThemeToggle labels={themeLabels} />
           <button
             onClick={() => setOpen((v) => !v)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-mist/70"
-            aria-label="Toggle menu"
+            aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
             aria-expanded={open}
           >
             <div className="space-y-1.5">
@@ -115,26 +133,34 @@ export default function Nav() {
       <AnimatePresence>
         {open && (
           <motion.nav
+            aria-label={t("nav.ariaLabel")}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="mx-4 mt-2 rounded-3xl border border-mist/70 bg-paper p-4 shadow-xl md:hidden"
+            className="mx-4 mt-2 rounded-3xl border border-mist/70 bg-paper p-4 shadow-xl lg:hidden"
           >
             {nav.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={href(item.href)}
+                aria-current={current === item.href ? "page" : undefined}
                 className={`block rounded-2xl px-4 py-3 text-lg ${
-                  pathname === item.href ? "text-ink" : "text-ink/60"
+                  current === item.href ? "text-ink" : "text-ink/60"
                 }`}
               >
-                {item.label}
+                {navLabel(t, item)}
               </Link>
             ))}
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <span className="font-mono text-xs uppercase tracking-widest text-slatey">
+                {t("lang.label")}
+              </span>
+              <LanguageSwitcher />
+            </div>
             <div className="px-2 pt-2">
-              <Button href="/location" arrow className="w-full">
-                Get in touch
+              <Button href={href("/location")} arrow className="w-full">
+                {t("nav.cta")}
               </Button>
             </div>
           </motion.nav>

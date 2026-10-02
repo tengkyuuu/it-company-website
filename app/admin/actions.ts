@@ -17,6 +17,7 @@ import {
   zodFail,
 } from "./_lib/server";
 import { imagePath, isUrl } from "./_lib/validators";
+import { removeOrphanedUploads } from "./_lib/storage";
 
 export type ActionResult = {
   ok: boolean;
@@ -46,7 +47,7 @@ async function requireStaff() {
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  revalidatePath("/", "layout");
+  revalidatePath("/admin", "layout"); // public pages never read the session
   redirect("/admin/login");
 }
 
@@ -155,55 +156,18 @@ function shotUrls(r: { img?: string | null; img2?: string | null; gallery?: unkn
  */
 function revalidateProjects() {
   revalidatePath("/admin", "layout");
-  revalidatePath("/");
-  revalidatePath("/projects");
-  revalidatePath("/projects/[slug]", "page");
+  revalidatePath("/[lang]", "page"); // landing gallery, both locales
+  revalidatePath("/[lang]/projects", "page");
+  revalidatePath("/[lang]/projects/[slug]", "page");
   revalidatePath("/sitemap.xml");
 }
 
 const NEEDS_SHOT =
   "Add a main screenshot before publishing — without one the site falls back to a placeholder image.";
 
-const STORAGE_MARKER = "/storage/v1/object/public/work/";
-
-/** Object path inside the "work" bucket for one of OUR public URLs, else null. */
-function storagePath(url: string | null | undefined): string | null {
-  if (!url) return null;
-  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
-  if (!base || !url.startsWith(base + STORAGE_MARKER)) return null;
-  const path = url.slice(base.length + STORAGE_MARKER.length).split(/[?#]/)[0];
-  try {
-    return decodeURIComponent(path) || null;
-  } catch {
-    return null;
-  }
-}
-
-type Supabase = Awaited<ReturnType<typeof createClient>>;
-
-/**
- * Best-effort: delete uploaded screenshots that no project references any more
- * (after a delete, or an edit that replaced/removed a shot). Checked against the
- * whole table so a shot reused by another project is never pulled out from under
- * it. Never fails the action — a leftover file costs pennies, a failed save
- * costs the edit.
- */
-async function removeOrphanedShots(supabase: Supabase, urls: (string | null | undefined)[]) {
-  const candidates = [...new Set(urls)]
-    .map((url) => ({ url, path: storagePath(url) }))
-    .filter((c): c is { url: string; path: string } => Boolean(c.url && c.path));
-  if (!candidates.length) return;
-
-  try {
-    const { data, error } = await supabase.from("projects").select("img, img2, gallery");
-    if (error || !data) return;
-    const inUse = new Set(data.flatMap(shotUrls).filter(Boolean));
-    const orphans = candidates.filter((c) => !inUse.has(c.url)).map((c) => c.path);
-    if (orphans.length) await supabase.storage.from("work").remove(orphans);
-  } catch {
-    // cleanup only
-  }
-}
+// Uploads this edit dropped are cleaned out of Storage by
+// removeOrphanedUploads (./_lib/storage.ts) — shared with products and posts,
+// and it keeps any file another table or a stored revision still references.
 
 export async function saveProject(formData: FormData): Promise<ActionResult> {
   await requireStaff();
@@ -292,7 +256,7 @@ export async function saveProject(formData: FormData): Promise<ActionResult> {
     if (error) return onError(error);
     if (!data?.length) return fail(NOTHING_CHANGED);
 
-    await removeOrphanedShots(supabase, shotUrls(before));
+    await removeOrphanedUploads(supabase, shotUrls(before));
     revalidateProjects();
     return ok("Project saved.");
   }
@@ -318,7 +282,7 @@ export async function deleteProject(formData: FormData): Promise<ActionResult> {
   if (error) return dbFail(error);
   if (!data?.length) return fail(NOTHING_CHANGED);
 
-  await removeOrphanedShots(supabase, shotUrls(data[0]));
+  await removeOrphanedUploads(supabase, shotUrls(data[0]));
   revalidateProjects();
   return ok(`Deleted “${data[0].name}”.`);
 }
@@ -526,6 +490,6 @@ export async function saveSettings(formData: FormData): Promise<ActionResult> {
     );
   }
 
-  revalidatePath("/", "layout");
+  revalidatePath("/[lang]", "layout"); // footer on every public page, both locales
   return ok("Settings saved — the public site is updated.");
 }

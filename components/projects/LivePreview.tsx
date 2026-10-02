@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { Project } from "@/lib/work";
+import { useI18n } from "@/components/i18n/I18nProvider";
 
 /**
  * A project preview inside browser chrome.
@@ -32,6 +33,7 @@ export default function LivePreview({
   className?: string;
   priority?: boolean;
 }) {
+  const { t } = useI18n();
   const { liveUrl, url, img, name, dots } = project;
   const box = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -103,7 +105,7 @@ export default function LivePreview({
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-to opacity-70 motion-reduce:animate-none" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-accent-to" />
                 </span>
-                Live
+                {t("preview.live")}
               </span>
               <button
                 type="button"
@@ -111,7 +113,7 @@ export default function LivePreview({
                 aria-pressed={interactive}
                 className="rounded-full border border-white/20 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60 transition-colors hover:border-white/45 hover:text-paper"
               >
-                {interactive ? "Done" : "Interact"}
+                {interactive ? t("preview.done") : t("preview.interact")}
               </button>
               <a
                 href={liveUrl}
@@ -119,12 +121,12 @@ export default function LivePreview({
                 rel="noopener noreferrer"
                 className="rounded-full border border-white/20 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60 transition-colors hover:border-white/45 hover:text-paper"
               >
-                Open ↗
+                {t("preview.open")}
               </a>
             </>
           ) : (
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/35">
-              Screenshot
+              {t("preview.screenshot")}
             </span>
           )}
         </span>
@@ -135,7 +137,7 @@ export default function LivePreview({
         {liveUrl && inView && scale > 0 && (
           <iframe
             src={liveUrl}
-            title={`${name} — live preview`}
+            title={t("preview.frameTitle", { name })}
             loading="lazy"
             referrerPolicy="no-referrer"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
@@ -167,9 +169,9 @@ export default function LivePreview({
         {liveUrl && inView && !loaded && (
           <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-gradient-to-t from-ink-900 to-transparent px-4 py-3 font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60">
             {slow ? (
-              <>This site may block embedding — use “Open ↗”</>
+              <>{t("preview.blocked")}</>
             ) : (
-              <>Loading live site…</>
+              <>{t("preview.loading")}</>
             )}
           </span>
         )}
@@ -179,7 +181,7 @@ export default function LivePreview({
           <button
             type="button"
             onClick={() => setInteractive(true)}
-            aria-label={`Interact with the live ${name} preview`}
+            aria-label={t("preview.interactLabel", { name })}
             className="absolute inset-0 z-10 cursor-pointer"
           />
         )}

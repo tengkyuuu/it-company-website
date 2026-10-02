@@ -69,9 +69,9 @@ const ServiceSchema = z.object({
 
 function revalidateServices() {
   revalidatePath("/admin", "layout");
-  revalidatePath("/services");
-  revalidatePath("/");
-  revalidatePath("/", "layout");
+  revalidatePath("/[lang]/services", "page");
+  revalidatePath("/[lang]", "page");
+  revalidatePath("/[lang]", "layout"); // the footer lists services on every public page
 }
 
 export async function saveService(formData: FormData): Promise<ActionResult> {
@@ -195,7 +195,7 @@ const MemberSchema = z.object({
 
 function revalidateRoster() {
   revalidatePath("/admin", "layout");
-  revalidatePath("/about");
+  revalidatePath("/[lang]/about", "page");
 }
 
 export async function saveMember(formData: FormData): Promise<ActionResult> {

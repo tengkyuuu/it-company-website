@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "@/components/Icon";
 import KeySwitch from "@/components/fx/KeySwitch";
+import { useI18n } from "@/components/i18n/I18nProvider";
 import type { Service } from "@/lib/services";
 import { observeVisible, wants3D } from "@/lib/webgl";
 
@@ -23,6 +24,7 @@ const GlyphScene = dynamic(() => import("@/components/three/GlyphScene"), {
  * alphas inside: everything goes through the neutral ramp.
  */
 export default function ServicesGalaxy({ services }: { services: Service[] }) {
+  const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [show3d, setShow3d] = useState(false);
@@ -86,7 +88,7 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
     <section
       ref={root}
       className="relative bg-surface text-ink"
-      aria-label="Services"
+      aria-label={t("galaxy.sectionLabel")}
     >
       <div className="mx-auto max-w-7xl px-6">
         <div className="md:grid md:grid-cols-[0.95fr_1.05fr] md:gap-16">
@@ -95,7 +97,7 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
             <div className="sticky top-0 flex h-screen flex-col justify-center">
               <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-slatey">
                 <span className="h-px w-6 bg-accent" />
-                What we do
+                {t("galaxy.eyebrow")}
               </span>
 
               <div className="relative mt-4 h-[44vh]">
@@ -151,10 +153,10 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
             <div className="flex flex-col justify-center md:min-h-[70vh] md:pt-24">
               <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-slatey md:hidden">
                 <span className="h-px w-6 bg-accent" />
-                What we do
+                {t("galaxy.eyebrow")}
               </span>
               <h2 className="mt-5 max-w-lg text-balance font-display text-4xl font-semibold tracking-tight md:mt-0 md:text-5xl">
-                One studio, the whole product journey.
+                {t("galaxy.title")}
               </h2>
               <p className="mt-5 max-w-sm text-pretty leading-relaxed text-slatey">
                 Six core practices, one team. Most clients start with one and

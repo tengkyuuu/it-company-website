@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { imagePath, isUrl } from "@/app/admin/_lib/validators";
+import { ctaUrl, imagePath, isCtaUrl, isUrl } from "@/app/admin/_lib/validators";
 
 /**
  * Every screenshot the panel stores ends up as an <img src> on the public
@@ -40,6 +40,45 @@ describe("imagePath (admin screenshot validator)", () => {
     expect(new URL("/\\evil.example/x.png", "https://rallys.tech/projects/x").host).toBe(
       "evil.example"
     );
+  });
+});
+
+/**
+ * A product's CTA becomes an <a href> on the public site. Unlike an <img src>,
+ * a link RUNS what it points at when clicked, so the bar is higher: https or a
+ * path on this site, nothing else.
+ */
+describe("ctaUrl (product call-to-action link)", () => {
+  const cta = (v: string) => ctaUrl.safeParse(v).success;
+
+  it.each([
+    ["", "empty = no button"],
+    ["/contact", "an internal page"],
+    ["/blog/launch-notes#pricing", "an internal page with a hash"],
+    ["/products/x?ref=hero", "an internal page with a query"],
+    ["https://app.example.com/signup", "an external https app"],
+    ["HTTPS://Example.com", "scheme case doesn't matter"],
+  ])("accepts %j (%s)", (value) => {
+    expect(cta(value)).toBe(true);
+    if (value) expect(isCtaUrl(value)).toBe(true);
+  });
+
+  it.each([
+    ["javascript:alert(1)", "script URL"],
+    [" javascript:alert(1)", "script URL behind a space"],
+    ["JaVaScRiPt:alert(1)", "script URL, mixed case"],
+    ["data:text/html,<script>alert(1)</script>", "inline document"],
+    ["vbscript:msgbox(1)", "legacy script scheme"],
+    ["http://example.com", "plain http — a downgrade"],
+    ["//evil.example/x", "protocol-relative — leaves the site"],
+    ["/\\evil.example/x", "backslash protocol-relative"],
+    ["mailto:hello@example.com", "not a page (use the contact page instead)"],
+    ["contact", "relative path — resolves differently per page"],
+    ["https://", "scheme with no host"],
+    ["https://example.com/a b", "whitespace"],
+    ["/" + "a".repeat(600), "over the length cap"],
+  ])("rejects %j (%s)", (value) => {
+    expect(cta(value)).toBe(false);
   });
 });
 

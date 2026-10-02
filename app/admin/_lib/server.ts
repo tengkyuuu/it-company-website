@@ -5,6 +5,7 @@ import type { ZodError } from "zod";
 import { getProfile } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ProfileRow } from "@/lib/supabase/types";
+import { imagePath } from "./validators";
 
 /**
  * Shared plumbing for the panel's server actions and pages.
@@ -195,4 +196,28 @@ export function ids(fd: FormData, key = "id"): string[] {
 export function int(fd: FormData, key: string, { min = 0, max = 9999 } = {}) {
   const n = Math.round(Number(fd.get(key) ?? 0));
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : min;
+}
+
+/**
+ * The gallery rows GalleryEditor (components/admin/ProjectCaseStudy.tsx)
+ * submits: parallel gallery_src / gallery_caption / gallery_kind arrays, one
+ * index per row. Rows without an image are dropped; a bad address is an error,
+ * not a silent loss. (actions.ts keeps its own copy for projects.)
+ */
+export function readGallery(fd: FormData, max: number) {
+  const srcs = fd.getAll("gallery_src").map((v) => String(v).trim());
+  const captions = fd.getAll("gallery_caption").map((v) => String(v).trim());
+  const kinds = fd.getAll("gallery_kind").map(String);
+  const rows = srcs
+    .map((src, i) => ({
+      src,
+      caption: (captions[i] ?? "").slice(0, 200),
+      kind: kinds[i] === "mobile" ? ("mobile" as const) : ("desktop" as const),
+    }))
+    .filter((r) => r.src);
+  if (rows.some((r) => !imagePath.safeParse(r.src).success)) {
+    return { error: "One of the gallery images has an invalid address — re-upload it." } as const;
+  }
+  if (rows.length > max) return { error: `Keep the gallery to ${max} images or fewer.` } as const;
+  return { rows } as const;
 }

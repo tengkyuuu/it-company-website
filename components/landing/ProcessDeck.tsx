@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import KeySwitch from "@/components/fx/KeySwitch";
+import { useI18n } from "@/components/i18n/I18nProvider";
 
 const steps = [
   {
@@ -35,6 +36,9 @@ const steps = [
  * it's plain position:sticky, with GSAP only adding the settle-back.
  */
 export default function ProcessDeck() {
+  // step titles/bodies are marketing copy (English in both locales); the
+  // "Phase 01 — 04" chip is chrome
+  const { t } = useI18n();
   const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -96,7 +100,7 @@ export default function ProcessDeck() {
                     last ? "border-white/20 text-paper/60" : "border-mist/70 text-slatey"
                   }`}
                 >
-                  Phase {s.no} — 04
+                  {t("process.phase", { no: s.no, total: "04" })}
                 </span>
                 <span
                   aria-hidden

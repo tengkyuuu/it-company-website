@@ -13,6 +13,10 @@ The impression to leave: *we make software and we innovate, with taste.*
 5. **Location** — where to find us, map, contact.
 6. **Admin** — `/admin`, the CMS (not in `nav`; noindex + robots-disallowed).
 
+Every public page exists in **English (unprefixed: `/projects`) and Filipino (`/fil/projects`)**
+— routes live under `app/[lang]/`; see "Internationalisation" below. Products, Careers and Blog
+pages are being added (CMS-driven; links appear only once something is published).
+
 **HQ:** Dipolog City, Zamboanga del Norte (single source of truth: `lib/site.ts`).
 **Hero:** immersive WebGL "constellation" (no photo). **Selected Work = real client projects**
 (FameCRM, PhysioPano, SHM, Rally's Equities, Coffee Shop) — screenshots in `public/work/`,
@@ -430,10 +434,11 @@ reflow. Two non-obvious rules, both learned the hard way here:
     unreachable project cost ~7 s per query — the footer's two sequential reads made every dev
     render take ~14 s (measured 2026-10-02, when the project's `*.supabase.co` host stopped
     resolving). A fallback is only worth having if it's quick.
-  - **Auth**: `middleware.ts` (matcher **`/admin/:path*` only** — nothing public reads the
-    session, and `getUser()` is a Supabase round-trip for anyone holding a session cookie, so
-    running it site-wide taxed every page view by a signed-in teammate) refreshes the session
-    cookie (the only place that can), gates
+  - **Auth**: `middleware.ts` does Supabase work **only in its `/admin` branch** — nothing public
+    reads the session, and `getUser()` is a Supabase round-trip for anyone holding a session
+    cookie, so running it site-wide taxed every page view by a signed-in teammate. (The matcher is
+    wider now, but only for the path-only locale routing — see Internationalisation.) The admin
+    branch refreshes the session cookie (the only place that can), gates
     `/admin/**` (bouncing to `/admin/login?next=…`, internal redirects only) and stamps an
     `x-admin-pathname` header the layout uses to render `/admin/auth/*` without the shell.
     `lib/supabase/server.ts` → `getAccess()` returns `signed-out | no-access | ok`; `getProfile()`
@@ -488,6 +493,20 @@ reflow. Two non-obvious rules, both learned the hard way here:
     `requireStaff()` in `app/admin/_lib/server.ts`.
     Screenshot uploads go **browser → Storage directly**, not through a server action, whose body
     is capped ~1MB and would reject most captures.
+  - **Products / Careers / Blog** (`/admin/products`, `/admin/careers`, `/admin/blog`; actions in
+    `app/admin/catalog-actions.ts`; forms share `components/admin/CatalogFormParts.tsx`). Public
+    reads in `lib/cms.ts`: `getProducts`, `getJobs` (open roles only), `getJobBySlug` (includes
+    closed roles, flagged `.closed`, so a stale link says "closed" instead of 404ing), `getPosts`
+    (summaries, no body), `getPostBySlug`, `getPublishedSections()` (drives nav/footer links).
+    **Fallbacks are empty, never invented** — there is no static list for these. CTA URLs must be
+    `https://…` or an internal `/path` (`ctaUrl` in `_lib/validators.ts`); "closed" is decided at
+    render time in Asia/Manila, so pages listing roles need a timed `revalidate`. Job applications
+    land in the inbox as kind `application` with `job_id` (own card + filter; never threaded).
+  - **Upload cleanup** (`app/admin/_lib/storage.ts` → `removeOrphanedUploads`): a Storage file is
+    deleted only if **nothing** references it — projects (img, img2, gallery), products (image,
+    gallery), posts (cover, and URLs in the markdown body) **and every `content_revisions`
+    snapshot**, so a restore can never point at a deleted file. Deletes nothing if any source
+    fails to read. Consequence: a replaced/deleted image survives until its revisions are pruned.
   - Panel plumbing worth knowing: `app/admin/_lib/server.ts` maps Postgres errors to plain English
     (`23505` slug taken, RLS denial, missing table, paused project); **every write checks affected
     rows** — RLS-blocked updates "succeed" with 0 rows, which used to show "Saved."; forms submit
@@ -499,8 +518,10 @@ reflow. Two non-obvious rules, both learned the hard way here:
     `"use server"` file may only export async functions):
     - **`/admin/services`** — the six offerings were `lib/services.ts` only, so they couldn't be
       changed without a deploy. ⚠️ Services render on the landing page, `/services` **and the
-      footer of every page**, so `saveService` must `revalidatePath("/", "layout")` too — miss
-      that and an edit looks saved while the footer keeps the old list. `ServicesGalaxy` and
+      footer of every page**, so `saveService` must `revalidatePath("/[lang]", "layout")` too —
+      miss that and an edit looks saved while the footer keeps the old list. (Since the i18n move,
+      every public `revalidatePath` uses the **route pattern** — `"/[lang]/projects/[slug]",
+      "page"` — not a URL, so both locales refresh.) `ServicesGalaxy` and
       `ServiceIndex` now take `services` as a **prop** (they're client components; their server
       parents fetch).
     - **`/admin/roster`** — the PUBLIC team on `/about`, previously hardcoded in `TeamRoster.tsx`
@@ -517,11 +538,18 @@ reflow. Two non-obvious rules, both learned the hard way here:
       Contact leads are still emailed; this is a record, not a replacement.
     - Both new tables treat **empty as "not set up"**, not "no content" — `lib/cms.ts` serves the
       static list, and each page offers an *import* rather than showing a scary warning.
-  - `components/SiteChrome.tsx` gates the marketing chrome (Lenis, preloader, ambient, nav,
-    footer) off `/admin` by pathname. `Footer` is passed to it **as a prop**, not imported
-    — `SiteChrome` is a client component and `Footer` is now an async server component.
-- **Robustness**: `app/not-found.tsx` (branded 404) + `app/error.tsx` boundary; the panel has its
-  own `app/admin/{loading,error,not-found}.tsx`.
+  - **Two root layouts, one document shell.** `app/[lang]/layout.tsx` (public, `<html lang>` per
+    locale, wraps `SiteChrome`) and `app/admin/layout.tsx` (`<html lang="en">`, no marketing
+    chrome) both render `components/DocumentShell.tsx` — fonts, `globals.css`, `ThemeScript`
+    first in `<head>`, `ThemeProvider`, analytics — so they can't drift. `SiteChrome` (Lenis,
+    preloader, ambient, nav, footer) is no longer pathname-gated: the admin simply never renders
+    inside it. `Footer` is passed to it **as a prop** (client component ← async server component).
+    The per-route fade (`template.tsx`) is public-only.
+- **Robustness**: `app/[lang]/not-found.tsx` + `error.tsx` (branded, in the visitor's language);
+  unmatched public URLs reach them through `app/[lang]/[...missing]` with a real 404 status
+  (middleware rewrites everything public under `/en`/`/fil`, and there is no root not-found any
+  more — junk paths *with a file extension* get Next's bare 404). The panel has its own
+  `app/admin/{loading,error,not-found,[...missing]}`.
 - **Analytics**: `@vercel/analytics` (via `components/SiteAnalytics.tsx`, which **drops every
   `/admin` page view** — panel traffic isn't marketing data, and the invite/reset URL carries a
   one-time token; it's a client wrapper only because `beforeSend` is a function a server layout
@@ -537,8 +565,42 @@ reflow. Two non-obvious rules, both learned the hard way here:
   Live URL field in the admin) and that project's preview becomes a real iframe. **Re-check before
   setting one** — don't point the portfolio at a parked domain.
 
+### Internationalisation (English / Filipino)
+- **What's translated: UI chrome only** — nav, footer chrome, CTAs, form labels/messages, section
+  eyebrows and short titles, the 404/error pages, the chat widget's own UI, aria-labels, meta
+  titles. **Not** CMS content (projects, services, team, posts stay in whatever language an editor
+  wrote) and not long-form marketing copy (hero headline/subline, section intros, ProcessDeck,
+  the belief sentence) or the model's chat replies. Filipino strings are **drafts — have a native
+  speaker review** `lib/i18n/messages/fil/*`.
+- **Routing**: everything public is under `app/[lang]/` and prerendered for `en` + `fil`.
+  `middleware.ts` → `resolveLocaleRoute()` (`lib/i18n/route.ts`, pure, unit-tested, Edge-safe):
+  `/fil/*` served as-is; `/en/*` → **308** to the unprefixed URL (one canonical English address);
+  everything else → **rewrite** to `/en/…`. Path-only — no DB, no cookies, **no Accept-Language
+  redirect** (uncacheable, and it hides pages from crawlers). Switching language is a full
+  navigation between two prerendered pages; there is no client-side locale state.
+- **`dynamicParams`**: single-param pages set it `false`; `[slug]` pages keep the default `true`
+  **on purpose** — Next applies it per route, so `false` anywhere up the tree (e.g. the `[lang]`
+  layout) would 404 every project published after the deploy.
+- **API**: server `getDictionary(lang)` → `{ t }` (typed keys, `{var}` interpolation, fallback
+  lang → en → key); page pattern `const lang = await pageLocale(params)` (404s junk locales) and
+  `...localeMetadata(lang, "/path")` in `generateMetadata` (canonical, hreflang en/fil/x-default,
+  `og:locale` en_PH/fil_PH, explicit OG images — a page-level `openGraph` replaces the inherited
+  one wholesale). Client: `useI18n()` → `{ lang, t, href }`, only the `common` namespace is
+  shipped to the browser. Links: `localizePath(lang, href)` / `switchLocalePath()`
+  (`lib/i18n/paths`) — leaves hashes, mailto/tel, external, `/admin`, `/api` alone.
+- **Namespaces**: `common` (client chrome), `site` (server chrome), `catalog` (products, careers,
+  blog). A new nav item needs an entry in `lib/site.ts` `nav`, a key in `lib/i18n/nav.ts`, and
+  `nav.*` strings in **both** `common` files — `tests/i18n.test.ts` fails otherwise, and also on
+  any key used at a call site but missing in either language (the reference project once shipped
+  raw keys like "nav.file" to production).
+- `usePathname()` is `/en/…` while prerendering and `/…` in the browser — anything comparing
+  paths must go through `stripLocale`, or it hydrates differently.
+- Nav collapses to the hamburger below **`lg`** (was `md`): the EN/FIL pill plus longer
+  Filipino labels didn't fit 768–1023 px. The switcher lives in the desktop bar, the mobile sheet
+  and the footer — never the mobile top bar (390 px overflow).
+
 ### Tests (`npm test` — Vitest + PGlite)
-`tests/` — **11 suites, 167 tests** (2026-10-02). Philosophy (from the reference project): test
+`tests/` — **14 suites, 306 tests** (2026-10-02, after Phase 2 wave A). Philosophy (from the reference project): test
 derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
 - **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
   (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,
@@ -683,15 +745,16 @@ English/Filipino UI chrome; new pages Blog, Careers, Products; Vercel Hobby; no 
 no changelog, no press kit, no Spotify/resume/"Now"/Word-document visuals.
 - ✅ **Phase 1 — data model, migrations, tests**: schema above, our own hashed tokens,
   `OWNER_EMAIL`, owner-only team, disable/revoke, durable limiter, IP hashing, Vitest + PGlite.
-- ⏳ **Phase 2 — public pages**: `/products`, `/careers` (apply → inbox as kind `application`;
-  ⚠️ `app/admin/inbox/page.tsx` currently renders non-contact rows as chat — handle it),
-  `/blog`; nav links appear once something is published; `/fil` i18n; Cmd+K search; live
-  updates (Realtime on `site_revision` after idle + focus refetch + 30 s poll, falling back to
-  polling at Supabase's 200-connection free cap).
-- ⏳ **Phase 3 — admin console**: editors for products/jobs/posts; autosave (debounced, dirty
-  fields only, optimistic concurrency on `updated_at` passed through *as a string*); history
-  panel + restore (logged, pre-restore backup); activity feed. ⚠️ `removeOrphanedShots` must not
-  delete images a stored revision still references.
+- ◐ **Phase 2 — public pages.** ✅ Wave A: `/fil` i18n restructure; products/jobs/posts read
+  layer + admin editors (pulled forward from Phase 3 so the pages can be filled); inbox renders
+  applications; upload cleanup covers all tables + revisions. ⏳ Wave B: public `/products`,
+  `/careers` (apply → inbox; refuse closed roles; timed revalidate), `/blog` (markdown rendered
+  with **no raw HTML** and only https/mailto/internal links); nav links via
+  `getPublishedSections()`; Cmd+K search; live updates (Realtime on `site_revision` after idle +
+  focus refetch + 30 s poll, falling back to polling at Supabase's 200-connection free cap).
+- ⏳ **Phase 3 — admin console**: autosave (debounced, dirty fields only, optimistic concurrency
+  on `updated_at` passed through *as a string*); history panel + restore (logged, pre-restore
+  backup; pruning should trigger upload cleanup); activity feed.
 - ⏳ **Phase 4**: chat human takeover (`chat_sessions.mode`), real inbox replies via Resend,
   `/status` (GitHub Action → `STATUS_INGEST_TOKEN`, its own secret; label Lighthouse — CI has
   no GPU), live-URL embed probe at save time (SSRF-guarded), PWA (shell-only, RSC-aware, don't

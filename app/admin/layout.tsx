@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import DocumentShell from "@/components/DocumentShell";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import AdminNav from "@/components/admin/AdminNav";
@@ -9,14 +10,33 @@ import { headers } from "next/headers";
 import AuthNoAccess from "@/components/admin/AuthNoAccess";
 import { getAccess } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/types";
+import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Admin",
+  // This is a ROOT layout now (there's no app/layout.tsx — the public site's
+  // root is app/[lang]/layout.tsx), so it carries what it used to inherit: the
+  // base URL and the "· R Ally's Tech" title template.
+  metadataBase: new URL(site.url),
+  title: { default: "Admin · R Ally's Tech", template: "%s · R Ally's Tech" },
   // keep the panel out of search results and out of the sitemap
   robots: { index: false, follow: false },
 };
 
-export default async function AdminLayout({
+/**
+ * Root layout of the admin panel: English-only, and none of the marketing
+ * chrome (no SiteChrome, preloader, Lenis or chat). The <html>/<body>, fonts,
+ * theme script and analytics come from DocumentShell, shared with the public
+ * root layout so the two can't drift.
+ */
+export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <DocumentShell lang="en">
+      <AdminLayout>{children}</AdminLayout>
+    </DocumentShell>
+  );
+}
+
+async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;

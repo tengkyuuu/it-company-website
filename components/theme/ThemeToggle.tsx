@@ -20,7 +20,14 @@ const DURATION = 620;
  * The pill's own visual state (thumb position, sun/moon crossfade) is pure CSS
  * keyed off <html data-theme>, so it is already correct on the first paint.
  */
-export default function ThemeToggle({ className = "" }: { className?: string }) {
+export default function ThemeToggle({
+  className = "",
+  labels = { toDark: "Switch to dark mode", toLight: "Switch to light mode" },
+}: {
+  className?: string;
+  /** localized by the public Nav; the admin panel (English-only) uses the defaults */
+  labels?: { toDark: string; toLight: string };
+}) {
   const { theme, mounted, setTheme } = useTheme();
   const busy = useRef(false);
 
@@ -88,8 +95,8 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
       type="button"
       role="switch"
       aria-checked={theme === "dark"}
-      aria-label={`Switch to ${next} mode`}
-      title={`Switch to ${next} mode`}
+      aria-label={next === "dark" ? labels.toDark : labels.toLight}
+      title={next === "dark" ? labels.toDark : labels.toLight}
       onClick={onClick}
       data-cursor
       className={`group relative inline-flex h-9 w-[68px] shrink-0 items-center rounded-full border border-mist/70 bg-ink/[0.04] px-1 transition-colors duration-300 hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${className}`}
