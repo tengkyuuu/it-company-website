@@ -11,6 +11,9 @@ export const navKeys: Record<string, ClientMessageKey> = {
   "/projects": "nav.projects",
   "/about": "nav.about",
   "/location": "nav.location",
+  "/products": "nav.products",
+  "/careers": "nav.careers",
+  "/blog": "nav.blog",
 };
 
 /** The translated label for a nav item, given any `t` over the common keys. */

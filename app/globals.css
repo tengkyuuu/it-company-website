@@ -604,6 +604,213 @@ body {
   color: transparent;
 }
 
+/* ----------------------------------------------------------------------------
+   Long-form article body — `.prose-rt` (/blog/[slug]).
+   lib/markdown.tsx emits bare semantic elements (no classes, never raw HTML);
+   everything about how they read lives here. Tokens only, so it follows
+   light/dark with no extra work. No accent: the page's one gradient moment is
+   its headline, so links are ink with a mist underline that darkens on hover.
+   Measure is set by the caller (max-w-[68ch]); rhythm is in `em` so it
+   scales with the 17→18px body size.
+---------------------------------------------------------------------------- */
+.prose-rt {
+  color: color-mix(in oklab, var(--color-ink) 80%, transparent);
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  overflow-wrap: break-word;
+  font-feature-settings: "kern", "liga", "calt";
+}
+@media (min-width: 768px) {
+  .prose-rt {
+    font-size: 1.125rem;
+  }
+}
+.prose-rt > * + * {
+  margin-top: 1.35em;
+}
+.prose-rt > :first-child {
+  margin-top: 0;
+}
+.prose-rt p {
+  text-wrap: pretty;
+}
+/* the opening paragraph leads, a size up — the standfirst's quieter sibling */
+.prose-rt > p:first-child {
+  font-size: 1.12em;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+
+.prose-rt :where(h2, h3, h4) {
+  color: var(--color-ink);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  scroll-margin-top: 7rem;
+}
+.prose-rt h2 {
+  font-family: var(--font-display);
+  font-size: 1.65em;
+  margin-top: 2.3em;
+}
+.prose-rt h3 {
+  font-family: var(--font-display);
+  font-size: 1.28em;
+  margin-top: 2em;
+}
+.prose-rt h4 {
+  font-size: 1em;
+  letter-spacing: -0.01em;
+  margin-top: 1.8em;
+}
+.prose-rt > :where(h2, h3, h4) + * {
+  margin-top: 0.7em;
+}
+
+.prose-rt strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.prose-rt a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-mist);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color 0.3s var(--ease-soft);
+}
+.prose-rt a:hover {
+  text-decoration-color: var(--color-ink);
+}
+.prose-rt a:focus-visible {
+  outline: 2px solid var(--color-accent-to);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* inline code — a soft chip; block code — a quiet card that scrolls sideways */
+.prose-rt :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  padding: 0.12em 0.4em;
+  border-radius: 0.4em;
+  border: 1px solid color-mix(in oklab, var(--color-mist) 75%, transparent);
+  background: color-mix(in oklab, var(--color-ink) 5%, transparent);
+  color: var(--color-ink);
+}
+.prose-rt pre {
+  font-family: var(--font-mono);
+  font-size: 0.84em;
+  line-height: 1.7;
+  tab-size: 2;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-mist);
+  border-radius: 1rem;
+  padding: 1.1em 1.3em;
+  overflow-x: auto;
+  white-space: pre;
+}
+.prose-rt pre:focus-visible {
+  outline: 2px solid var(--color-accent-to);
+  outline-offset: 2px;
+}
+.prose-rt pre code {
+  font: inherit;
+}
+
+/* a pull-quote, set in the display face on a mist rule */
+.prose-rt blockquote {
+  border-left: 2px solid var(--color-mist);
+  padding-left: 1.3em;
+  color: var(--color-ink);
+}
+.prose-rt blockquote > p {
+  font-family: var(--font-display);
+  font-size: 1.14em;
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+}
+.prose-rt blockquote > * + * {
+  margin-top: 0.8em;
+}
+
+/* lists — hairline dashes (the same mark as a project's highlights), mono numerals */
+.prose-rt :where(ul, ol) {
+  padding-left: 1.5em;
+}
+.prose-rt ul {
+  list-style: none;
+}
+.prose-rt ul > li {
+  position: relative;
+}
+.prose-rt ul > li::before {
+  content: "";
+  position: absolute;
+  left: -1.2em;
+  top: 0.9em;
+  width: 0.55em;
+  height: 1px;
+  background: var(--color-slatey);
+}
+.prose-rt ol {
+  list-style: decimal-leading-zero;
+}
+.prose-rt ol > li {
+  padding-left: 0.35em;
+}
+.prose-rt ol > li::marker {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  color: var(--color-slatey);
+}
+.prose-rt li + li {
+  margin-top: 0.45em;
+}
+.prose-rt li > :where(ul, ol) {
+  margin-top: 0.45em;
+}
+.prose-rt li > p + * {
+  margin-top: 0.7em;
+}
+
+/* a section break, not a line: a single quiet asterism */
+.prose-rt hr {
+  border: 0;
+  margin-block: 2.8em;
+  text-align: center;
+  overflow: visible;
+  height: 1em;
+}
+.prose-rt hr::after {
+  content: "✳";
+  color: var(--color-slatey);
+  font-size: 0.9em;
+}
+
+/* images at their own aspect, never wider than the column (and never upscaled) */
+.prose-rt img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in oklab, var(--color-mist) 80%, transparent);
+  background: var(--color-surface);
+}
+.prose-rt figure {
+  margin-block: 2.4em;
+}
+.prose-rt figcaption {
+  margin-top: 0.8em;
+  text-align: center;
+  font-size: 0.78em;
+  line-height: 1.5;
+  color: var(--color-slatey);
+}
+
 /* Marquee for the trusted-by strip */
 @keyframes marquee {
   from {

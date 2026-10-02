@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import DocumentShell from "@/components/DocumentShell";
 import SiteChrome from "@/components/SiteChrome";
 import Footer from "@/components/Footer";
+import { getPublishedSections } from "@/lib/cms";
+import { buildSearchIndex } from "@/lib/search";
 import { locales } from "@/lib/i18n/config";
 import { getClientMessages, getDictionary } from "@/lib/i18n/dictionary";
 import { openGraphFor, TWITTER_IMAGE } from "@/lib/i18n/metadata";
@@ -22,6 +24,15 @@ import { site, socials } from "@/lib/site";
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
+
+// Re-render every public page at least hourly, even with no admin edit. Admin
+// saves already revalidatePath() what they touch, but two things here depend on
+// the CLOCK, not on an edit: a job's "closed" status and the Careers nav link
+// are decided at render time in Asia/Manila (lib/cms.ts → isJobClosed), so a
+// role whose last day passes overnight must drop off the nav, the search index
+// and /careers without anyone touching the panel. Still static (ISR): nothing
+// under this layout reads cookies() or headers(). A page may set a LOWER value.
+export const revalidate = 3600;
 
 type Props = { children: React.ReactNode; params: Promise<{ lang: string }> };
 
@@ -81,6 +92,14 @@ export default async function LangLayout({ children, params }: Props) {
   // visitor still gets the branded 404.
   const lang = toLocale((await params).lang);
 
+  // Nav links for the CMS sections + this locale's search index. Both are
+  // fail-fast and never throw (cms.ts falls back; buildSearchIndex → []), and
+  // cache()d, so the pages' own reads of the same data are deduped.
+  const [sections, searchIndex] = await Promise.all([
+    getPublishedSections(),
+    buildSearchIndex(lang),
+  ]);
+
   return (
     <DocumentShell
       lang={lang}
@@ -99,7 +118,13 @@ export default async function LangLayout({ children, params }: Props) {
         </>
       }
     >
-      <SiteChrome lang={lang} messages={getClientMessages(lang)} footer={<Footer lang={lang} />}>
+      <SiteChrome
+        lang={lang}
+        messages={getClientMessages(lang)}
+        footer={<Footer lang={lang} />}
+        sections={sections}
+        searchIndex={searchIndex}
+      >
         {children}
       </SiteChrome>
       <script

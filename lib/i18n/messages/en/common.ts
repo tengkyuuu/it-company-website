@@ -21,6 +21,11 @@ const common = {
     projects: "Projects",
     about: "About",
     location: "Location",
+    // shown only while something is published (getPublishedSections)
+    products: "Products",
+    careers: "Careers",
+    blog: "Blog",
+    search: "Search the site",
     homeLabel: "R Ally's Tech — home",
     ariaLabel: "Main",
     openMenu: "Open menu",
@@ -128,6 +133,31 @@ const common = {
     body: "Sorry — something went wrong on our end. Try again, or head back home.",
     retry: "Try again",
     home: "Back home",
+  },
+  // Cmd+K palette (components/search). `groups.*` also feed the server index
+  // as keywords, so "projects" finds every project.
+  search: {
+    dialogLabel: "Search the site",
+    inputLabel: "Search",
+    placeholder: "Search pages, projects, services…",
+    close: "Close search",
+    resultsLabel: "Results",
+    idle: "Jump to",
+    noResults: "Nothing matches “{query}”. Try another word.",
+    resultCount: "{count} results",
+    resultOne: "1 result",
+    navigate: "Navigate",
+    open: "Open",
+    dismiss: "Close",
+    groups: {
+      page: "Pages",
+      project: "Projects",
+      service: "Services",
+      product: "Products",
+      job: "Open roles",
+      post: "Blog",
+      team: "Team",
+    },
   },
 };
 

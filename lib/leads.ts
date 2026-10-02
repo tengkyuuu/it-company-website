@@ -25,7 +25,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/types";
  * which is all the inbox needs to thread a visitor's chat snapshots together.
  */
 
-export type LeadKind = "contact" | "chat";
+export type LeadKind = "contact" | "chat" | "application";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
@@ -73,6 +73,44 @@ export async function saveContactLead(input: {
     email: clip(input.email, 320),
     service: clip(input.service, 120),
     message: clip(input.message, 8000),
+    ip_hash: safeHashIp(input.ip),
+  });
+}
+
+/**
+ * Called by app/api/apply/route.ts once the role has been re-checked (exists,
+ * published, still open). One row per application — never threaded.
+ *
+ * `job_id` links it to the role (the inbox shows "Applied for …" and filters
+ * by it). The role's title is ALSO written into the message, because the FK is
+ * `ON DELETE SET NULL`: once a closed role is deleted, the id is gone and the
+ * text is the only record of what the person applied for. Phone and links go
+ * in the message too — the inbox renders it verbatim (pre-wrap), and `leads`
+ * has no columns for them.
+ */
+export async function saveApplicationLead(input: {
+  jobId: string;
+  jobTitle: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  links?: string[];
+  message: string;
+  /** raw client IP — hashed before storage, never written as-is */
+  ip?: string | null;
+}): Promise<boolean> {
+  const details = [
+    `Role: ${input.jobTitle}`,
+    input.phone ? `Phone: ${input.phone}` : null,
+    input.links?.length ? `Links:\n${input.links.join("\n")}` : null,
+  ].filter(Boolean);
+
+  return insertLead({
+    kind: "application" satisfies LeadKind,
+    job_id: input.jobId,
+    name: clip(input.name, 200),
+    email: clip(input.email, 320),
+    message: clip(`${input.message.trim()}\n\n—\n${details.join("\n")}`, 8000),
     ip_hash: safeHashIp(input.ip),
   });
 }

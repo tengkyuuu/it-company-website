@@ -6,9 +6,8 @@ import BackToTop from "./fx/BackToTop";
 import FooterWordmark from "./FooterWordmark";
 import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { Reveal } from "./Reveal";
-import { nav } from "@/lib/site";
-import { getServices } from "@/lib/cms";
-import { getSiteContent } from "@/lib/cms";
+import { visibleNav } from "@/lib/site";
+import { getPublishedSections, getServices, getSiteContent } from "@/lib/cms";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { navLabel } from "@/lib/i18n/nav";
@@ -24,7 +23,14 @@ export default async function Footer({ lang }: { lang: Locale }) {
   const { t } = getDictionary(lang);
   // editable in the admin panel; falls back to lib/site.ts when there's no DB.
   // In parallel — awaiting them in turn doubled the wait when the DB is slow.
-  const [site, services] = await Promise.all([getSiteContent(), getServices()]);
+  // `sections` decides whether Products / Careers / Blog are linked: only
+  // while something is published behind them (cache()d — the layout asks the
+  // same question for the Nav in the same render).
+  const [site, services, sections] = await Promise.all([
+    getSiteContent(),
+    getServices(),
+    getPublishedSections(),
+  ]);
   const socials = site.socials;
 
   return (
@@ -79,7 +85,7 @@ export default async function Footer({ lang }: { lang: Locale }) {
           </div>
 
           <FooterCol title={t("footer.colSitemap")}>
-            {nav.map((n) => (
+            {visibleNav(sections).map((n) => (
               <FooterLink key={n.href} href={localizePath(lang, n.href)}>
                 {navLabel(t, n)}
               </FooterLink>

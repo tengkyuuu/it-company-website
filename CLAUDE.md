@@ -14,8 +14,10 @@ The impression to leave: *we make software and we innovate, with taste.*
 6. **Admin** — `/admin`, the CMS (not in `nav`; noindex + robots-disallowed).
 
 Every public page exists in **English (unprefixed: `/projects`) and Filipino (`/fil/projects`)**
-— routes live under `app/[lang]/`; see "Internationalisation" below. Products, Careers and Blog
-pages are being added (CMS-driven; links appear only once something is published).
+— routes live under `app/[lang]/`; see "Internationalisation" below. Plus CMS-driven
+**Products** (`/products`, `/products/[slug]`), **Careers** (`/careers`, `/careers/[slug]` with
+an apply form) and **Blog** (`/blog`, `/blog/[slug]`) — their nav/footer links appear only once
+something is published (`getPublishedSections()`); see "Products / Careers / Blog".
 
 **HQ:** Dipolog City, Zamboanga del Norte (single source of truth: `lib/site.ts`).
 **Hero:** immersive WebGL "constellation" (no photo). **Selected Work = real client projects**
@@ -225,7 +227,8 @@ reflow. Two non-obvious rules, both learned the hard way here:
 - `components/fx/`: `AmbientBackground` (**static** gray `radial-gradient` clouds + a depth veil
   + the grain texture, all *behind* content — no `filter`, no animation, no cursor tracking; it is
   drawn once and only composited), `SmoothScroll` (Lenis↔GSAP, `lerp: 0.12`, `autoRaf: false` so
-  the GSAP ticker is the only loop driving it),
+  the GSAP ticker is the only loop driving it; `pauseSmoothScroll()`/`resumeSmoothScroll()` for
+  overlays like the search palette),
   `Preloader` (the opening sequence — see below — dispatches `mykt:ready`),
   `ScrollFX` (global `[data-animate]` reveal via `ScrollTrigger.batch`; adds `reveal-ready`
   to `<html>` so content is never stuck hidden with JS off). `app/template.tsx` = per-route
@@ -595,12 +598,67 @@ reflow. Two non-obvious rules, both learned the hard way here:
   raw keys like "nav.file" to production).
 - `usePathname()` is `/en/…` while prerendering and `/…` in the browser — anything comparing
   paths must go through `stripLocale`, or it hydrates differently.
-- Nav collapses to the hamburger below **`lg`** (was `md`): the EN/FIL pill plus longer
-  Filipino labels didn't fit 768–1023 px. The switcher lives in the desktop bar, the mobile sheet
-  and the footer — never the mobile top bar (390 px overflow).
+- **Nav fit is link-count dependent.** Hamburger below `lg` with the five core links; once any
+  CMS section is published (6+ links) the inline row starts at **`xl`** with tighter padding; with
+  7+ links the desktop "Get in touch" button is dropped (it duplicates Location, which is in the
+  row; it stays in the mobile sheet). Measured 2026-10-02 with all three sections published: 8
+  links + search + EN/FIL + theme fit at 1280 px in both languages, hamburger at 1024. The bar is
+  capped at `max-w-6xl`, so wider screens add no room — re-check before adding a 9th item. The
+  switcher lives in the desktop bar, the mobile sheet and the footer — never the mobile top bar
+  (390 px overflow). Nav links also light up on detail pages (`/projects/x` → Projects).
+
+### Products / Careers / Blog — public pages
+- Each is **structurally distinct** from the rest of the site: Products = stacked enclosed "spec
+  sheets" (mono header strip, numbered features, the screenshot on a plate at native size);
+  Careers = a scannable roles table (Role / Team / Location / Type / Workplace), role pages with a
+  spec rail + numbered sections + the apply form at `#apply`; Blog = latest post featured large,
+  then a contents-page archive, and a narrow (`68ch`) article column styled by `.prose-rt` in
+  `globals.css`. Empty sections render a warm empty state, `noindex`, and drop out of the sitemap.
+  A closed role renders a "closed" panel instead of the form and is `noindex`.
+- **CMS images use a plain `<img>` (`components/catalog/parts.tsx` → `Shot`), not `next/image`**:
+  the admin's `imagePath` allows any https host, but `remotePatterns` only allows the Supabase one.
+- **Markdown** (`lib/markdown.tsx`, no dependency): headings, emphasis, code, lists, quotes, rules,
+  links, images — **never raw HTML** (it renders as literal text; `dangerouslySetInnerHTML` is
+  banned). Links only for `https:`, `mailto:` and internal paths (others become plain text);
+  images only if they pass `imagePath`. Written with `createElement`, not JSX, because Vitest
+  transforms with the tsconfig's `jsx: "preserve"` and couldn't import a JSX module.
+  `tests/markdown.test.ts` holds the XSS cases.
+- **Apply** (`app/api/apply/route.ts`, Route Handler for the same deploy-skew reason as contact;
+  schema `lib/apply-schema.ts`): honeypot + time-trap (silent success, nothing charged) → durable
+  limit **3 / 10 min per IP + 100 / day** → `getJobById` re-checks the role is published and open
+  (closed → 410; **database unreachable → 503, never "closed"** — `getJobById` distinguishes
+  `null` from `undefined` for exactly that) → `saveApplicationLead` + `sendApplicationEmail` in
+  parallel; success if either worked. The role title is written into the message because `job_id`
+  goes null if the role is later deleted. The handler returns codes, never sentences — the form
+  maps them to dictionary strings. **No confirmation email to applicants** (it would let anyone
+  make the site email arbitrary addresses) and **no file uploads** (CVs are links).
+- Careers, the sitemap and the `[lang]` layout use `revalidate = 3600`: "closed" is decided at
+  render time in Asia/Manila, so pages must refresh hourly even without an admin edit.
+
+### Search (⌘K) & live updates
+- **Palette**: always-loaded part is only `components/search/SearchLauncher.tsx` (key + event
+  listeners); `SearchPalette.tsx` is a separate chunk loaded on first open, inert until
+  `whenReady()`. ⌘K/Ctrl+K anywhere, `/` when not typing; `openSearch()`
+  (`components/search/open.ts`, a window event) for buttons. Index from `lib/search.ts`
+  (`buildSearchIndex(lang)`, ~1.7 KB gzipped, a test fails over 10 KB — it rides in every page's
+  RSC payload) built in the `[lang]` layout; scoring in `lib/search-score.ts` (all tokens must
+  match; title prefix > word-start > substring > keywords > body; accent-insensitive). While open,
+  Lenis is paused via `pauseSmoothScroll()`/`resumeSmoothScroll()` (exported from
+  `fx/SmoothScroll.tsx`, nesting-counted) and the list carries `data-lenis-prevent`. Services and
+  team results link to the page, not `#anchors` — SmoothScroll scrolls to top on route change.
+- **Live updates** (`components/LiveUpdates.tsx`, logic in `lib/live-updates.ts`): a published edit
+  reaches already-open pages via `router.refresh()` when `site_revision.rev` rises. Three layers:
+  a **30 s poll only while visible** straight to Supabase REST with the anon key (no Vercel
+  invocation; backs off 60→300 s after failures); a check on `visibilitychange`/`focus`;
+  **Realtime** after `whenReady()` + idle, on a **session-less** client (the cookie client would
+  subscribe with a teammate's admin session), closed while the tab is hidden so idle tabs don't
+  hold one of the free plan's 200 connections, and dropped for the page view on any channel error
+  (polling carries on). Refresh is debounced 2 s (max 8 s) so it lands after the admin's
+  `revalidatePath`. No rAF, nothing finer than 750 ms, no timers while hidden, nothing at all
+  without `NEXT_PUBLIC_SUPABASE_URL`.
 
 ### Tests (`npm test` — Vitest + PGlite)
-`tests/` — **14 suites, 306 tests** (2026-10-02, after Phase 2 wave A). Philosophy (from the reference project): test
+`tests/` — **18 suites, 460 tests** (2026-10-02, after Phase 2). Philosophy (from the reference project): test
 derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
 - **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
   (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,
@@ -745,13 +803,11 @@ English/Filipino UI chrome; new pages Blog, Careers, Products; Vercel Hobby; no 
 no changelog, no press kit, no Spotify/resume/"Now"/Word-document visuals.
 - ✅ **Phase 1 — data model, migrations, tests**: schema above, our own hashed tokens,
   `OWNER_EMAIL`, owner-only team, disable/revoke, durable limiter, IP hashing, Vitest + PGlite.
-- ◐ **Phase 2 — public pages.** ✅ Wave A: `/fil` i18n restructure; products/jobs/posts read
-  layer + admin editors (pulled forward from Phase 3 so the pages can be filled); inbox renders
-  applications; upload cleanup covers all tables + revisions. ⏳ Wave B: public `/products`,
-  `/careers` (apply → inbox; refuse closed roles; timed revalidate), `/blog` (markdown rendered
-  with **no raw HTML** and only https/mailto/internal links); nav links via
-  `getPublishedSections()`; Cmd+K search; live updates (Realtime on `site_revision` after idle +
-  focus refetch + 30 s poll, falling back to polling at Supabase's 200-connection free cap).
+- ✅ **Phase 2 — public pages**: `/fil` i18n; products/jobs/posts read layer + admin editors
+  (pulled forward from Phase 3 so the pages can be filled); public Products / Careers (apply) /
+  Blog; nav links via `getPublishedSections()`; ⌘K search; live updates. Verified against a local
+  PostgREST stand-in with sample data (both locales, 390/1440, nav fit, palette, an end-to-end
+  application) — the live project had no catalog content yet.
 - ⏳ **Phase 3 — admin console**: autosave (debounced, dirty fields only, optimistic concurrency
   on `updated_at` passed through *as a string*); history panel + restore (logged, pre-restore
   backup; pruning should trigger upload cleanup); activity feed.

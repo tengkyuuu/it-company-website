@@ -26,6 +26,7 @@ import {
 } from "@/lib/services";
 import { team as staticTeam } from "@/lib/team";
 import { site as staticSite, socials as staticSocials } from "@/lib/site";
+import { readingMinutes } from "@/lib/markdown";
 
 /**
  * The public site's content source.
@@ -604,4 +605,75 @@ export const getPublishedSections = cache(async (): Promise<PublishedSections> =
     anyPublished("posts"),
   ]);
   return { products, careers, blog };
+});
+
+/* ---------------------------------------------------------------------------
+   Wave B additions — the public pages' extra reads. Same contract as above:
+   fail fast, empty / undefined on any failure, never invented.
+--------------------------------------------------------------------------- */
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * One published role by id — what /api/apply re-checks before it records an
+ * application (the form posts the id; the slug is editable, the id isn't).
+ * Like getJobBySlug it includes closed roles, flagged `.closed`, so the caller
+ * decides.
+ *
+ * Unlike the page getters it tells "no" apart from "don't know", because the
+ * applicant is told which one it was:
+ *   Job        — published (check `.closed`)
+ *   null       — the database answered: no such published role (or a malformed id)
+ *   undefined  — no database configured, or it failed / timed out
+ * Not cache()d on purpose: it runs in a Route Handler, once per submission,
+ * and must see the row as it is now.
+ */
+export async function getJobById(id: string): Promise<Job | null | undefined> {
+  if (!isSupabaseConfigured()) return undefined;
+  if (!UUID.test(id)) return null;
+  try {
+    const { data, error } = await createPublicClient()
+      .from("jobs")
+      .select("*")
+      .eq("published", true)
+      .eq("id", id)
+      .abortSignal(deadline()) // before .maybeSingle(), which drops the transform methods
+      .retry(false)
+      .maybeSingle();
+    if (error) return undefined;
+    if (!data) return null;
+    return rowToJob(data as JobRow, manilaToday());
+  } catch {
+    return undefined;
+  }
+}
+
+/** A post on the blog index: its summary plus an estimated reading time. */
+export type PostIndexEntry = PostSummary & { readingMinutes: number };
+
+/**
+ * The blog index. getPosts() deliberately leaves bodies out, but "N min read"
+ * needs them — so this reads them, computes the estimate, and drops them.
+ * Cheap where it runs: the index is prerendered (rebuilt on publish via
+ * revalidatePath), so no visitor ever waits on this query.
+ */
+export const getPostIndex = cache(async (): Promise<PostIndexEntry[]> => {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await createPublicClient()
+      .from("posts")
+      .select(`${POST_SUMMARY_COLUMNS}, body`)
+      .eq("published", true)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .abortSignal(deadline())
+      .retry(false);
+    if (error || !data) return [];
+    return (data as unknown as (PostSummaryRow & { body: string | null })[]).map((r) => ({
+      ...rowToPostSummary(r),
+      readingMinutes: readingMinutes(r.body ?? ""),
+    }));
+  } catch {
+    return [];
+  }
 });

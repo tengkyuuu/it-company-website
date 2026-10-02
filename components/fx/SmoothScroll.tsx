@@ -14,6 +14,23 @@ export function scrollToTop() {
   else window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+/**
+ * Freeze / unfreeze the page while a modal is open (the search palette), so the
+ * wheel doesn't scroll the page behind it. Calls nest — the page resumes only
+ * when every pause has been released. A no-op without Lenis (reduced motion);
+ * the caller locks native overflow itself. Scrollable areas inside the modal
+ * need `data-lenis-prevent`, or a stopped Lenis swallows their wheel events.
+ */
+let pauses = 0;
+export function pauseSmoothScroll() {
+  pauses += 1;
+  lenis?.stop();
+}
+export function resumeSmoothScroll() {
+  pauses = Math.max(0, pauses - 1);
+  if (pauses === 0) lenis?.start();
+}
+
 /** Lenis smooth scroll synced to the GSAP ticker + ScrollTrigger. */
 export default function SmoothScroll({
   children,
