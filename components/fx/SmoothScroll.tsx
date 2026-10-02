@@ -29,7 +29,11 @@ export default function SmoothScroll({
     ).matches;
     if (reduce) return; // honour reduced-motion → native scrolling
 
-    lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+    // lerp 0.12 (was 0.1): still smooth, but the page catches up to the wheel
+    // sooner, so it reads as responsive rather than floaty.
+    // `autoRaf` stays off (the default) — the GSAP ticker below is the ONLY
+    // loop driving Lenis, so there's never a second rAF running alongside it.
+    lenis = new Lenis({ lerp: 0.12, smoothWheel: true, autoRaf: false });
     lenis.on("scroll", ScrollTrigger.update);
 
     const onTick = (time: number) => lenis?.raf(time * 1000);

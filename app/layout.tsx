@@ -11,7 +11,7 @@ const syne = Syne({
   variable: "--font-syne",
   display: "swap",
 });
-import { Analytics } from "@vercel/analytics/next";
+import SiteAnalytics from "@/components/SiteAnalytics";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import SiteChrome from "@/components/SiteChrome";
 import Footer from "@/components/Footer";
@@ -20,26 +20,26 @@ import ThemeScript from "@/components/theme/ThemeScript";
 import { site, socials } from "@/lib/site";
 
 const description =
-  "mykTech() is an IT studio in Dipolog City building web, mobile, and cloud products. We make software and innovate — with taste.";
+  "R Ally's Tech is an IT studio in Dipolog City building web, mobile, and cloud products. We make software and innovate — with taste.";
 
 export const metadata: Metadata = {
   title: {
-    default: "mykTech() — Software, designed with intent",
-    template: "%s · mykTech()",
+    default: "R Ally's Tech — Software, designed with intent",
+    template: "%s · R Ally's Tech",
   },
   description,
   metadataBase: new URL(site.url),
   alternates: { canonical: "/" },
   openGraph: {
-    title: "mykTech() — Software, designed with intent",
+    title: "R Ally's Tech — Software, designed with intent",
     description,
     url: site.url,
-    siteName: "mykTech()",
+    siteName: "R Ally's Tech",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "mykTech() — Software, designed with intent",
+    title: "R Ally's Tech — Software, designed with intent",
     description,
   },
 };
@@ -94,7 +94,7 @@ export default function RootLayout({
           {/* marketing chrome; skipped entirely on /admin */}
           <SiteChrome footer={<Footer />}>{children}</SiteChrome>
         </ThemeProvider>
-        <Analytics />
+        <SiteAnalytics />
         <SpeedInsights />
         <script
           type="application/ld+json"

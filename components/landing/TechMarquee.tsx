@@ -58,26 +58,42 @@ export default function TechMarquee() {
       const track = root.current?.querySelector<HTMLElement>(".tm-track");
       if (!track) return;
 
+      // GSAP drives this from the main thread, so it only runs while the strip
+      // is on screen — offscreen it was a transform write every frame, forever.
       const loop = gsap.to(track, {
         xPercent: -50,
         repeat: -1,
         duration: 36,
         ease: "none",
+        paused: true,
       });
-      if (reduce) return;
 
       let dir = 1;
+      let lastBoost = -1;
+      // scoped to the strip itself: it used to be an untriggered (page-wide)
+      // ScrollTrigger that spawned a new tween on every scroll update anywhere
       const st = ScrollTrigger.create({
-        onUpdate: (self) => {
-          const v = self.getVelocity();
-          if (Math.abs(v) > 1) dir = v > 0 ? 1 : -1;
-          const boost = gsap.utils.clamp(0, 5, Math.abs(v) / 260);
-          gsap.to(loop, {
-            timeScale: dir * (1 + boost),
-            overwrite: true,
-            duration: 0.4,
-          });
-        },
+        trigger: root.current,
+        start: "top bottom",
+        end: "bottom top",
+        onToggle: (self) => (self.isActive ? loop.play() : loop.pause()),
+        onUpdate: reduce
+          ? undefined
+          : (self) => {
+              const v = self.getVelocity();
+              const nextDir = Math.abs(v) > 1 ? (v > 0 ? 1 : -1) : dir;
+              const boost =
+                Math.round(gsap.utils.clamp(0, 5, Math.abs(v) / 260) * 10) / 10;
+              // skip identical retargets — most updates change nothing
+              if (boost === lastBoost && nextDir === dir) return;
+              dir = nextDir;
+              lastBoost = boost;
+              gsap.to(loop, {
+                timeScale: dir * (1 + boost),
+                overwrite: true,
+                duration: 0.4,
+              });
+            },
       });
       return () => {
         st.kill();

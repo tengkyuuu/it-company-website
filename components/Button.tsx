@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 type Variant = "solid" | "outline" | "ghost";
 
@@ -34,15 +34,41 @@ export default function Button({
   const x = useSpring(mx, { stiffness: 250, damping: 18, mass: 0.4 });
   const y = useSpring(my, { stiffness: 250, damping: 18, mass: 0.4 });
 
+  // The button's resting centre, measured once per hover — not on every pointer
+  // move (a per-event getBoundingClientRect can force a synchronous layout, and
+  // it also reads back the button's own magnetic offset). Dropped if the page
+  // scrolls under the pointer, then re-measured on the next move.
+  const center = useRef<{ x: number; y: number } | null>(null);
+  const invalidate = useRef(() => {
+    center.current = null;
+  }).current;
+  useEffect(
+    () => () => window.removeEventListener("scroll", invalidate),
+    [invalidate]
+  );
+
+  const onEnter = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    invalidate();
+    window.addEventListener("scroll", invalidate, { passive: true });
+  };
   const onMove = (e: React.PointerEvent) => {
     if (e.pointerType !== "mouse") return;
-    const r = ref.current?.getBoundingClientRect();
-    if (!r) return;
+    if (!center.current) {
+      const r = ref.current?.getBoundingClientRect();
+      if (!r) return;
+      // subtract the live offset so we store where the button RESTS
+      center.current = {
+        x: r.left + r.width / 2 - x.get(),
+        y: r.top + r.height / 2 - y.get(),
+      };
+    }
     // magnetic pull toward the cursor, capped near the button bounds
-    mx.set((e.clientX - (r.left + r.width / 2)) * 0.35);
-    my.set((e.clientY - (r.top + r.height / 2)) * 0.4);
+    mx.set((e.clientX - center.current.x) * 0.35);
+    my.set((e.clientY - center.current.y) * 0.4);
   };
   const reset = () => {
+    window.removeEventListener("scroll", invalidate);
     mx.set(0);
     my.set(0);
   };
@@ -50,6 +76,7 @@ export default function Button({
   return (
     <motion.div
       ref={ref}
+      onPointerEnter={onEnter}
       onPointerMove={onMove}
       onPointerLeave={reset}
       whileTap={{ scale: 0.97 }}

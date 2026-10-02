@@ -9,8 +9,9 @@ import Button from "@/components/Button";
 import { Eyebrow } from "@/components/Section";
 import LocalTime from "@/components/fx/LocalTime";
 import KeySwitch from "@/components/fx/KeySwitch";
+import { whenReady } from "@/components/fx/ready";
 import { site } from "@/lib/site";
-import { wants3D } from "@/lib/webgl";
+import { observeVisible, wants3D } from "@/lib/webgl";
 
 const HeroScene = dynamic(() => import("@/components/three/HeroScene"), {
   ssr: false,
@@ -25,10 +26,37 @@ export default function Hero() {
   const root = useRef<HTMLElement>(null);
   const progress = useRef(0);
   const [show3d, setShow3d] = useState(false);
+  // the scene only animates while the hero is on screen and the splash is gone
+  const [sceneActive, setSceneActive] = useState(false);
 
   useEffect(() => {
     setShow3d(wants3D());
   }, []);
+
+  useEffect(() => {
+    const el = root.current;
+    if (!show3d || !el) return;
+    let visible = true;
+    let ready = false;
+    const sync = () => setSceneActive(visible && ready);
+    // a little margin so it's already running again as the stage re-enters
+    const stopObserving = observeVisible(
+      el,
+      (v) => {
+        visible = v;
+        sync();
+      },
+      "120px 0px"
+    );
+    const offReady = whenReady(() => {
+      ready = true;
+      sync();
+    });
+    return () => {
+      stopObserving();
+      offReady();
+    };
+  }, [show3d]);
 
   // ---- scroll choreography (desktop only — mobile hero is one viewport tall)
   useGSAP(
@@ -67,6 +95,7 @@ export default function Hero() {
       ".hero-eyebrow, .hero-line > span, .hero-sub, .hero-cta, .hero-cue, .hero-meta, .hero-badge";
     let played = false;
     let play: () => void = () => {};
+    let offReady: () => void = () => {};
 
     const ctx = gsap.context(() => {
       if (reduce) {
@@ -103,13 +132,15 @@ export default function Hero() {
       if (hasPreloaded) {
         play();
       } else {
-        window.addEventListener("mykt:ready", play, { once: true });
+        // immediate when the splash already ran (client-side nav back to /),
+        // instead of sitting out the safety net below
+        offReady = whenReady(play);
         gsap.delayedCall(2.8, play); // safety net
       }
     }, root);
 
     return () => {
-      window.removeEventListener("mykt:ready", play);
+      offReady();
       ctx.revert();
     };
   }, []);
@@ -121,14 +152,12 @@ export default function Hero() {
         {/* visual layer */}
         <div className="hero-canvas pointer-events-none absolute inset-0 -z-10">
           {show3d ? (
-            <HeroScene progress={progress} />
+            <HeroScene progress={progress} active={sceneActive} />
           ) : (
-            <div
-              className="absolute right-[-20%] top-[24%] h-[70vmin] w-[70vmin] rounded-full opacity-60 blur-[60px]"
-              style={{ background: "var(--accent)" }}
-            />
+            <div className="accent-glow absolute right-[-20%] top-[24%] h-[70vmin] w-[70vmin] rounded-full opacity-60" />
           )}
-          <div className="absolute inset-0 grain" />
+          {/* (no grain layer here any more: over a live WebGL canvas it was a
+              second full-viewport layer to composite on every frame) */}
         </div>
 
         {/* copy */}
@@ -176,7 +205,7 @@ export default function Hero() {
 
         {/* rotating badge */}
         <div className="hero-badge pointer-events-none absolute right-10 top-28 hidden lg:block">
-          <svg viewBox="0 0 120 120" className="h-28 w-28 ic-spin" aria-hidden>
+          <svg viewBox="0 0 120 120" className="badge-spin h-28 w-28" aria-hidden>
             <defs>
               <path
                 id="hero-circ"
@@ -188,10 +217,10 @@ export default function Hero() {
                 <stop offset="100%" stopColor="#e0a23a" />
               </linearGradient>
             </defs>
-            {/* no `uppercase` here — it would render the wordmark as MYKTECH() */}
+            {/* no `uppercase` here — it would render the wordmark as R ALLY'S TECH */}
             <text className="fill-slatey font-mono text-[9px] tracking-[0.32em]">
               <textPath href="#hero-circ">
-                mykTech() · software · design · innovation ·
+                R Ally's Tech · software · design · innovation ·
               </textPath>
             </text>
             <circle cx="60" cy="60" r="5" fill="url(#hero-grad)" />

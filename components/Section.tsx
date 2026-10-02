@@ -31,11 +31,14 @@ export function SectionHeader({
   title,
   intro,
   align = "left",
+  as: Heading = "h2",
 }: {
   eyebrow: string;
   title: ReactNode;
   intro?: ReactNode;
   align?: "left" | "center";
+  /** "h1" for the page-title header on inner pages — each page needs exactly one. */
+  as?: "h1" | "h2";
 }) {
   return (
     <Reveal
@@ -44,9 +47,9 @@ export function SectionHeader({
       }`}
     >
       <Eyebrow>{eyebrow}</Eyebrow>
-      <h2 className="text-balance font-display text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
+      <Heading className="text-balance font-display text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
         {title}
-      </h2>
+      </Heading>
       {intro && (
         <p className="text-pretty text-lg leading-relaxed text-ink/60">
           {intro}

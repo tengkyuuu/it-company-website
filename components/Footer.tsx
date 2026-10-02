@@ -6,12 +6,13 @@ import BackToTop from "./fx/BackToTop";
 import FooterWordmark from "./FooterWordmark";
 import { Reveal } from "./Reveal";
 import { nav } from "@/lib/site";
-import { services } from "@/lib/services";
+import { getServices } from "@/lib/cms";
 import { getSiteContent } from "@/lib/cms";
 
 export default async function Footer() {
-  // editable in the admin panel; falls back to lib/site.ts when there's no DB
-  const site = await getSiteContent();
+  // editable in the admin panel; falls back to lib/site.ts when there's no DB.
+  // In parallel — awaiting them in turn doubled the wait when the DB is slow.
+  const [site, services] = await Promise.all([getSiteContent(), getServices()]);
   const socials = site.socials;
 
   return (
@@ -130,8 +131,8 @@ export default async function Footer() {
             </div>
           </div>
           <p className="mt-8 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-paper/35">
-            Developed by <span className="text-paper/70">mykTech()</span> · for{" "}
-            <span className="text-paper/70">mykTech()</span>
+            Developed by <span className="text-paper/70">R Ally's Tech</span> · for{" "}
+            <span className="text-paper/70">R Ally's Tech</span>
           </p>
         </div>
       </div>
@@ -170,7 +171,7 @@ function FooterLink({
     >
       <span className="relative">
         {children}
-        <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-accent transition-all duration-300 group-hover:w-full" />
+        <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-accent transition-transform duration-300 group-hover:scale-x-100" />
       </span>
     </Link>
   );

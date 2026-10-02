@@ -3,13 +3,14 @@ import Image from "next/image";
 import Section, { SectionHeader } from "@/components/Section";
 import Button from "@/components/Button";
 import TeamRoster from "@/components/about/TeamRoster";
+import { getTeam } from "@/lib/cms";
 import KeySwitch from "@/components/fx/KeySwitch";
 import { Reveal, RevealGroup, RevealItem } from "@/components/Reveal";
 
 export const metadata: Metadata = {
   title: "About",
   description:
-    "mykTech() is a small, senior IT studio in Dipolog City that builds software with the care of a design house.",
+    "R Ally's Tech is a small, senior IT studio in Dipolog City that builds software with the care of a design house.",
   alternates: { canonical: "/about" },
 };
 
@@ -38,7 +39,8 @@ const values = [
 
 const marqueeWords = ["Design", "Engineering", "Dipolog City", "Since day one"];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const team = await getTeam();
   return (
     <>
       {/* Header */}
@@ -49,7 +51,8 @@ export default function AboutPage() {
         />
         <div className="grid items-end gap-12 md:grid-cols-2">
           <SectionHeader
-            eyebrow="About mykTech()"
+            as="h1"
+            eyebrow="About R Ally's Tech"
             title={
               <>
                 A small studio that
@@ -61,7 +64,7 @@ export default function AboutPage() {
           <Reveal delay={0.1}>
             <p className="text-pretty text-lg leading-relaxed text-ink/60">
               We’re a tight team of designers and engineers in Dipolog City who got
-              tired of software that felt like a chore. mykTech() exists to prove
+              tired of software that felt like a chore. R Ally's Tech exists to prove
               that serious technology can also be warm, clear, and a little
               beautiful.
             </p>
@@ -99,7 +102,7 @@ export default function AboutPage() {
         <Reveal className="group overflow-hidden rounded-[2rem] border border-mist/70 bg-surface">
           <Image
             src="/brand/card-mockup.png"
-            alt="mykTech() brand identity on business cards"
+            alt="R Ally's Tech brand identity on business cards"
             width={1600}
             height={1200}
             className="h-auto w-full transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
@@ -143,7 +146,7 @@ export default function AboutPage() {
           title="Faces, not stock photos."
           intro="The same team that scopes your project is the one that builds it. Run your cursor down the roster."
         />
-        <TeamRoster />
+        <TeamRoster team={team} />
 
         <Reveal delay={0.1} className="mt-14 flex items-center justify-center gap-5">
           <Button href="/location" arrow>

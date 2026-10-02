@@ -1,3 +1,5 @@
+import type { GalleryShot, ProjectResult } from "@/lib/supabase/types";
+
 export type Project = {
   /** URL segment for /projects/[slug] */
   slug: string;
@@ -28,6 +30,25 @@ export type Project = {
   img2?: string;
   tags: string[];
   dots: [string, string, string]; // the project's 3 signature colors
+
+  // Case-study detail, entered in /admin. All optional: the detail page renders
+  // a section only when it has content, so these static entries need none.
+  client?: string;
+  industry?: string;
+  timeline?: string;
+  /** what we did — usually service titles */
+  services?: string[];
+  /** roster names credited on the project */
+  team?: string[];
+  stack?: string[];
+  challenge?: string;
+  approach?: string;
+  outcome?: string;
+  /** real, measured numbers only — never estimates */
+  results?: ProjectResult[];
+  /** extra screens beyond img/img2 */
+  gallery?: GalleryShot[];
+  testimonial?: { quote: string; author: string; role?: string };
 };
 
 export const projects: Project[] = [

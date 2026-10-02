@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.2, 0.9, 0.3, 1.35)",
+        "createdAt": "2026-10-01T19:49:07.032Z",
+        "reason": "CLAUDE.md documents the KeySwitch :active press as an intentional 'fast press w/ overshoot' (mechanical keyswitch clack), 130ms, press-only"
+      }
+    ]
+  }
+}

@@ -24,11 +24,13 @@ export async function sendContactEmail(data: ContactInput) {
   if (!apiKey) throw new Error("RESEND_API_KEY is not set");
 
   const to = process.env.CONTACT_TO_EMAIL || site.email;
-  // The display name is QUOTED on purpose: "()" are comment delimiters in an
-  // RFC 5322 address, so an unquoted mykTech() would be parsed as the name
-  // "mykTech" plus an empty comment — and the parens would vanish in clients.
+  // Unquoted is correct here. The old mykTech() name HAD to be quoted, because
+  // "()" are RFC 5322 comment delimiters. "R Ally's Tech" has no parens, and an
+  // apostrophe is valid atext, so each word is a legal atom — quoting it would
+  // only add noise. (Don't "fix" this by wrapping it in single quotes either:
+  // see the .env.example note about the apostrophe closing a dotenv literal.)
   const from =
-    process.env.CONTACT_FROM_EMAIL || `"mykTech()" <onboarding@resend.dev>`;
+    process.env.CONTACT_FROM_EMAIL || `R Ally's Tech <onboarding@resend.dev>`;
   const resend = new Resend(apiKey);
 
   const name = esc(data.name);

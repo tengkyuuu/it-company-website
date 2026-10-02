@@ -41,7 +41,19 @@ export default async function ProjectPage({ params }: Params) {
   if (!p) notFound();
 
   const { prev, next } = await getProjectNeighbours(p.slug);
-  const shots = [p.img, p.img2].filter(Boolean) as string[];
+  // the main shot is already the big preview above, so "Screens" is everything
+  // else: the secondary shot plus the gallery, desktop and mobile apart
+  const desktopShots = [
+    ...[p.img, p.img2].filter(Boolean).map((src) => ({ src: src as string, caption: "" })),
+    ...(p.gallery ?? []).filter((g) => g.kind === "desktop").map((g) => ({ src: g.src, caption: g.caption ?? "" })),
+  ];
+  const mobileShots = (p.gallery ?? []).filter((g) => g.kind === "mobile");
+  const story = [
+    { label: "The challenge", text: p.challenge },
+    { label: "Our approach", text: p.approach },
+    { label: "The outcome", text: p.outcome },
+  ].filter((b): b is { label: string; text: string } => Boolean(b.text));
+  const results = p.results ?? [];
 
   return (
     <>
@@ -103,8 +115,11 @@ export default async function ProjectPage({ params }: Params) {
           {/* detail rail */}
           <Reveal delay={0.1} className="md:col-span-5 md:col-start-9">
             <dl className="divide-y divide-mist/70 border-y border-mist/70">
+              {p.client && <Row label="Client" value={p.client} />}
+              {p.industry && <Row label="Industry" value={p.industry} />}
               <Row label="Category" value={p.category} />
               <Row label="Year" value={p.year.replace("’", "20")} />
+              {p.timeline && <Row label="Timeline" value={p.timeline} />}
               <Row
                 label="Site"
                 value={
@@ -122,7 +137,9 @@ export default async function ProjectPage({ params }: Params) {
                   )
                 }
               />
+              {p.services?.length ? <Row label="What we did" value={p.services.join(", ")} /> : null}
               <Row label="Scope" value={p.tags.join(", ")} />
+              {p.team?.length ? <Row label="Team" value={p.team.join(", ")} /> : null}
             </dl>
             <ul className="mt-7 space-y-2.5">
               {p.highlights.map((h) => (
@@ -132,6 +149,18 @@ export default async function ProjectPage({ params }: Params) {
                 </li>
               ))}
             </ul>
+            {p.stack?.length ? (
+              <ul className="mt-7 flex flex-wrap gap-2" aria-label="Tech stack">
+                {p.stack.map((t) => (
+                  <li
+                    key={t}
+                    className="rounded-full border border-mist/70 px-3 py-1 font-mono text-[11px] tracking-wide text-ink/60"
+                  >
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </Reveal>
         </div>
       </Section>
@@ -153,33 +182,145 @@ export default async function ProjectPage({ params }: Params) {
         </Reveal>
       </Section>
 
+      {/* The story — numbered beats, label left / prose right */}
+      {story.length > 0 && (
+        <Section className="pt-24 md:pt-32">
+          <Reveal>
+            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+              The story
+            </h2>
+          </Reveal>
+          <div className="mt-8 divide-y divide-mist/70 border-y border-mist/70">
+            {story.map((b, i) => (
+              <Reveal key={b.label} className="grid gap-4 py-10 md:grid-cols-12 md:gap-14">
+                <div className="md:col-span-4">
+                  <span className="font-mono text-[11px] uppercase tracking-widest text-slatey">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <h3 className="mt-2 font-display text-xl font-semibold tracking-tight md:text-2xl">
+                    {b.label}
+                  </h3>
+                </div>
+                <div className="space-y-4 md:col-span-8">
+                  {paragraphs(b.text).map((para, j) => (
+                    <p key={j} className="text-pretty text-lg leading-relaxed text-ink/70">
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Results — only numbers the client recognises; never estimates */}
+      {results.length > 0 && (
+        <Section className="pt-20 md:pt-28">
+          <Reveal>
+            <h2 className="sr-only">Results</h2>
+            <dl
+              className={`grid gap-x-10 gap-y-10 ${
+                results.length === 1
+                  ? ""
+                  : results.length === 3
+                    ? "sm:grid-cols-3"
+                    : "sm:grid-cols-2 lg:grid-cols-4"
+              }`}
+            >
+              {results.map((r) => (
+                <div key={`${r.value}-${r.label}`} className="border-t border-mist/70 pt-5">
+                  <dt className="sr-only">{r.label}</dt>
+                  <dd className="font-display text-5xl font-semibold tracking-tight md:text-6xl">
+                    {r.value}
+                  </dd>
+                  <dd className="mt-2 text-sm leading-relaxed text-ink/55">{r.label}</dd>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
+        </Section>
+      )}
+
+      {/* Testimonial — the client's own words */}
+      {p.testimonial && (
+        <Section className="pt-24 md:pt-32">
+          <Reveal>
+            <figure className="max-w-4xl border-l border-mist/70 pl-6 md:pl-10">
+              <blockquote className="text-balance font-display text-2xl font-semibold leading-snug tracking-tight md:text-4xl">
+                <span aria-hidden className="text-slatey">“</span>
+                {p.testimonial.quote}
+                <span aria-hidden className="text-slatey">”</span>
+              </blockquote>
+              <figcaption className="mt-6 font-mono text-[11px] uppercase tracking-widest text-slatey">
+                {p.testimonial.author}
+                {p.testimonial.role && <span className="text-ink/40"> · {p.testimonial.role}</span>}
+              </figcaption>
+            </figure>
+          </Reveal>
+        </Section>
+      )}
+
       {/* Screens */}
-      {shots.length > 1 && (
+      {(desktopShots.length > 1 || mobileShots.length > 0) && (
         <Section className="pt-24 md:pt-32">
           <Reveal>
             <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
               Screens
             </h2>
           </Reveal>
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
-            {shots.map((src, i) => (
-              <Reveal key={src} delay={i * 0.08}>
-                {/* native aspect, contained — these sources are only ~1536px wide */}
-                <figure className="overflow-hidden rounded-2xl border border-mist/70 bg-surface">
-                  <div className="relative aspect-[1536/743]">
-                    <Image
-                      src={src}
-                      alt={`${p.name} — screen ${i + 1}`}
-                      fill
-                      quality={90}
-                      sizes="(max-width: 768px) 100vw, 48vw"
-                      className="object-cover object-top"
-                    />
-                  </div>
-                </figure>
-              </Reveal>
-            ))}
-          </div>
+          {desktopShots.length > 1 && (
+            <div className="mt-8 grid gap-6 md:grid-cols-2">
+              {desktopShots.map((s, i) => (
+                <Reveal key={`${i}-${s.src}`} delay={(i % 2) * 0.08}>
+                  {/* contained at native aspect — sources are only ~1536px wide,
+                      so never cover-crop or upscale them */}
+                  <figure className="overflow-hidden rounded-2xl border border-mist/70 bg-surface">
+                    <div className="relative aspect-[1536/743]">
+                      <Image
+                        src={s.src}
+                        alt={s.caption || `${p.name} — screen ${i + 1}`}
+                        fill
+                        quality={90}
+                        sizes="(max-width: 768px) 100vw, 48vw"
+                        className="object-contain object-top"
+                      />
+                    </div>
+                    {s.caption && (
+                      <figcaption className="border-t border-mist/70 px-4 py-3 text-sm text-ink/55">
+                        {s.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                </Reveal>
+              ))}
+            </div>
+          )}
+          {mobileShots.length > 0 && (
+            <div className="mt-10 flex flex-wrap gap-6">
+              {mobileShots.map((s, i) => (
+                <Reveal key={`${i}-${s.src}`} delay={(i % 4) * 0.06}>
+                  <figure className="w-[160px] sm:w-[200px]">
+                    <div className="relative aspect-[9/19.5] overflow-hidden rounded-[1.75rem] border border-mist/70 bg-surface">
+                      <Image
+                        src={s.src}
+                        alt={s.caption || `${p.name} — mobile screen ${i + 1}`}
+                        fill
+                        quality={90}
+                        sizes="200px"
+                        className="object-contain"
+                      />
+                    </div>
+                    {s.caption && (
+                      <figcaption className="mt-3 text-sm leading-snug text-ink/55">
+                        {s.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                </Reveal>
+              ))}
+            </div>
+          )}
         </Section>
       )}
 
@@ -192,6 +333,14 @@ export default async function ProjectPage({ params }: Params) {
       </Section>
     </>
   );
+}
+
+/** Paragraphs are separated by a blank line in the admin textarea. */
+function paragraphs(text: string) {
+  return text
+    .split(/\n\s*\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
@@ -215,7 +364,6 @@ function Neighbour({
   return (
     <Link
       href={`/projects/${project.slug}`}
-      data-cursor
       className={`group rounded-2xl border border-mist/70 bg-surface p-6 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-mist ${
         dir === "next" ? "sm:text-right" : ""
       }`}

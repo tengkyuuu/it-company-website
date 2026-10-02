@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------------------
-   mykTech() design tokens — slate neutrals + one magenta→gold accent gradient.
+   R Ally's Tech design tokens — slate neutrals + one magenta→gold accent gradient.
    Tailwind v4 reads @theme to generate utilities (bg-paper, text-ink, …).
 ---------------------------------------------------------------------------- */
 @theme {
@@ -45,7 +45,6 @@
   --amb-2: #94a3b8;
   --amb-3: #b8c4d4;
   --amb-opacity: 1;
-  --amb-spot: rgba(148, 163, 184, 0.22);
   --amb-veil-top: rgba(255, 255, 255, 0.5);
   --amb-veil-bottom: rgba(30, 41, 59, 0.05);
 
@@ -77,7 +76,6 @@
   --amb-2: #24344f;
   --amb-3: #172033;
   --amb-opacity: 0.75;
-  --amb-spot: rgba(148, 176, 214, 0.14);
   --amb-veil-top: rgba(148, 176, 214, 0.05);
   --amb-veil-bottom: rgba(0, 0, 0, 0.35);
 
@@ -141,7 +139,7 @@ body {
    Reusable brand helpers
 ---------------------------------------------------------------------------- */
 
-/* Gradient text — the signature mykTech() move. Use on ONE word per view.
+/* Gradient text — the signature R Ally's Tech move. Use on ONE word per view.
    Declared as @utility (not plain classes) so hover:/group-hover: variants work. */
 @utility text-accent {
   background: var(--accent);
@@ -154,34 +152,50 @@ body {
   background: var(--accent);
 }
 
-/* Animated aurora gradient used for soft hero glows */
+/* Soft accent glow (page-header corners, footer, belief band, last process card).
+   Static and filter-free on purpose: it used to be `filter: blur(40px)` plus an
+   infinite drift, i.e. a blurred layer re-composited every frame for a motion
+   nobody could see. The extra, eased stops stand in for the blur's softness.
+   Each ellipse fades out INSIDE the box — the blur used to hide the box edge,
+   so without it a gradient running past the edge would be cut off hard. */
 .aurora {
   background: radial-gradient(
-      40% 50% at 20% 30%,
+      30% 32% at 32% 34%,
       color-mix(in oklab, var(--color-accent-from) 55%, transparent) 0%,
-      transparent 70%
+      color-mix(in oklab, var(--color-accent-from) 22%, transparent) 45%,
+      transparent 100%
     ),
     radial-gradient(
-      45% 55% at 80% 25%,
+      30% 30% at 68% 32%,
       color-mix(in oklab, var(--color-accent-to) 50%, transparent) 0%,
-      transparent 70%
+      color-mix(in oklab, var(--color-accent-to) 20%, transparent) 45%,
+      transparent 100%
     ),
     radial-gradient(
-      50% 60% at 55% 80%,
+      34% 30% at 52% 68%,
       color-mix(in oklab, var(--color-accent-mid) 45%, transparent) 0%,
-      transparent 75%
+      color-mix(in oklab, var(--color-accent-mid) 18%, transparent) 45%,
+      transparent 100%
     );
-  filter: blur(40px);
-  animation: aurora-drift 18s var(--ease-soft) infinite alternate;
 }
 
-@keyframes aurora-drift {
-  0% {
-    transform: translate3d(-3%, -2%, 0) scale(1);
-  }
-  100% {
-    transform: translate3d(4%, 3%, 0) scale(1.12);
-  }
+/* The no-WebGL stand-in for a 3D scene (Hero, ServicesGlyph): a magenta→gold
+   bloom built from gradients rather than `filter: blur()` on a solid disc.
+   Both blobs fade out within the inscribed circle, so a `rounded-full` host
+   never clips them into a hard-edged disc. */
+.accent-glow {
+  background: radial-gradient(
+      36% 36% at 41% 42%,
+      color-mix(in oklab, var(--color-accent-from) 85%, transparent) 0%,
+      color-mix(in oklab, var(--color-accent-from) 35%, transparent) 50%,
+      transparent 100%
+    ),
+    radial-gradient(
+      36% 36% at 59% 58%,
+      color-mix(in oklab, var(--color-accent-to) 85%, transparent) 0%,
+      color-mix(in oklab, var(--color-accent-to) 35%, transparent) 50%,
+      transparent 100%
+    );
 }
 
 /* Fine grain/noise overlay for a printed, designed feel */
@@ -227,9 +241,10 @@ body {
   top: 15%;
   width: 78%;
   filter: var(--ks-tint, none);
-  /* the slower spring-back travel */
+  /* the slower spring-back travel. No permanent will-change: the transition
+     promotes the cap for the press on its own, and a resting filtered layer per
+     keyswitch was GPU memory spent on nothing. */
   transition: transform 0.34s var(--ease-soft);
-  will-change: transform;
 }
 /* hover deliberately does NOT move the cap — see .ks-glow below */
 .keyswitch:active .ks-capwrap {
@@ -260,12 +275,15 @@ body {
   position: absolute;
   inset: -20%;
   border-radius: 9999px;
+  /* softness from the stops, not `filter: blur()` — the glow scales on hover,
+     and a filter would have to be re-applied on every frame of that */
   background: radial-gradient(
     closest-side,
-    rgba(255, 92, 31, 0.75),
-    rgba(255, 92, 31, 0) 70%
+    rgba(255, 92, 31, 0.7),
+    rgba(255, 92, 31, 0.32) 42%,
+    rgba(255, 92, 31, 0.08) 68%,
+    rgba(255, 92, 31, 0) 82%
   );
-  filter: blur(8px);
   opacity: 0.2;
   transition: opacity 0.34s var(--ease-soft), transform 0.34s var(--ease-soft);
 }
@@ -294,20 +312,23 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   The mykTech() wordmark (components/Logo.tsx).
+   The R Ally's Tech wordmark (components/Logo.tsx).
 
-   Eight typefaces in one lockup → it can only be a raster. Painted as a CSS
-   *mask* over `currentColor` rather than an <img>, so it inherits the text
-   colour and follows light/dark + `.band` with no extra work.
-   `wordmark-outline.png` is the same silhouette dilated minus itself — a real
+   Eleven typefaces in one lockup, so it can't be set in a web font — but it is
+   a real VECTOR, not a raster: scripts/build-wordmark.mjs converts each glyph
+   to outlines at build time. Painted as a CSS *mask* over `currentColor` rather
+   than an <img>, so it inherits the text colour and follows light/dark +
+   `.band` with no extra work.
+   `wordmark-outline.svg` is the same paths stroked instead of filled — a real
    ring, which sidesteps CSS drop-shadow (filters are applied BEFORE masking, so
    a shadow on a masked element gets clipped straight back off).
+   Being vector, there is no upscale limit — the old ~820px raster cap is gone.
 ---------------------------------------------------------------------------- */
 .wm,
 .wm-outline {
   display: block;
   /* intrinsic ratio of the trimmed asset — set one axis, the other follows */
-  aspect-ratio: 1199 / 370;
+  aspect-ratio: 5452 / 1195;
   background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
@@ -317,12 +338,12 @@ body {
   mask-size: contain;
 }
 .wm {
-  -webkit-mask-image: url("/brand/wordmark.png");
-  mask-image: url("/brand/wordmark.png");
+  -webkit-mask-image: url("/brand/wordmark.svg");
+  mask-image: url("/brand/wordmark.svg");
 }
 .wm-outline {
-  -webkit-mask-image: url("/brand/wordmark-outline.png");
-  mask-image: url("/brand/wordmark-outline.png");
+  -webkit-mask-image: url("/brand/wordmark-outline.svg");
+  mask-image: url("/brand/wordmark-outline.svg");
 }
 
 /* ----------------------------------------------------------------------------
@@ -344,7 +365,7 @@ body {
   --pl-w: min(74vw, 720px);
   position: relative;
   width: var(--pl-w);
-  aspect-ratio: 1199 / 370;
+  aspect-ratio: 5452 / 1195;
 }
 .pl-layer {
   position: absolute;
@@ -399,8 +420,8 @@ body {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  -webkit-mask-image: url("/brand/wordmark.png");
-  mask-image: url("/brand/wordmark.png");
+  -webkit-mask-image: url("/brand/wordmark.svg");
+  mask-image: url("/brand/wordmark.svg");
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -487,30 +508,28 @@ body {
 /* ----------------------------------------------------------------------------
    Footer wordmark — the outlined mark inks in with the accent gradient under a
    cursor-following spotlight (components/FooterWordmark.tsx).
+
+   How the spotlight stays cheap: the gradient-filled mark is static, and on top
+   of it sits a "cover" clipped to the letterforms and painted in the footer's
+   own ink, with a soft transparent hole in it. Only the hole moves, and only by
+   `transform`, so following the cursor is a compositor job — no repaint. (It
+   used to move a radial-gradient MASK via CSS variables, which re-rasterized
+   the whole full-bleed masked mark on every pointer event.)
+   Layer order, bottom → top: gradient fill, ink cover with the hole, ghost ring.
 ---------------------------------------------------------------------------- */
 .fw {
   position: relative;
 }
-/* the always-there outlined ghost */
+/* the always-there outlined ghost — on top, so it reads over the cover too */
 .fw-ghost {
+  position: relative;
   color: rgba(248, 250, 252, 0.24);
 }
-/* the gradient fill, visible only where the cursor spotlight allows */
 .fw-reveal {
   position: absolute;
   inset: 0;
   opacity: 0;
   transition: opacity 0.5s var(--ease-soft);
-  -webkit-mask-image: radial-gradient(
-    260px circle at var(--fw-x, 50%) var(--fw-y, 60%),
-    #000 35%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    260px circle at var(--fw-x, 50%) var(--fw-y, 60%),
-    #000 35%,
-    transparent 100%
-  );
 }
 .fw:hover .fw-reveal {
   opacity: 1;
@@ -519,12 +538,50 @@ body {
 .fw-grad {
   background-image: var(--accent);
 }
+/* Clipped to fill ∪ ring (two mask layers composite by union), so it overhangs
+   the fill's anti-aliased edge and no gradient fringe leaks around the letters.
+   The overhang paints ink over ink, i.e. nothing visible. */
+.fw-cover {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  -webkit-mask-image: url("/brand/wordmark.svg"), url("/brand/wordmark-outline.svg");
+  mask-image: url("/brand/wordmark.svg"), url("/brand/wordmark-outline.svg");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+/* Twice the mark's size with the hole at its centre, so wherever the cursor is
+   inside the mark the cover still spans all of it. JS sets the translate; the
+   default parks the hole at 50% / 60% like the old mask did.
+   Assumes the footer's `.band bg-ink` ground — the cover IS that colour. */
+.fw-hole {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 200%;
+  height: 200%;
+  transform: translate(-25%, -20%);
+  background: radial-gradient(
+    circle 260px at 50% 50%,
+    transparent 35%,
+    var(--color-ink) 100%
+  );
+}
+/* a layer only while it's actually following the cursor */
+.fw:hover .fw-hole {
+  will-change: transform;
+}
 /* no hover (touch): show a quiet full-width gradient fill instead */
 @media (hover: none) {
   .fw-reveal {
     opacity: 0.4;
-    -webkit-mask-image: none;
-    mask-image: none;
+  }
+  .fw-cover {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -570,42 +627,61 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   Animated icons — subtle, distinctive motion per service icon.
+   Animated icons — subtle, distinctive motion per service icon, played only
+   while the row/card they sit in (a `.group`) is hovered.
+   Why not always: these animate parts INSIDE an <svg>, which the browser can't
+   hand to the compositor — every icon was a main-thread restyle + repaint on
+   every frame, forever, offscreen included. At rest each icon shows its full,
+   static drawing (no half-faded dot, no undrawn line).
 ---------------------------------------------------------------------------- */
 @keyframes icon-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1.5px); }
 }
 @keyframes icon-pulse {
-  0%, 100% { opacity: 0.35; transform: scale(0.85); }
-  50% { opacity: 1; transform: scale(1); }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
 }
 @keyframes icon-spin {
   to { transform: rotate(360deg); }
 }
 @keyframes icon-dash {
+  from { stroke-dashoffset: 26; }
   to { stroke-dashoffset: 0; }
 }
-.ic-float { animation: icon-float 3.2s var(--ease-soft) infinite; }
-.ic-pulse {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: icon-pulse 2.4s ease-in-out infinite;
-}
+.ic-pulse,
 .ic-spin {
   transform-box: fill-box;
   transform-origin: center;
-  animation: icon-spin 10s linear infinite;
 }
 .ic-draw {
   stroke-dasharray: 26;
-  stroke-dashoffset: 26;
-  animation: icon-dash 2.2s var(--ease-soft) infinite alternate;
+  stroke-dashoffset: 0;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .group:hover .ic-float { animation: icon-float 3.2s var(--ease-soft) infinite; }
+  .group:hover .ic-pulse { animation: icon-pulse 2.4s ease-in-out infinite; }
+  .group:hover .ic-spin { animation: icon-spin 10s linear infinite; }
+  .group:hover .ic-draw { animation: icon-dash 2.2s var(--ease-soft) infinite alternate-reverse; }
+}
+
+/* The hero's rotating text badge. A transform on the <svg> element itself (not
+   inside it), so unlike the icons above this one runs on the compositor. */
+.badge-spin {
+  animation: icon-spin 10s linear infinite;
 }
 
 /* ----------------------------------------------------------------------------
-   Ambient background — slow-drifting gray gradient clouds behind every page.
-   Sits in front of the body bg but behind all content (negative z-index child).
+   Ambient background — soft gray gradient clouds behind every page
+   (components/fx/AmbientBackground.tsx). Sits in front of the body bg but behind
+   all content (negative z-index).
+
+   STATIC by design: no filter, no animation, no will-change. The whole fixed
+   layer is rasterized once and then merely composited while the page scrolls.
+   (The clouds used to be `filter: blur(80px)` orbs drifting on infinite
+   keyframes — a blurred, animated, full-viewport layer behind everything, which
+   is about the most expensive backdrop a page can have.) The blur's softness is
+   reproduced with eased colour stops instead.
 ---------------------------------------------------------------------------- */
 .ambient {
   position: fixed;
@@ -617,55 +693,67 @@ body {
 .ambient-orb {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(80px);
-  will-change: transform;
 }
+/* positions are where the old drift used to rest mid-cycle */
 .ambient-orb--1 {
-  width: 60vw;
-  height: 60vw;
-  left: -12vw;
-  top: -12vw;
+  width: 64vw;
+  height: 64vw;
+  left: -9vw;
+  top: -10vw;
   opacity: calc(0.55 * var(--amb-opacity));
-  background: radial-gradient(circle at center, var(--amb-1) 0%, transparent 68%);
-  animation: drift1 26s var(--ease-soft) infinite alternate;
-}
-.ambient-orb--2 {
-  width: 52vw;
-  height: 52vw;
-  right: -14vw;
-  top: 24vh;
-  opacity: calc(0.4 * var(--amb-opacity));
-  background: radial-gradient(circle at center, var(--amb-2) 0%, transparent 70%);
-  animation: drift2 34s var(--ease-soft) infinite alternate;
-}
-.ambient-orb--3 {
-  width: 48vw;
-  height: 48vw;
-  left: 18vw;
-  bottom: -18vh;
-  opacity: calc(0.45 * var(--amb-opacity));
-  background: radial-gradient(circle at center, var(--amb-3) 0%, transparent 70%);
-  animation: drift3 30s var(--ease-soft) infinite alternate;
-}
-/* soft cursor-following spotlight (adds depth; fine-pointer only, via JS) */
-.ambient-spot {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.8s var(--ease-soft);
   background: radial-gradient(
-    460px circle at var(--mx, 50%) var(--my, 22%),
-    var(--amb-spot),
-    transparent 68%
+    circle at center,
+    var(--amb-1) 0%,
+    color-mix(in srgb, var(--amb-1) 62%, transparent) 26%,
+    color-mix(in srgb, var(--amb-1) 26%, transparent) 46%,
+    color-mix(in srgb, var(--amb-1) 8%, transparent) 60%,
+    transparent 70%
   );
 }
-.ambient--spot .ambient-spot {
-  opacity: 1;
+.ambient-orb--2 {
+  width: 56vw;
+  height: 56vw;
+  right: -12vw;
+  top: 20vh;
+  opacity: calc(0.4 * var(--amb-opacity));
+  background: radial-gradient(
+    circle at center,
+    var(--amb-2) 0%,
+    color-mix(in srgb, var(--amb-2) 62%, transparent) 26%,
+    color-mix(in srgb, var(--amb-2) 26%, transparent) 46%,
+    color-mix(in srgb, var(--amb-2) 8%, transparent) 60%,
+    transparent 70%
+  );
+}
+.ambient-orb--3 {
+  width: 52vw;
+  height: 52vw;
+  left: 20vw;
+  bottom: -20vh;
+  opacity: calc(0.45 * var(--amb-opacity));
+  background: radial-gradient(
+    circle at center,
+    var(--amb-3) 0%,
+    color-mix(in srgb, var(--amb-3) 62%, transparent) 26%,
+    color-mix(in srgb, var(--amb-3) 26%, transparent) 46%,
+    color-mix(in srgb, var(--amb-3) 8%, transparent) 60%,
+    transparent 70%
+  );
+}
+/* the paper grain: rasterized once into this static layer, behind content —
+   rather than a fixed full-viewport overlay composited above everything */
+.ambient-grain {
+  position: absolute;
+  inset: 0;
 }
 
 /* ----------------------------------------------------------------------------
-   Border beam — a subtle accent "comet" that travels around an element's
-   border. Use sparingly on one hero element per view.
+   Border beam — a subtle accent "comet" on an element's border. Use sparingly
+   on one hero element per view (the contact card).
+   It rests as a still arc and only travels while the element is hovered: the
+   angle is an animated custom property feeding a conic-gradient, which can't
+   be composited, so a free-running beam repainted the whole card (through a
+   mask-composite) on every frame for as long as the page was open.
 ---------------------------------------------------------------------------- */
 @property --beam-angle {
   syntax: "<angle>";
@@ -697,7 +785,13 @@ body {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: beam-spin 7s linear infinite;
+  animation-play-state: paused;
   pointer-events: none;
+}
+@media (hover: hover) {
+  .beam:hover::before {
+    animation-play-state: running;
+  }
 }
 @keyframes beam-spin {
   to {
@@ -716,30 +810,6 @@ body {
   background:
     radial-gradient(120% 60% at 50% -10%, var(--amb-veil-top), transparent 60%),
     radial-gradient(120% 50% at 50% 115%, var(--amb-veil-bottom), transparent 55%);
-}
-@keyframes drift1 {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(9vw, 7vh, 0) scale(1.18);
-  }
-}
-@keyframes drift2 {
-  from {
-    transform: translate3d(0, 0, 0) scale(1.1);
-  }
-  to {
-    transform: translate3d(-8vw, -6vh, 0) scale(1);
-  }
-}
-@keyframes drift3 {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(6vw, -8vh, 0) scale(1.2);
-  }
 }
 
 /* ----------------------------------------------------------------------------
@@ -763,51 +833,10 @@ html.lenis body {
    Scroll-reveal: only hide elements once JS has marked the doc ready, so
    content is never stuck invisible if JS is disabled. GSAP animates them in.
 ---------------------------------------------------------------------------- */
+/* no permanent will-change here: GSAP promotes each element for the length of
+   its own tween, and a layer per revealed element forever is wasted GPU memory */
 html.reveal-ready [data-animate] {
   opacity: 0;
-  will-change: transform, opacity;
-}
-
-/* ----------------------------------------------------------------------------
-   Custom cursor — only on fine-pointer (desktop) devices. Native cursor is
-   hidden only while the custom one is active.
----------------------------------------------------------------------------- */
-@media (hover: hover) and (pointer: fine) {
-  html.has-cursor,
-  html.has-cursor * {
-    cursor: none;
-  }
-}
-.cursor-dot,
-.cursor-ring {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 90;
-  pointer-events: none;
-  border-radius: 9999px;
-  mix-blend-mode: difference;
-  will-change: transform;
-}
-.cursor-dot {
-  width: 7px;
-  height: 7px;
-  margin: -3.5px 0 0 -3.5px;
-  background: #fff;
-}
-.cursor-ring {
-  width: 38px;
-  height: 38px;
-  margin: -19px 0 0 -19px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  transition: width 0.25s var(--ease-soft), height 0.25s var(--ease-soft),
-    margin 0.25s var(--ease-soft), opacity 0.25s var(--ease-soft);
-}
-.cursor-ring.is-hovering {
-  width: 64px;
-  height: 64px;
-  margin: -32px 0 0 -32px;
-  border-color: rgba(255, 255, 255, 0.9);
 }
 
 /* clip-reveal helper for images */

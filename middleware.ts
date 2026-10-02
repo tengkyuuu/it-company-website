@@ -2,10 +2,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 /**
- * Two jobs:
- *  1. refresh the Supabase auth cookie on every request (server components
- *     can't write cookies, so this is the only place the session gets renewed);
- *  2. gate /admin/** behind a session, bouncing to /admin/login with a ?next.
+ * Two jobs, on /admin/** only:
+ *  1. refresh the Supabase auth cookie (server components can't write cookies,
+ *     so this is the only place the session gets renewed);
+ *  2. gate the panel behind a session, bouncing to /admin/login with a ?next.
+ *
+ * Deliberately NOT run on the marketing pages: nothing public reads the session,
+ * and getUser() is a network round-trip to Supabase for anyone holding a session
+ * cookie — so every page view by a signed-in teammate waited on it (and, with the
+ * project unreachable, on auth-js's retries too).
  *
  * If the Supabase env vars are absent the panel is simply not wired up yet, so
  * we let the request through — /admin/login renders setup instructions instead
@@ -20,6 +25,13 @@ export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) return NextResponse.next();
+
+  // Layouts aren't told their pathname, but the admin layout has to render
+  // /admin/auth/* (the invite / reset link page) bare — outside the panel shell
+  // and its access gate. Always overwritten here, so a client can't spoof it.
+  // It rides on `request`, which every NextResponse.next({ request }) below
+  // forwards.
+  if (isAdmin) request.headers.set("x-admin-pathname", pathname);
 
   let response = NextResponse.next({ request });
 
@@ -62,8 +74,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    // everything except static assets, images and the public files
-    "/((?!_next/static|_next/image|favicon.ico|brand/|work/|.*\\.(?:png|jpg|jpeg|webp|avif|svg|ico|xml|txt)$).*)",
-  ],
+  // `:path*` is zero-or-more segments, so this covers /admin itself too.
+  matcher: ["/admin/:path*"],
 };

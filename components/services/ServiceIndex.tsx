@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "@/components/Icon";
-import { services } from "@/lib/services";
+import type { Service } from "@/lib/services";
 
 /**
  * The six practices as an editorial accordion: giant outlined numerals,
  * titles that slide on hover, and a sprung open/close for the detail.
  */
-export default function ServiceIndex() {
+export default function ServiceIndex({ services }: { services: Service[] }) {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
@@ -23,7 +23,6 @@ export default function ServiceIndex() {
               onClick={() => setOpen(isOpen ? null : i)}
               aria-expanded={isOpen}
               className="group flex w-full items-center gap-5 py-7 text-left md:gap-8 md:py-9"
-              data-cursor
             >
               <span
                 aria-hidden

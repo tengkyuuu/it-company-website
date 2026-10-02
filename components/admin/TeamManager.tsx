@@ -1,145 +1,236 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import {
-  inviteUser,
-  removeUser,
-  updateRole,
-  type ActionResult,
-} from "@/app/admin/actions";
-import type { ProfileRow, Role } from "@/lib/supabase/types";
-import {
-  Banner,
-  Card,
-  CardTitle,
-  Field,
-  Input,
-  Select,
-  SubmitButton,
-} from "./ui";
+  copyInviteLink,
+  disableMember,
+  enableMember,
+  inviteMember,
+  removeMember,
+  resendInvite,
+  revokeInvite,
+  sendMemberReset,
+  type InviteOutcome,
+} from "@/app/admin/team-actions";
+import { Card, CardTitle, Field, Input, Pill, SubmitButton } from "./ui";
+import { OutcomeNotice, RowButton } from "./TeamParts";
+
+/**
+ * One row on /admin/team, built server-side in the page. Members are profiles
+ * (keyed by id); pending invites have no account yet (keyed by email).
+ */
+export type TeamRowView = {
+  key: string;
+  kind: "member" | "invite";
+  /** profile id — members only */
+  id: string | null;
+  email: string | null;
+  full_name: string | null;
+  role: "owner" | "admin";
+  status: "active" | "disabled" | "pending";
+  /** preformatted on the server, so the client can't hydrate a different date */
+  detail: string;
+};
 
 export function InviteForm() {
-  const [result, action] = useActionState<ActionResult | null, FormData>(
-    async (_prev, fd) => inviteUser(fd),
+  const [outcome, action] = useActionState<InviteOutcome | null, FormData>(
+    async (_prev, fd) => inviteMember(fd),
     null
   );
 
   return (
     <Card>
-      <CardTitle hint="They get an email with a link to set their password. Editors can manage projects and settings; admins can also manage the team.">
+      <CardTitle hint="They get a link to choose their own password — you never see it. Teammates join as admins: they can edit all of the site’s content; only you manage the team. Links last 7 days.">
         Invite a teammate
       </CardTitle>
       <form action={action} className="space-y-4">
-        {result && <Banner result={result} />}
-        <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+        <OutcomeNotice outcome={outcome} />
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Email">
             <Input
               name="email"
               type="email"
               required
-              placeholder="teammate@mykt.studio"
+              autoComplete="off"
+              placeholder="teammate@example.com"
             />
           </Field>
-          <Field label="Role">
-            <Select name="role" defaultValue="editor">
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
-            </Select>
+          <Field label="Full name (optional)">
+            <Input name="full_name" maxLength={120} placeholder="Jhade Banquiao" />
           </Field>
         </div>
-        <Field label="Full name (optional)">
-          <Input name="full_name" placeholder="Jhade Banquiao" />
-        </Field>
         <SubmitButton pendingLabel="Sending…">Send invite</SubmitButton>
       </form>
     </Card>
   );
 }
 
+type RowAction = (fd: FormData) => Promise<InviteOutcome>;
+
+const STATUS_PILL: Record<TeamRowView["status"], { label: string; tone: "live" | "draft" | "muted" }> = {
+  active: { label: "Active", tone: "live" },
+  pending: { label: "Pending", tone: "draft" },
+  disabled: { label: "Disabled", tone: "muted" },
+};
+
 export function TeamList({
-  members,
+  rows,
   me,
   canManage,
+  hasServiceKey,
 }: {
-  members: ProfileRow[];
+  rows: TeamRowView[];
   me: string;
+  /** the owner — the only one who manages the team */
   canManage: boolean;
+  hasServiceKey: boolean;
 }) {
   const [pending, start] = useTransition();
+  const [busy, setBusy] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<InviteOutcome | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  function run(row: TeamRowView, fn: RowAction, copy = false) {
+    const fd = new FormData();
+    if (row.id) fd.set("id", row.id);
+    if (row.email) fd.set("email", row.email);
+    setBusy(row.key);
+    start(async () => {
+      try {
+        setOutcome(await fn(fd));
+        setCopied(copy);
+      } catch {
+        setOutcome({ ok: false, message: "Something went wrong — please try again." });
+      } finally {
+        setBusy(null);
+      }
+    });
+  }
+
+  const count = (s: TeamRowView["status"]) => rows.filter((r) => r.status === s).length;
+  const summary = [
+    `${count("active")} active`,
+    count("pending") && `${count("pending")} invite${count("pending") === 1 ? "" : "s"} pending`,
+    count("disabled") && `${count("disabled")} disabled`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <Card>
-      <CardTitle hint={`${members.length} ${members.length === 1 ? "person" : "people"} with access.`}>
-        The team
-      </CardTitle>
+      <CardTitle hint={`${summary}.`}>The team</CardTitle>
+
+      {outcome && (
+        <div className="mb-5">
+          <OutcomeNotice outcome={outcome} autoCopy={copied} />
+        </div>
+      )}
 
       <ul className="divide-y divide-mist/70">
-        {members.map((m) => {
-          const isMe = m.id === me;
+        {rows.map((r) => {
+          const isMe = r.id === me;
+          const manageable = canManage && hasServiceKey && !isMe && r.role !== "owner";
+          const rowBusy = pending && busy === r.key;
+          const label = r.full_name || r.email || "Unknown";
+          const pill = STATUS_PILL[r.status];
+
           return (
             <li
-              key={m.id}
-              className="flex flex-wrap items-center gap-3 py-3.5 first:pt-0 last:pb-0"
+              key={r.key}
+              className="flex flex-wrap items-center gap-x-3 gap-y-2.5 py-3.5 first:pt-0 last:pb-0"
             >
               <span
                 aria-hidden
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent font-display text-xs font-bold text-paper"
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-xs font-bold ${
+                  r.status === "active"
+                    ? "bg-accent text-paper"
+                    : "border border-mist/70 text-ink/50"
+                }`}
               >
-                {(m.full_name || m.email || "?").slice(0, 1).toUpperCase()}
+                {label.slice(0, 1).toUpperCase()}
               </span>
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm">
-                  {m.full_name || m.email}
-                  {isMe && <span className="ml-2 text-ink/45">(you)</span>}
+                <p className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="truncate">{label}</span>
+                  {isMe && <span className="text-ink/45">(you)</span>}
+                  <Pill tone={pill.tone}>{pill.label}</Pill>
                 </p>
-                {m.full_name && (
-                  <p className="truncate font-mono text-[11px] text-slatey">
-                    {m.email}
-                  </p>
-                )}
+                <p className="mt-0.5 truncate font-mono text-[11px] text-slatey">
+                  {r.full_name && r.email ? `${r.email} · ` : ""}
+                  {r.detail}
+                </p>
               </div>
 
-              {canManage && !isMe && m.role !== "owner" ? (
-                <div className="flex items-center gap-2">
-                  <Select
-                    defaultValue={m.role}
-                    disabled={pending}
-                    aria-label={`Role for ${m.email}`}
-                    className="!w-auto !py-1.5 !text-xs"
-                    onChange={(e) => {
-                      const fd = new FormData();
-                      fd.set("id", m.id);
-                      fd.set("role", e.target.value as Role);
-                      start(async () => {
-                        await updateRole(fd);
-                      });
+              {manageable && r.kind === "invite" && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <RowButton disabled={rowBusy} onClick={() => run(r, resendInvite)}>
+                    Resend
+                  </RowButton>
+                  <RowButton
+                    disabled={rowBusy}
+                    title="Make a fresh link to send by chat — it replaces any earlier one"
+                    onClick={() => run(r, copyInviteLink, true)}
+                  >
+                    Copy link
+                  </RowButton>
+                  <RowButton
+                    danger
+                    disabled={rowBusy}
+                    onClick={() => {
+                      if (!confirm(`Revoke the invite for ${r.email}? Their link stops working.`)) return;
+                      run(r, revokeInvite);
                     }}
                   >
-                    <option value="editor">Editor</option>
-                    <option value="admin">Admin</option>
-                  </Select>
-                  <button
-                    type="button"
-                    disabled={pending}
-                    className="rounded-full border border-red-500/40 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-50"
+                    Revoke
+                  </RowButton>
+                </div>
+              )}
+
+              {manageable && r.kind === "member" && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Pill>{r.role}</Pill>
+                  {r.status === "active" && (
+                    <RowButton
+                      disabled={rowBusy}
+                      title="Email them a link to choose a new password — you never see it"
+                      onClick={() => {
+                        if (!confirm(`Send ${r.email} a password reset link? Saving a new password signs them out everywhere.`)) return;
+                        run(r, sendMemberReset);
+                      }}
+                    >
+                      Send reset
+                    </RowButton>
+                  )}
+                  {r.status === "disabled" ? (
+                    <RowButton disabled={rowBusy} onClick={() => run(r, enableMember)}>
+                      Enable
+                    </RowButton>
+                  ) : (
+                    <RowButton
+                      disabled={rowBusy}
+                      onClick={() => {
+                        if (!confirm(`Disable ${r.email}? They’re signed out everywhere straight away and can’t sign in until you re-enable them.`)) return;
+                        run(r, disableMember);
+                      }}
+                    >
+                      Disable
+                    </RowButton>
+                  )}
+                  <RowButton
+                    danger
+                    disabled={rowBusy}
                     onClick={() => {
-                      if (!confirm(`Remove ${m.email} from the team?`)) return;
-                      const fd = new FormData();
-                      fd.set("id", m.id);
-                      start(async () => {
-                        await removeUser(fd);
-                      });
+                      if (!confirm(`Remove ${r.email} from the panel? Their account is deleted. (Disable keeps it and can be undone.)`)) return;
+                      run(r, removeMember);
                     }}
                   >
                     Remove
-                  </button>
+                  </RowButton>
                 </div>
-              ) : (
-                <span className="rounded-full border border-mist/70 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-ink/55">
-                  {m.role}
-                </span>
               )}
+
+              {!manageable && <Pill>{r.kind === "invite" ? "invited" : r.role}</Pill>}
             </li>
           );
         })}

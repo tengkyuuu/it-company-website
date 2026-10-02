@@ -1,17 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
-
-const team = [
-  { name: "Hasnain Fayyaz", role: "Founder · Head of Marketing", initials: "HF" },
-  { name: "Sean Myk Daniel Jacinto", role: "Co-founder · AI Automation", initials: "SJ" },
-  { name: "Jhade Japhet Banquiao", role: "Project Lead", initials: "JB" },
-  { name: "James Vincent Calunsag", role: "UI/UX Designer", initials: "JC" },
-  { name: "Haron Ian Diniay", role: "Backend Developer", initials: "HD" },
-  { name: "Ralph Wyndril Andilab", role: "Mobile Developer", initials: "RA" },
-  { name: "Rhett Wayne Manubag", role: "Mobile / Web App Developer", initials: "RM" },
-];
+import type { TeamMember } from "@/lib/team";
 
 /** Each member gets their own tilt of the brand gradient. */
 const orbGradient = (i: number) =>
@@ -22,7 +13,7 @@ const orbGradient = (i: number) =>
  * "monogram" — springs after the cursor while their row stays inked and the
  * rest recede. On touch it's a clean list.
  */
-export default function TeamRoster() {
+export default function TeamRoster({ team }: { team: TeamMember[] }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<number | null>(null);
 
@@ -31,25 +22,50 @@ export default function TeamRoster() {
   const x = useSpring(mx, { stiffness: 160, damping: 20, mass: 0.5 });
   const y = useSpring(my, { stiffness: 160, damping: 20, mass: 0.5 });
 
+  // The roster's box is measured once per hover, not on every pointer move;
+  // a page scroll under the pointer drops it so the next move re-measures.
+  const origin = useRef<{ left: number; top: number } | null>(null);
+  const invalidate = useRef(() => {
+    origin.current = null;
+  }).current;
+  useEffect(
+    () => () => window.removeEventListener("scroll", invalidate),
+    [invalidate]
+  );
+
   const onMove = (e: React.PointerEvent) => {
     if (e.pointerType !== "mouse") return;
-    const r = wrap.current?.getBoundingClientRect();
-    if (!r) return;
-    mx.set(e.clientX - r.left);
-    my.set(e.clientY - r.top);
+    if (!origin.current) {
+      const r = wrap.current?.getBoundingClientRect();
+      if (!r) return;
+      origin.current = { left: r.left, top: r.top };
+    }
+    mx.set(e.clientX - origin.current.left);
+    my.set(e.clientY - origin.current.top);
   };
 
   return (
     <div
       ref={wrap}
+      onPointerEnter={(e) => {
+        if (e.pointerType !== "mouse") return;
+        invalidate();
+        window.addEventListener("scroll", invalidate, { passive: true });
+      }}
       onPointerMove={onMove}
-      onPointerLeave={() => setHovered(null)}
+      onPointerLeave={() => {
+        window.removeEventListener("scroll", invalidate);
+        setHovered(null);
+      }}
       className="relative mt-14"
     >
-      {/* cursor-following monogram orb */}
+      {/* cursor-following monogram orb — its own layer only while it's showing,
+          so the springing follow is a composite rather than a repaint */}
       <motion.div
         style={{ x, y }}
-        className="pointer-events-none absolute left-0 top-0 z-10 hidden md:block"
+        className={`pointer-events-none absolute left-0 top-0 z-10 hidden md:block ${
+          hovered !== null ? "will-change-transform" : ""
+        }`}
         aria-hidden
       >
         <AnimatePresence>

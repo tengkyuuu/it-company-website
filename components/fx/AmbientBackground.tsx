@@ -1,60 +1,23 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
 /**
- * Site-wide ambient graphic: slow-drifting gray gradient clouds + a depth veil,
- * plus a soft cursor-following spotlight on fine-pointer devices (adds a subtle
- * "lit" depth without touching the reserved accent). CSS-driven; cheap.
+ * Site-wide ambient graphic: soft gray gradient clouds + a depth veil + a faint
+ * paper grain, fixed behind every page.
+ *
+ * Deliberately STATIC and filter-free, so the whole layer is rasterized once
+ * and then only composited. It used to drift `filter: blur(80px)` orbs and run
+ * a cursor spotlight whose rAF loop wrote CSS variables every frame, forever —
+ * a full-viewport blurred repaint behind the page, which cost frames everywhere.
+ * The clouds now get their softness from eased gradient stops instead of blur.
+ * No effects, no listeners — markup + CSS (`.ambient-*` in globals.css) only.
  */
 export default function AmbientBackground() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    if (!fine || reduce) return;
-
-    let tx = window.innerWidth / 2;
-    let ty = window.innerHeight * 0.25;
-    let cx = tx;
-    let cy = ty;
-    let raf = 0;
-
-    const onMove = (e: PointerEvent) => {
-      tx = e.clientX;
-      ty = e.clientY;
-    };
-    const loop = () => {
-      cx += (tx - cx) * 0.08;
-      cy += (ty - cy) * 0.08;
-      el.style.setProperty("--mx", `${cx}px`);
-      el.style.setProperty("--my", `${cy}px`);
-      raf = requestAnimationFrame(loop);
-    };
-
-    el.classList.add("ambient--spot");
-    raf = requestAnimationFrame(loop);
-    window.addEventListener("pointermove", onMove, { passive: true });
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("pointermove", onMove);
-      el.classList.remove("ambient--spot");
-    };
-  }, []);
-
   return (
-    <div ref={ref} className="ambient" aria-hidden>
+    <div className="ambient" aria-hidden>
       <span className="ambient-orb ambient-orb--1" />
       <span className="ambient-orb ambient-orb--2" />
       <span className="ambient-orb ambient-orb--3" />
-      <span className="ambient-spot" />
       <span className="ambient-veil" />
+      {/* the grain lives here, behind content, instead of in a fixed layer over it */}
+      <span className="ambient-grain grain" />
     </div>
   );
 }

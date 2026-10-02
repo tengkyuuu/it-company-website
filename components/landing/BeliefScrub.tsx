@@ -68,7 +68,7 @@ export default function BeliefScrub() {
           ))}
         </p>
         <p className="mt-10 flex items-center gap-4 font-mono text-xs uppercase tracking-widest text-paper/50">
-          — The mykTech() studio
+          — The R Ally's Tech studio
           <KeySwitch size={42} tint="mint" />
         </p>
       </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, MeshDistortMaterial } from "@react-three/drei";
-import { useEffect, useMemo, useRef } from "react";
+import { Float, MeshDistortMaterial, PerformanceMonitor } from "@react-three/drei";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useTheme } from "@/components/theme/ThemeProvider";
 
@@ -27,6 +27,9 @@ const PALETTE = {
  */
 type Drive = { progress: { current: number } };
 
+/** Longest step a single frame may advance the animation (seconds). */
+const MAX_STEP = 1 / 20;
+
 const SATELLITES: {
   kind: "knot" | "ico" | "capsule" | "torus" | "octa";
   pos: [number, number, number];
@@ -45,9 +48,9 @@ const SATELLITES: {
 function SatelliteGeometry({ kind }: { kind: (typeof SATELLITES)[number]["kind"] }) {
   switch (kind) {
     case "knot":
-      return <torusKnotGeometry args={[0.8, 0.26, 160, 24]} />;
+      return <torusKnotGeometry args={[0.8, 0.26, 120, 18]} />;
     case "torus":
-      return <torusGeometry args={[0.85, 0.3, 24, 64]} />;
+      return <torusGeometry args={[0.85, 0.3, 18, 44]} />;
     case "capsule":
       return <capsuleGeometry args={[0.42, 0.9, 8, 24]} />;
     case "octa":
@@ -73,7 +76,10 @@ function Constellation({ progress, p: pal }: Drive & { p: Palette }) {
     return () => window.removeEventListener("pointermove", onMove);
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((state, rawDelta) => {
+    // the loop is paused while the hero is offscreen; the first frame back
+    // would otherwise carry the whole pause as one giant step
+    const delta = Math.min(rawDelta, MAX_STEP);
     const p = progress.current;
     const g = system.current;
     if (g) {
@@ -118,7 +124,7 @@ function Constellation({ progress, p: pal }: Drive & { p: Palette }) {
       {/* the core — soft distorted mass the lights paint the gradient onto */}
       <Float speed={1.2} rotationIntensity={0.4} floatIntensity={1}>
         <mesh scale={1.2}>
-          <icosahedronGeometry args={[1.15, 64]} />
+          <icosahedronGeometry args={[1.15, 20]} />
           <MeshDistortMaterial
             color={pal.core}
             distort={0.42}
@@ -151,6 +157,9 @@ function Constellation({ progress, p: pal }: Drive & { p: Palette }) {
 
 function Particles({ progress, p: pal }: Drive & { p: Palette }) {
   const ref = useRef<THREE.Points>(null);
+  // own clock rather than clock.elapsedTime, which keeps counting while the
+  // loop is paused and would snap the field round on resume
+  const t = useRef(0);
   const positions = useMemo(() => {
     const n = 280;
     const arr = new Float32Array(n * 3);
@@ -162,10 +171,10 @@ function Particles({ progress, p: pal }: Drive & { p: Palette }) {
     return arr;
   }, []);
 
-  useFrame((state) => {
+  useFrame((_, delta) => {
     if (!ref.current) return;
-    ref.current.rotation.y =
-      state.clock.elapsedTime * 0.02 + progress.current * 0.8;
+    t.current += Math.min(delta, MAX_STEP);
+    ref.current.rotation.y = t.current * 0.02 + progress.current * 0.8;
   });
 
   return (
@@ -185,17 +194,35 @@ function Particles({ progress, p: pal }: Drive & { p: Palette }) {
   );
 }
 
-export default function HeroScene({ progress }: Drive) {
+/**
+ * `active` = the hero is on screen AND the opening sequence is over. While it's
+ * false the canvas is `frameloop="demand"`: it still renders once on mount —
+ * so shader compilation happens under the preloader, where nobody can see the
+ * stall — and again on a prop change (theme), but otherwise costs nothing.
+ * The hero is a 175vh sticky stage; once it's scrolled past, it's free.
+ *
+ * DPR is capped at 1.25 (was 1.5 — ~30% fewer pixels to shade on hi-dpi
+ * screens; the soft distorted forms don't show the difference) and drops to 1
+ * if the monitor sees frame rate sag for a sustained stretch. The monitor is
+ * remounted on every resume, so a pause can't read as a slow frame.
+ */
+export default function HeroScene({
+  progress,
+  active,
+}: Drive & { active: boolean }) {
   const { theme } = useTheme();
   const pal = PALETTE[theme === "dark" ? "dark" : "light"];
+  const [dprMax, setDprMax] = useState(1.25);
 
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      frameloop={active ? "always" : "demand"}
+      dpr={[1, dprMax]}
       camera={{ position: [0, 0, 7], fov: 42 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       style={{ background: "transparent" }}
     >
+      {active && <PerformanceMonitor onDecline={() => setDprMax(1)} />}
       <ambientLight intensity={pal.ambient} />
       {/* the brand gradient, painted with light */}
       <pointLight position={[-6, 3, 4]} intensity={3} color="#9d5a8f" decay={0} />

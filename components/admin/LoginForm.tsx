@@ -3,66 +3,75 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Banner, Field, Input } from "./ui";
+import { createOwnerAccount, requestPasswordReset } from "@/app/admin/auth/actions";
+import { Banner, Field, Input, PasswordInput } from "./ui";
 
-type Mode = "signin" | "signup" | "reset";
+type Mode = "signin" | "owner" | "reset";
 
 /**
- * Sign-in for the panel. Also offers first-run sign-up: the schema's
- * handle_new_user() trigger makes the FIRST account the owner, and everyone
- * after that arrives by invite instead.
+ * Sign-in for the panel.
+ *
+ * There is no client-side sign-up any more. "Create the owner account" is
+ * offered only while OWNER_EMAIL is set and the panel has no owner
+ * (`canCreateOwner`, decided server-side), and it runs a server action that
+ * refuses every address but OWNER_EMAIL. Everyone else arrives by invite — so
+ * public sign-ups can be switched off in Supabase.
+ *
+ * "Forgot password?" goes through a server action that mails one of our own
+ * reset links via Resend.
  */
-export default function LoginForm({ next }: { next: string }) {
+export default function LoginForm({
+  next,
+  canCreateOwner = false,
+  setupHint = false,
+}: {
+  next: string;
+  canCreateOwner?: boolean;
+  /** no owner yet and OWNER_EMAIL unset: say how to create one */
+  setupHint?: boolean;
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(
-    null
-  );
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const go = (m: Mode) => {
+    setMode(m);
+    setResult(null);
+  };
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
     setResult(null);
-    const supabase = createClient();
 
     try {
       if (mode === "reset") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/admin/login`,
-        });
-        setResult(
-          error
-            ? { ok: false, message: error.message }
-            : { ok: true, message: "Check your inbox for a reset link." }
-        );
+        const fd = new FormData();
+        fd.set("email", email);
+        setResult(await requestPasswordReset(fd));
         return;
       }
 
-      if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if (error) {
-          setResult({ ok: false, message: error.message });
+      let signInAs = email;
+      if (mode === "owner") {
+        const fd = new FormData();
+        fd.set("email", email);
+        fd.set("password", password);
+        const res = await createOwnerAccount(fd);
+        if (!res.ok) {
+          setResult(res);
           return;
         }
-        // With email confirmation on, there's no session yet.
-        if (!data.session) {
-          setResult({
-            ok: true,
-            message: "Account created — confirm your email, then sign in.",
-          });
-          setMode("signin");
-          return;
-        }
-        router.replace(next);
-        router.refresh();
-        return;
+        // created server-side; signing in is the same as any other sign-in
+        // (the action sets no cookies — see app/admin/auth/actions.ts)
+        signInAs = res.signInAs ?? email;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const { error } = await createClient().auth.signInWithPassword({
+        email: signInAs,
         password,
       });
       if (error) {
@@ -71,6 +80,8 @@ export default function LoginForm({ next }: { next: string }) {
       }
       router.replace(next);
       router.refresh();
+    } catch {
+      setResult({ ok: false, message: "Something went wrong — please try again." });
     } finally {
       setPending(false);
     }
@@ -93,16 +104,14 @@ export default function LoginForm({ next }: { next: string }) {
       </Field>
 
       {mode !== "reset" && (
-        <Field
-          label="Password"
-          hint={mode === "signup" ? "At least 6 characters." : undefined}
-        >
-          <Input
-            type="password"
+        <Field label="Password" hint={mode === "owner" ? "At least 8 characters." : undefined}>
+          <PasswordInput
             name="password"
-            autoComplete={mode === "signup" ? "new-password" : "current-password"}
+            autoComplete={mode === "owner" ? "new-password" : "current-password"}
             required
-            minLength={6}
+            // sign-in stays at Supabase's 6: older accounts may have one that short
+            minLength={mode === "owner" ? 8 : 6}
+            maxLength={mode === "owner" ? 72 : undefined}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -121,7 +130,7 @@ export default function LoginForm({ next }: { next: string }) {
           />
         )}
         {mode === "signin" && (pending ? "Signing in…" : "Sign in")}
-        {mode === "signup" && (pending ? "Creating…" : "Create owner account")}
+        {mode === "owner" && (pending ? "Creating…" : "Create owner account")}
         {mode === "reset" && (pending ? "Sending…" : "Send reset link")}
       </button>
 
@@ -129,10 +138,7 @@ export default function LoginForm({ next }: { next: string }) {
         {mode !== "signin" ? (
           <button
             type="button"
-            onClick={() => {
-              setMode("signin");
-              setResult(null);
-            }}
+            onClick={() => go("signin")}
             className="text-ink/60 transition-colors hover:text-ink"
           >
             ← Back to sign in
@@ -141,27 +147,41 @@ export default function LoginForm({ next }: { next: string }) {
           <>
             <button
               type="button"
-              onClick={() => {
-                setMode("reset");
-                setResult(null);
-              }}
+              onClick={() => go("reset")}
               className="text-ink/60 transition-colors hover:text-ink"
             >
               Forgot password?
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signup");
-                setResult(null);
-              }}
-              className="text-ink/60 transition-colors hover:text-ink"
-            >
-              First time? Create the owner account
-            </button>
+            {canCreateOwner && (
+              <button
+                type="button"
+                onClick={() => go("owner")}
+                className="text-ink/60 transition-colors hover:text-ink"
+              >
+                First time? Create the owner account
+              </button>
+            )}
           </>
         )}
       </div>
+
+      {mode === "owner" && (
+        <p className="text-xs leading-relaxed text-ink/45">
+          Only the owner’s address (set on the server as OWNER_EMAIL) can create this account.
+        </p>
+      )}
+      {mode === "signin" && !canCreateOwner && !setupHint && (
+        <p className="text-xs leading-relaxed text-ink/45">
+          New to the team? Accounts are invite-only — ask the owner to invite you.
+        </p>
+      )}
+      {mode === "signin" && setupHint && (
+        <p className="text-xs leading-relaxed text-ink/45">
+          This panel has no owner yet. Set <code className="font-mono">OWNER_EMAIL</code> on the
+          server to create one here, or run{" "}
+          <code className="font-mono">node scripts/create-owner.mjs</code>.
+        </p>
+      )}
     </form>
   );
 }

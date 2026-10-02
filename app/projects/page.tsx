@@ -10,7 +10,7 @@ import { getProjects } from "@/lib/cms";
 export const metadata: Metadata = {
   title: "Projects",
   description:
-    "Real products mykTech() has shipped — CRM, healthcare, structural monitoring, fintech and ordering platforms, with a live preview of each.",
+    "Real products R Ally's Tech has shipped — CRM, healthcare, structural monitoring, fintech and ordering platforms, with a live preview of each.",
   alternates: { canonical: "/projects" },
 };
 
@@ -25,6 +25,7 @@ export default async function ProjectsPage() {
           aria-hidden
         />
         <SectionHeader
+          as="h1"
           eyebrow="Projects"
           title={
             <>
@@ -60,7 +61,6 @@ export default async function ProjectsPage() {
                   <Link
                     href={`/projects/${p.slug}`}
                     aria-label={`${p.name} — project detail`}
-                    data-cursor
                     className="block transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5"
                   >
                     <LivePreview project={p} priority={i === 0} />

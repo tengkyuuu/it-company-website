@@ -1,6 +1,6 @@
-# mykTech() — Company Website
+# R Ally's Tech — Company Website
 
-Marketing website for **mykTech()**, an IT company. Prototype. Goal: a sleek,
+Marketing website for **R Ally's Tech**, an IT company. Prototype. Goal: a sleek,
 modern, *graphic-designer-grade* site that tells customers who we are and what we build.
 Clean and human — **not** "techy" (avoid circuit boards, matrix code, neon-on-black clichés).
 The impression to leave: *we make software and we innovate, with taste.*
@@ -19,7 +19,7 @@ The impression to leave: *we make software and we innovate, with taste.*
 data in `lib/work.ts`.
 **Team (real):** Jhade Banquiao (Project Lead), James Calunsag (Frontend), Haron Diniay
 (Backend), Ralph Andilab (Mobile), Sean Jacinto (AI Automation), Hasnain Fayyaz (Marketing).
-**Nav:** logo mark (`public/brand/logo.png`) + `mykTech()` wordmark, top-left.
+**Nav:** logo mark (`public/brand/logo.png`) + `R Ally's Tech` wordmark, top-left.
 
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
 **3D hero** (`Hero` — sticky 175vh stage; scroll scatters the constellation) →
@@ -45,40 +45,50 @@ client screenshots).
 
 ## Brand
 
-### Logo — the primary mark is a raster, used as a CSS mask
-The real wordmark is the client's artwork: **`public/brand/mykTech().png`**, a lockup that
-sets each glyph in a *different* typeface —
-`m` Canva Sans · `y` Brittany · `k` Roboto · `T` Horizon · `e` Ahsing · `c` Brick Sans ·
-`h` Sanchez · `()` Alatsi. **It therefore cannot be reproduced in a web font**; treat it as
-artwork, not text.
+### Logo — a generated vector lockup, used as a CSS mask
+The wordmark is **`R Ally's Tech`** set as a *ransom-note* lockup: every glyph in a different
+typeface. It is **generated, not artwork** — `scripts/build-wordmark.mjs` fetches each family
+from Google Fonts, converts the glyph to **outlines**, and composes one SVG:
 
-- **`components/Logo.tsx`** is the only way to render it. Two derived assets, both painted as
+`R` Abril Fatface · `A` Bebas Neue · `l` Courier Prime · `l` Playfair Display ·
+`y` Pacifico · `'` Playfair Display · `s` Righteous · `T` Archivo Black ·
+`e` Caveat · `c` Zilla Slab · `h` Lobster
+
+- **To restyle**: edit the `LOCKUP` map in `scripts/build-wordmark.mjs`, re-run
+  `node scripts/build-wordmark.mjs`, then paste the printed ratio into `aspect-ratio` in
+  `globals.css` (it appears **twice** — `.wm/.wm-outline` and `.pl-stage`).
+  Needs `npm install --no-save opentype.js` (build-time only — deliberately not a dependency,
+  same reasoning as Playwright in `scripts/verify.mjs`).
+- Glyphs are normalised by **cap height**, not font size, so wildly different faces sit
+  optically consistent on a shared baseline instead of one dwarfing the next.
+- **`components/Logo.tsx`** is the only way to render it. Two generated assets, both painted as
   a **CSS `mask` over `currentColor`** (not `<img>`), so the mark inherits the text colour and
   follows light/dark and `.band` for free:
-  - `public/brand/wordmark.png` — the source trimmed to its ink box with `alpha = 255 − luminance`
-  - `public/brand/wordmark-outline.png` — that silhouette dilated by 5px **minus itself**, i.e. a
+  - `public/brand/wordmark.svg` — the filled silhouette
+  - `public/brand/wordmark-outline.svg` — the same paths **stroked** instead of filled, i.e. a
     real ring. Use `variant="outline"`. This exists because CSS `drop-shadow` is applied
     *before* masking, so a shadow-based outline on a masked element gets clipped straight off.
   - Sizing: the element carries the wordmark's aspect ratio — set **one** axis (`h-7`, `w-full`).
   - Used in `Nav` (h-26px, beside `logo.png`), `FooterWordmark`, `Preloader`, and the admin chrome.
-- ⚠️ **It's ~1199px of ink and there is no vector.** Displaying it wider than ~820 CSS px
-  upscales on a retina screen and goes soft — that's why `FooterWordmark` is width-capped.
-  **Ask the client for an SVG/EPS** and the cap can go.
-- To regenerate the derived assets, see the sharp scripts referenced in the git history for
-  this change (trim → alpha, then separable box-dilate → subtract).
-- **Casing is fixed and deliberate: lowercase `myk`, capital `T`, trailing `()`. Never
-  MYKTECH, never myktech.** ⚠️ Never place *text* spellings inside an `uppercase` /
-  `text-transform` context — bitten twice (Hero badge, Preloader label). The mask can't be
-  transformed, which is another reason to prefer `Logo` over set type.
-- `components/Wordmark.tsx` (Syne, gradient parens) + `components/KMark.tsx` are the older
-  type-set treatment. Superseded by `Logo` everywhere; kept because `logo.png` still shows the
-  gradient KT and the Syne version is the fallback if the raster ever has to go.
-- Assets in repo root: `logo.png` (shield, gradient KT), `myktech logo.png` (business-card
-  mockup), `myktech no logo.png` (horizontal wordmark on laptop). Filenames keep the old
-  spelling; so do technical identifiers (`mykt-website`, `mykt.studio`, `mykt-theme`,
-  `mykt-preloaded`, `mykt:ready`) — those are **not** the brand name, leave them alone.
-- In an email `From` header the display name **must be quoted** (`"mykTech()" <…>`) — bare
-  parens are RFC 5322 comment delimiters and clients drop them (see `lib/email.ts`).
+- ✅ **It's vector, so there is no upscale limit.** The old raster's ~820px blur cap is gone and
+  `FooterWordmark` is full-bleed again.
+- **The apostrophe is the thing that bites now** (the old name's `()` did). Three places:
+  - **SQL**: must be doubled — `default 'R Ally''s Tech'` in `supabase/schema.sql`.
+  - **dotenv**: use **double** quotes. `CONTACT_FROM_EMAIL='...R Ally's Tech...'` ends the value
+    early and truncates the name to `R Ally`.
+  - **Email `From`**: no quoting needed any more — an apostrophe is valid RFC 5322 atext, so
+    `R Ally's Tech <…>` is three legal atoms. (The old name *had* to be quoted.)
+- ⚠️ Never place the wordmark inside an `uppercase` / `text-transform` context — bitten twice
+  already under the old name (Hero badge, Preloader label). The mask can't be transformed,
+  which is another reason to prefer `Logo` over set type.
+- ⚠️ **`public/brand/logo.png` is still the old "KT" shield** and is rendered in `Nav` beside
+  the wordmark. It contradicts the new brand — needs new artwork (or removal from `Nav`).
+  `public/brand/mykTech().png` is the old client artwork, now unreferenced; kept, not deleted.
+- Technical identifiers keep the old spelling on purpose — `mykt-website`, `mykt.studio`,
+  `mykt-theme`, `mykt-preloaded`, `mykt:ready`. Those are **not** the brand name; renaming them
+  would break a storage key, the preloader event, and the domain. Leave them alone.
+- `components/Wordmark.tsx` and `components/KMark.tsx` (the old Syne + gradient-K type
+  treatment) were **deleted** in this rebrand — both were unused and encoded the old name.
 
 ### Color palette
 | Role | Token | Light | Dark |
@@ -106,7 +116,7 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
 
 ### Typography
 - **Display/brand: Syne** (`--font-display`, via next/font) — free stand-in for the paid
-  "Inline" by Letters from Sweden. Used for the `mykTech()` wordmark + big headings (Hero h1,
+  "Inline" by Letters from Sweden. Used for the `R Ally's Tech` wordmark + big headings (Hero h1,
   `SectionHeader` titles). Swap in real Inline `.woff2` via next/font/local if licensed.
 - **Geist** (Geist Sans for body/UI; Geist Mono only for tiny labels/code chips).
 - Big, confident display headings (tight tracking, weight 600–700). Generous body line-height.
@@ -183,8 +193,12 @@ reflow. Two non-obvious rules, both learned the hard way here:
    **not** its `animationend` event — that event dispatches on the busy main thread and measured
    ~700ms late, holding `lenis-stopped` well after the panel had visually cleared.
    Read the animation off the element, not by keyframe name (a minifier may rename it).
-- `VideoReveal` defers its 160-frame preload until `mykt:ready` (with a 4s backstop) so those
+- `VideoReveal` defers its 80-frame preload until `mykt:ready` (with a 4s backstop) so those
   requests stop competing with the sequence.
+- `fx/ready.ts` (`markReady` / `isReady` / `whenReady`) is the source of truth for "the sequence
+  is done" — `Preloader` calls `markReady()`. Use `whenReady()`, **not** a bare
+  `addEventListener("mykt:ready")`: a component mounted *after* the event fired (client-side
+  navigation back to `/`) would otherwise sit out its backstop timeout.
 
 ## Tech stack
 - **Next.js 15** (App Router) + **React 19** + **TypeScript**
@@ -194,7 +208,9 @@ reflow. Two non-obvious rules, both learned the hard way here:
   (`Reveal`, nav, accordion, roster orb, magnetic `Button`).
 - **Three.js + @react-three/fiber + drei** — two scenes in `components/three/`:
   `HeroScene` (constellation) and `GlyphScene` (per-service morphing glyphs). Gating util:
-  `lib/webgl.ts` (`wants3D()` = desktop + WebGL + no reduced-motion; CSS gradient fallback otherwise).
+  `lib/webgl.ts` (`wants3D()` = desktop + WebGL + no reduced-motion; CSS gradient fallback otherwise;
+  the WebGL probe runs **once**, is cached and its context released — it used to leak a context
+  per call; `observeVisible()` is the shared on-screen observer both scenes use to pause).
 - **Geist** font (`geist` package: `GeistSans`, `GeistMono`)
 - **Supabase** (`@supabase/supabase-js` + `@supabase/ssr`) — auth + Postgres + Storage behind
   the `/admin` CMS. Entirely optional: with no env vars the site serves the static content.
@@ -202,9 +218,10 @@ reflow. Two non-obvious rules, both learned the hard way here:
 - Run: `npm run dev` → http://localhost:3000
 
 ### Motion architecture (the "awwwards" layer)
-- `components/fx/`: `AmbientBackground` (drifting **gray** gradient clouds + a depth veil +
-  a soft **cursor-following spotlight** on desktop — accent stays reserved),
-  `SmoothScroll` (Lenis↔GSAP), `Cursor` (dot+ring, fine-pointer only),
+- `components/fx/`: `AmbientBackground` (**static** gray `radial-gradient` clouds + a depth veil
+  + the grain texture, all *behind* content — no `filter`, no animation, no cursor tracking; it is
+  drawn once and only composited), `SmoothScroll` (Lenis↔GSAP, `lerp: 0.12`, `autoRaf: false` so
+  the GSAP ticker is the only loop driving it),
   `Preloader` (the opening sequence — see below — dispatches `mykt:ready`),
   `ScrollFX` (global `[data-animate]` reveal via `ScrollTrigger.batch`; adds `reveal-ready`
   to `<html>` so content is never stuck hidden with JS off). `app/template.tsx` = per-route
@@ -215,15 +232,15 @@ reflow. Two non-obvious rules, both learned the hard way here:
   back) and lifts the copy away. Extras: rotating circular-text badge, live PHT clock
   (`fx/LocalTime`), geo coordinates from `lib/site.ts`. Accent point-lights paint the
   magenta→gold gradient onto near-white meshes (the "one gradient" rule, in 3D).
-- `components/landing/`: `TechMarquee` (speed/skew react to scroll velocity),
-  `VideoReveal` (160-frame webp sequence in `public/brand/reel/` — pins + expands to
+- `components/landing/`: `TechMarquee` (speed reacts to scroll velocity; plays only while on
+  screen), `VideoReveal` (80-frame webp sequence in `public/brand/reel/` — pins + expands to
   full-bleed while **scrubbing with scroll**; mobile = contained loop),
   `ServicesGalaxy` (**follows the theme** — `bg-surface text-ink`, so it is light in light
   mode and an elevated slate in dark; deliberately does NOT use `.band`, and therefore
   carries no hardcoded `white/XX` alphas — use the neutral ramp inside it. Left panel
   sticky with `GlyphScene` — IntersectionObserver
   marks the row crossing mid-viewport "active", glyph + label crossfade; mobile stacks with
-  animated `Icon`s), `WorkGallery` (pinned horizontal scroll via `gsap.matchMedia`; each
+  `Icon`s, which animate only on `.group` hover and rest fully drawn), `WorkGallery` (pinned horizontal scroll via `gsap.matchMedia`; each
   plate is tinted with the project's own `dots` colors and layers 1–2 **browser-framed
   screenshots contained at native aspect** — sources are only ~1536×743, so never
   cover-crop/upscale them (that's what made them blurry once); parallax is translate-only
@@ -238,15 +255,28 @@ reflow. Two non-obvious rules, both learned the hard way here:
   grayscale→color map hover.
 - **Projects** (`app/projects/`): index is **alternating editorial feature rows** (deliberately
   not another card grid — it has to differ from both `WorkGallery` and the Services accordion);
-  `[slug]` detail = header + spec rail (`<dl>`) + highlights, a large preview, a Screens grid,
-  and wrapping prev/next. `components/projects/LivePreview` renders browser chrome around either
+  `[slug]` detail = header + spec rail (`<dl>`) + highlights + stack chips, a large preview,
+  **The story** (numbered Challenge / Approach / Outcome), a Results row, a client testimonial,
+  a Screens grid (secondary shot + gallery; mobile shots in phone frames), and wrapping
+  prev/next. **Every case-study section renders only when filled in** — the static
+  `lib/work.ts` entries have none of them, by design (never invent client names, quotes or
+  metrics). The fields live on `projects` (`client`, `industry`, `timeline`, `services[]`,
+  `team[]`, `stack[]`, `challenge`, `approach`, `outcome`, `results` jsonb, `gallery` jsonb,
+  `testimonial_*`), are edited in `components/admin/ProjectForm.tsx` +
+  `ProjectCaseStudy.tsx` (repeating rows submit as parallel `getAll()` arrays), and are also fed
+  to the chatbot via `lib/chat-context.ts`. `components/projects/LivePreview` renders browser chrome around either
   a real **live `<iframe>`** (only when the project has a `liveUrl`) or the screenshot:
   IntersectionObserver-gated mount, rendered at 1440px then CSS-scaled via ResizeObserver so you
   see the *desktop* layout, pointer-events off until "Interact" is clicked (otherwise the iframe
   eats the page scroll), and the screenshot poster is **never** removed on a timeout — a site that
   refuses framing can't be detected cross-origin, so "Open ↗" is always present.
-- `Button` is **magnetic** (springs toward the cursor on mouse). A subtle filmic
-  **grain** overlay sits site-wide (`.grain`, fixed, z-40) over the ambient gray gradients.
+- `Button` is **magnetic** (springs toward the cursor on mouse; measures its rect once on
+  `pointerenter`, never per move). The filmic **grain** lives inside `AmbientBackground`,
+  *behind* content (it used to be a fixed z-40 layer over everything, composited every frame).
+- **No custom cursor — deliberately.** A JS-drawn dot/ring (`fx/Cursor`, removed 2026-10)
+  always trails the OS cursor by ≥1 frame and stutters whenever the main thread is busy, and its
+  `mix-blend-mode: difference` re-blended everything beneath it every frame. That was the "I can
+  feel it in my cursor" lag the client reported. Don't bring one back.
 - `fx/KeySwitch` — the site-wide mascot object (client request, ref. midu.design): two
   client-supplied alpha-AVIF renders layered in CSS — `public/brand/keyswitch.avif`
   (housing, stays neutral) under `public/brand/keycap.avif` (translucent resin cap).
@@ -257,8 +287,10 @@ reflow. Two non-obvious rules, both learned the hard way here:
   **each placement wears a different color**: hero=gold, ServicesGalaxy=plum,
   WorkGallery=sky, ProcessDeck=rose, BeliefScrub=mint, Services page=rose, About=sky,
   Location=plum, Footer=red. Decorative (`aria-hidden`).
-- `.beam` utility (`globals.css`, via `@property --beam-angle`) draws an animated accent
-  border-comet — used sparingly (the contact card). One accent moment per view.
+- `.beam` utility (`globals.css`, via `@property --beam-angle`) draws an accent border-comet —
+  used sparingly (the contact card). It **rests as a still arc and travels only on hover**: an
+  animated conic gradient can't be composited, so a looping one repainted the card every frame.
+  One accent moment per view.
 - **All motion respects `prefers-reduced-motion`.**
 
 ### Backend & production
@@ -268,22 +300,121 @@ reflow. Two non-obvious rules, both learned the hard way here:
   service list derived from `lib/services.ts`) and emails via **Resend** (`lib/email.ts` —
   studio notification with `replyTo` = lead + best-effort auto-reply). Client
   `ContactForm.tsx` `fetch`es it (pending/success/error/field-errors, `aria-live`/`aria-invalid`).
-  **Spam**: hidden honeypot (`company`) + `startedAt` time-trap (<3s = silent drop). No DB.
+  **Spam**: hidden honeypot (`company`) + `startedAt` time-trap (<3s = silent drop — doesn't
+  consume the rate limit). **Rate limit**: 5 / 10 min per IP + 200 / day globally, durable (see
+  `lib/security.ts` below), charged before any email or DB write; blocked → 429 in-band message.
+  The lead is also recorded in `leads` (the inbox) with the IP **hashed**, never raw.
   **Env** (`.env.example`): `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` —
   set in `.env.local` and on Vercel. Until set, submit returns a graceful error banner.
+- **`lib/security.ts`** (server-only) — the one place for: `clientIp()` (first XFF hop),
+  `hashIp()` (HMAC-SHA256 with `IP_HASH_SECRET`, 32 hex — deterministic, so inbox threading
+  still works), `hashKey()` for limiter keys, `consumeLimit()`, `sha256Hex()`, `randomToken()`.
+  - `consumeLimit()` calls the atomic `consume_security_limit` RPC (service role, 2 s timeout,
+    **no retries**, plus a 15 s per-instance circuit breaker after a failure). **Failure policy:**
+    contact + chat **fail open** to an in-memory limiter (a paused free-tier DB must never block
+    an enquiry); auth endpoints pass `failClosed: true`.
+  - `IP_HASH_SECRET` must be its **own** secret — never derived from or reused as another (the
+    reference project reused its session secret as a CI bearer, so a leaked GitHub secret could
+    mint owner sessions). Changing it re-keys every hash. Don't import this file from
+    `middleware.ts` — it uses `node:crypto` and middleware runs on the Edge runtime.
 - **SEO**: per-page metadata + canonicals + twitter card; `app/sitemap.ts`, `app/robots.ts`,
   dynamic `app/opengraph-image.tsx` (+ `twitter-image`), JSON-LD `ProfessionalService`
   (Organization/LocalBusiness) in `app/layout.tsx`. Canonical base = `site.url`
   (`NEXT_PUBLIC_SITE_URL` override).
+- **Site assistant / chatbot** — `components/chat/ChatWidget.tsx` (launcher + panel, bottom
+  right) talking to the Route Handler `app/api/chat/route.ts`. Route Handler for the same reason
+  as the contact form: a stable URL survives redeploys.
+  - **Google Gemini** via `@google/genai`, model **`gemini-3.6-flash`** — the model docs name
+    that exact id as the *stable* choice for production apps. ⚠️ Don't swap in a `-preview` id:
+    previews get tighter rate limits and only ~2 weeks' shutdown notice. `thinkingLevel: LOW`
+    (a FAQ turn doesn't need depth, and latency is visible in a bubble), `temperature: 0.4`
+    (answers are lookups over the grounding block, so creativity is a liability), and safety
+    explicitly at `BLOCK_MEDIUM_AND_ABOVE` rather than Gemini's defaults — a brand-facing bot
+    shouldn't be the thing that says something ugly.
+  - ⚠️ **Gemini calls the assistant turn `"model"`, not `"assistant"`.** The route maps our
+    stored vocabulary at the boundary; getting it wrong makes the model read its own past replies
+    as if the visitor had said them. The system prompt goes in `config.systemInstruction`, **not**
+    as a leading `contents` entry — it isn't part of the conversation and shouldn't be something
+    a visitor can argue it out of.
+  - `chunk.text` is a **getter that's undefined** on metadata-only chunks (usage, finish reason),
+    so never assume it's present. Two distinct failure shapes to handle: `promptFeedback.blockReason`
+    means the *input* was rejected and nothing generated, while `candidates[0].finishReason` of
+    `SAFETY`/`MAX_TOKENS`/`RECITATION` means generation stopped early.
+  - **Grounded, not general.** `lib/chat-context.ts` builds the system prompt from
+    `getSiteContent`/`getServices`/`getProjects`/`getTeam` — the same sources the pages render
+    from — so editing a service in `/admin` changes the bot's answers. The hard rules in that
+    prompt exist for real reasons: there are **no published prices** and the project domains are
+    **placeholders that don't resolve**, so it must never quote a figure or hand out a URL.
+    ⚠️ Keep that prompt **byte-stable per request** — it's prompt-cached, and interpolating a
+    timestamp would silently break the cache and pay full price every call.
+  - **Wire protocol is NDJSON**, one object per line: `{t}` delta, `{error}`, `{done}`. Errors
+    can arrive **mid-stream** (the status is already 200 by then), which is exactly why they're
+    in-band rather than an HTTP code.
+  - Mounted in `SiteChrome` **outside `<SmoothScroll>`** — Lenis transforms its wrapper, and a
+    `position: fixed` child of a transformed element resolves against that wrapper, so the
+    launcher would scroll away. Hidden until `mykt:ready` so it can't cover the opening sequence.
+  - Rate limiting is **durable**: 15 / 10 min per IP + 300 / day globally via `consumeLimit()`
+    (`lib/security.ts`), charged before Gemini runs or anything is stored. (It used to be an
+    in-memory Map per warm instance, which reset on every cold start.)
+  - **Env**: `GEMINI_API_KEY` (server-only, never `NEXT_PUBLIC_`). Unset ⇒ 503 + "chat isn't
+    configured yet" in the widget; the rest of the site is unaffected.
 - **Admin panel / CMS** (`/admin`, Supabase) — **entirely optional**. With the env vars unset
   the marketing site builds and renders exactly as before and `/admin` shows setup steps
   (`components/admin/SetupNotice`); nothing hard-depends on a database.
-  - **Schema**: `supabase/schema.sql` — paste into the Supabase SQL editor, idempotent. Creates
-    `profiles` (role: owner > admin > editor), `projects`, single-row `site_settings`, the public
-    `work` storage bucket, explicit grants, and RLS. The **first** account to sign up becomes the
-    `owner` (via the `handle_new_user` trigger); everyone else arrives by invite. Policy role
-    checks go through `SECURITY DEFINER` helpers (`is_staff()`, `is_admin()`) — reading a role
-    inside a policy on `profiles` would otherwise recurse infinitely.
+  - **Schema**: `supabase/schema.sql` — paste into the Supabase SQL editor, **idempotent and
+    re-runnable on the live DB** (the PGlite tests apply it twice, and also upgrade the previous
+    committed version, `tests/fixtures/schema-v0.sql`). Roles are **owner > admin** only — the
+    `editor` role is retired (re-running migrates editors to admin). Tables: `profiles`,
+    `invitations`, `auth_tokens`, `projects`, `services`, `team_members`, single-row
+    `site_settings`, `products`, `jobs`, `posts`, `leads`, `chat_sessions`/`chat_messages`,
+    `content_revisions`, `activity_log`, `security_limits`, `status_reports`, single-row
+    `site_revision`; the public `work` bucket (raster only — **no SVG**, it can carry script —
+    10 MB cap). Policy role checks go through `SECURITY DEFINER` helpers (`is_staff()`,
+    `is_owner()`; `is_admin()` is kept as an alias of `is_staff()`) — reading a role inside a
+    policy on `profiles` would otherwise recurse infinitely.
+  - **`is_staff()`** = a profile exists, **not `disabled`**, and the JWT's `iat` ≥
+    `floor(sessions_valid_after)`. That last clause is how disable/reset sign someone out
+    *immediately*: `revoke_user_sessions(uid)` (service role) deletes their `auth.sessions` /
+    refresh tokens and stamps `sessions_valid_after`, so even a still-valid access token stops
+    being staff. (`floor`, not a rounding cast — signing back in within the same second as a
+    reset must not be rejected.) No end user can write `sessions_valid_after`, or a revoked token
+    could reset it to 'epoch' and un-revoke itself.
+  - **History & audit (triggers — can't be forgotten or faked by a client):** every content table
+    (projects, services, team_members, site_settings, products, jobs, posts) has three:
+    `content_revisions` snapshots the OLD row on update/delete — **one per editor per 5-minute
+    window**, deletes always, no-op saves skipped, pruned to the newest **20** per item;
+    `activity_log` records create/update/publish/unpublish/delete (updates coalesced per editor
+    per item over 5 min; `detail.label` survives deletion); and a statement-level bump of
+    `site_revision.rev` (in the `supabase_realtime` publication — Phase 2's live-update ping).
+    `entity_type` is the table name, `entity_id` the id as text (`'1'` for site_settings).
+    Team/auth/restore/inbox/chat events are inserted by **server code with the service role**
+    (`logActivity()` in `app/admin/_lib/server.ts`, never-throwing). No client insert policy.
+  - **Who gets a profile (= panel access)** — `handle_new_user()`: the **first** account becomes
+    `owner` (advisory-locked so two simultaneous sign-ups can't both win); after that a profile is
+    created **only if an open `invitations` row matches the email**, always as `admin`. No
+    invitation ⇒ an auth user with **zero** access (`getAccess()` → `"no-access"` screen).
+    Profiles are created when the invitee **redeems** their link (the server calls
+    `admin.auth.admin.createUser` then), not at invite time.
+    ⚠️ Never read a role from `raw_user_meta_data` — it is **user-controlled** (`signUp({ options:
+    { data: { role: "admin" } } })`). The old trigger did exactly that, so anyone could sign up at
+    `/admin/login` and become admin. Fixed 2026-10; if you re-deploy an old schema, that hole
+    comes back.
+  - **`profiles_guard` trigger** (before insert/update/delete): signed-in users may change only
+    `full_name`; changing a role or `disabled` needs `is_owner()`, never on yourself, and `owner`
+    can't be granted, removed or deleted except by the service role / SQL editor. A CHECK
+    (`profiles_owner_not_disabled`) means **even the service role can't disable the owner**. (The
+    old `profiles_update_self` policy let an editor set their own role to `owner`.)
+    `has_owner()` is a `security definer` fn granted to anon so the login page can hide
+    first-run owner creation once an owner exists.
+  - **Owner anchored to `OWNER_EMAIL`** (server-only env): `getAccess()` treats the signed-in,
+    confirmed `OWNER_EMAIL` user as owner and re-asserts their profile with the service role, so
+    **nothing in the database can lock the owner out** (a deleted/altered row is repaired on next
+    sign-in). First-run "Create the owner account" appears only when `OWNER_EMAIL` is set and
+    `has_owner()` is false, and the server action refuses any other address. No code calls
+    `signUp` any more — **turn off "Allow new users to sign up" in Supabase**; every user is
+    created through the service-role admin API, which ignores that setting. Grants are decided
+    only by what the user's *own* client can read (`is_staff()`); the service-role read in
+    `getAccess()` only explains a refusal (not invited / disabled / session ended).
   - **Clients** (`lib/supabase/`): `client.ts` (browser), `server.ts` (cookies, for the panel),
     `admin.ts` (service-role, `import "server-only"` so leaking it to the client is a *build*
     error), and **`public.ts` — a cookie-less anon client used for all public reads**. That last
@@ -293,21 +424,109 @@ reflow. Two non-obvious rules, both learned the hard way here:
   - **Read layer**: `lib/cms.ts` (`getProjects`, `getProjectBySlug`, `getSiteContent`) —
     Supabase when configured, **falling back field-by-field** to `lib/work.ts` / `lib/site.ts`
     on missing config, error, or empty result. A blank cell in the panel can't blank the site.
-  - **Auth**: `middleware.ts` refreshes the session cookie (the only place that can) and gates
-    `/admin/**`, bouncing to `/admin/login?next=…` (internal redirects only). Login also offers
-    first-run sign-up and password reset.
-  - **Panel**: overview, projects CRUD (publish toggle, reorder, delete, **"import the 5 existing
-    projects"** to seed from `lib/work.ts`), team (invite by email w/ role, change role, remove —
-    needs `SUPABASE_SERVICE_ROLE_KEY`), and site settings (brand/contact/availability/socials).
+    ⚠️ **Every read must fail fast**: `.abortSignal(AbortSignal.timeout(3000)).retry(false)`
+    (abortSignal *before* `.single()`), and the getters are wrapped in React `cache()`.
+    postgrest-js **retries failed GET/HEAD 3x with 1s/2s/4s backoff by default**, so an
+    unreachable project cost ~7 s per query — the footer's two sequential reads made every dev
+    render take ~14 s (measured 2026-10-02, when the project's `*.supabase.co` host stopped
+    resolving). A fallback is only worth having if it's quick.
+  - **Auth**: `middleware.ts` (matcher **`/admin/:path*` only** — nothing public reads the
+    session, and `getUser()` is a Supabase round-trip for anyone holding a session cookie, so
+    running it site-wide taxed every page view by a signed-in teammate) refreshes the session
+    cookie (the only place that can), gates
+    `/admin/**` (bouncing to `/admin/login?next=…`, internal redirects only) and stamps an
+    `x-admin-pathname` header the layout uses to render `/admin/auth/*` without the shell.
+    `lib/supabase/server.ts` → `getAccess()` returns `signed-out | no-access | ok`; `getProfile()`
+    returns `null` without a profile row (there is **no** synthetic "editor" fallback any more).
+    Login offers first-run owner sign-up **only while `has_owner()` is false**.
+  - **Invites & password reset use OUR OWN tokens, sent through Resend** — not Supabase's mailer
+    (~2/hour, project owner only) and **not** `generateLink()`. Why: `generateLink`'s
+    `hashed_token` is the same value Supabase stores in `auth.users` / `auth.one_time_tokens`, so
+    anyone able to read the auth schema (service key, SQL editor, a backup) could redeem a pending
+    invite or a live reset — including the owner's. Now: raw = `randomToken()` goes in the link,
+    **only `sha256Hex(raw)` is stored** in `auth_tokens` (service-role only), purpose
+    `invite` (**7 days**) or `reset` (**1 hour**); issuing a new one deletes that person's open
+    token, so the old link dies. Helpers + TTLs: `app/admin/auth/_lib/tokens.ts`.
+    - Invite (owner only, `app/admin/team-actions.ts`): upsert `invitations` → issue token →
+      email `${origin}/admin/auth/confirm?t=<raw>` (branded, `lib/admin-email.ts`) or return the
+      link to copy. **No auth user is created until redemption.** Resend = new token; revoke =
+      delete invitation + tokens. The bulk "Invite the Rally's Tech team" card still works.
+    - Reset (`requestPasswordReset`, unauthenticated): same "if an account exists…" reply, work
+      done in `after()`, durable limits (8 / 15 min per IP hash, 3 / 15 min per email hash,
+      `failClosed`). The owner can also "Send reset" to a member from Team — the owner never
+      chooses or sees a password; whoever opens the link does.
+    - ⚠️ **The emailed link must not consume the token on GET.** `/admin/auth/confirm` only
+      *peeks* (not used, not expired) and renders the right form; link previewers
+      (Messenger/Viber/Slack/Outlook) GET every URL, and "copy the link and send it by chat" is
+      the main path until Resend is verified. It also strips `?t` from the address bar and sets
+      `no-referrer`. The POST (`redeemToken`) checks the form and a per-IP limit *before* touching
+      the token (a typo never burns a link), then consumes it atomically
+      (`UPDATE … WHERE token_hash=… AND consumed_at IS NULL AND expires_at > now() RETURNING`) →
+      invite: `createUser({ email_confirm: true })`; reset: `updateUserById` +
+      `revoke_user_sessions`. If Supabase rejects the password the token is released for retry.
+    - **Sign-in after redeem / owner creation happens in the browser**, not the action: a server
+      action that sets cookies makes Next re-render the current page in the response — on the
+      confirm page that re-render is "link already used", which wiped the success state before
+      the redirect. The action returns `signInAs` and the form signs in with the browser client.
+    - Old `/admin/auth/verify` and `/admin/auth/set-password` are gone; "Forgot password?" is
+      the way to change a password. Unknown `/admin/*` URLs hit `app/admin/[...missing]` so they
+      404 inside the admin segment (see that file for why — React #418 otherwise).
+    - ⚠️ **Resend sandbox**: with `onboarding@resend.dev` Resend delivers only to the Resend
+      account owner. Anyone else's invite returns an error, so the UI **always** offers the link
+      to copy. Verify a domain, then set `ADMIN_FROM_EMAIL` (double-quoted — the apostrophe).
+    - Link origin: admin actions use the request's own origin (local/preview work); the
+      **unauthenticated** reset only uses an allow-listed host (`site.url`, localhost, `VERCEL_*`)
+      — building it from the `Host` header would be password-reset poisoning.
+    - Link lifetime is ours (above) — Supabase's "Email OTP Expiration" no longer applies, and
+      `AUTH_LINK_EXPIRY_HOURS` is gone.
+  - **Panel**: overview (real counts, each query independent so one missing table shows "Not set
+    up"), projects CRUD (publish toggle, reorder, delete, **"import the 5 existing projects"** to
+    seed from `lib/work.ts`), team (**owner-only** management: invite, bulk "Invite the Rally's
+    Tech team" card pre-filled from the public roster, resend / copy link / revoke, disable /
+    enable, send reset, remove — needs `SUPABASE_SERVICE_ROLE_KEY`; admins see a read-only
+    list), and site settings (brand/contact/availability/socials). `requireOwner()` sits next to
+    `requireStaff()` in `app/admin/_lib/server.ts`.
     Screenshot uploads go **browser → Storage directly**, not through a server action, whose body
     is capped ~1MB and would reject most captures.
-  - `components/SiteChrome.tsx` gates the marketing chrome (Lenis, preloader, cursor, nav,
-    footer, grain) off `/admin` by pathname. `Footer` is passed to it **as a prop**, not imported
+  - Panel plumbing worth knowing: `app/admin/_lib/server.ts` maps Postgres errors to plain English
+    (`23505` slug taken, RLS denial, missing table, paused project); **every write checks affected
+    rows** — RLS-blocked updates "succeed" with 0 rows, which used to show "Saved."; forms submit
+    through `useFormAction` (`components/admin/ui.tsx`) because React 19 resets a `<form action>`
+    after the action and a failed submit used to wipe the project form; `AdminNav` is a server
+    wrapper (inbox badge) around client `AdminNavLinks`.
+  - **Added later** (actions in `app/admin/content-actions.ts`, a second `"use server"` module so
+    `actions.ts` stays readable — the tiny `ok`/`fail` helpers are duplicated because a
+    `"use server"` file may only export async functions):
+    - **`/admin/services`** — the six offerings were `lib/services.ts` only, so they couldn't be
+      changed without a deploy. ⚠️ Services render on the landing page, `/services` **and the
+      footer of every page**, so `saveService` must `revalidatePath("/", "layout")` too — miss
+      that and an edit looks saved while the footer keeps the old list. `ServicesGalaxy` and
+      `ServiceIndex` now take `services` as a **prop** (they're client components; their server
+      parents fetch).
+    - **`/admin/roster`** — the PUBLIC team on `/about`, previously hardcoded in `TeamRoster.tsx`
+      (now a prop; fallback lives in `lib/team.ts`). **Deliberately separate from `/admin/team`**:
+      that page is panel *logins*. Conflating them would mean handing someone a password to appear
+      on the site, or leaking a contractor's login onto the marketing page.
+    - **`/admin/inbox`** — contact submissions **and** chat transcripts in one list (`leads`).
+      Each chat exchange writes a new row, so `app/admin/_lib/inbox.ts` groups rows into one
+      thread per conversation (handle/delete act on the whole thread).
+      Writes go through `lib/leads.ts` with the **service-role** client, because `leads` has no
+      public insert policy — so a leaked anon key can neither spam it nor read anyone's enquiry.
+      Every function there is **non-throwing**: the contact form's job is to email and the bot's
+      is to answer, so a paused database must never turn a delivered enquiry into an error banner.
+      Contact leads are still emailed; this is a record, not a replacement.
+    - Both new tables treat **empty as "not set up"**, not "no content" — `lib/cms.ts` serves the
+      static list, and each page offers an *import* rather than showing a scary warning.
+  - `components/SiteChrome.tsx` gates the marketing chrome (Lenis, preloader, ambient, nav,
+    footer) off `/admin` by pathname. `Footer` is passed to it **as a prop**, not imported
     — `SiteChrome` is a client component and `Footer` is now an async server component.
-- **Robustness**: `app/not-found.tsx` (branded 404) + `app/error.tsx` boundary.
-- **Analytics**: `@vercel/analytics` + `@vercel/speed-insights` in layout (the
-  `/_vercel/*/script.js` 404s seen under local `next start` are expected — they resolve on
-  Vercel).
+- **Robustness**: `app/not-found.tsx` (branded 404) + `app/error.tsx` boundary; the panel has its
+  own `app/admin/{loading,error,not-found}.tsx`.
+- **Analytics**: `@vercel/analytics` (via `components/SiteAnalytics.tsx`, which **drops every
+  `/admin` page view** — panel traffic isn't marketing data, and the invite/reset URL carries a
+  one-time token; it's a client wrapper only because `beforeSend` is a function a server layout
+  can't pass) + `@vercel/speed-insights` in layout (the `/_vercel/*/script.js` 404s seen under
+  local `next start` are expected — they resolve on Vercel).
 - **To finalize (content)**: real social URLs + verified email/phone in `lib/site.ts`;
   verify the Resend sending domain.
 - ⚠️ **The project URLs are placeholders.** Checked 2026-08-03: `famecrm.app`,
@@ -318,12 +537,96 @@ reflow. Two non-obvious rules, both learned the hard way here:
   Live URL field in the admin) and that project's preview becomes a real iframe. **Re-check before
   setting one** — don't point the portfolio at a parked domain.
 
+### Tests (`npm test` — Vitest + PGlite)
+`tests/` — **11 suites, 167 tests** (2026-10-02). Philosophy (from the reference project): test
+derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
+- **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
+  (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,
+  `auth.uid()`/`auth.jwt()` from GUCs, `storage`, the realtime publication, and Supabase's
+  default privileges — anon/authenticated get ALL on new tables, so only RLS or an explicit
+  revoke can make a test pass, never a missing grant). Helpers: `asAnon`, `asUser(claims)`,
+  `asService`. Suites cover: idempotent apply + upgrade from `tests/fixtures/schema-v0.sql`, the
+  limiter, RLS on every private table, the team guard + revocation, `handle_new_user`,
+  revisions/activity/site_revision triggers.
+- **PGlite is single-connection**, so "concurrent" limiter calls really run in sequence; a test
+  therefore also asserts the RPC is written as an atomic `ON CONFLICT … DO UPDATE` (a
+  read-then-write version would pass the burst test and still race in production).
+- **`action-guards.test.ts`** parses every `"use server"` module (TS AST): each exported action
+  must reach `requireStaff`/`requireOwner`, except an allow-list with a reason per entry
+  (`signOut`, `requestPasswordReset`, `redeemToken`, `createOwnerAccount`) — and every public one
+  but `signOut` must call `consumeLimit`. This is the real Next.js risk: a Server Action is
+  directly POST-able regardless of middleware. (The reference's 12-function cap test and
+  duplicated per-handler session block do **not** apply to Next.js — Vercel bundles Next routes
+  into a few functions, and shared `lib/` imports are traced normally.)
+- Also: data integrity (every image path in `lib/work.ts` exists under `public/` — catches the
+  OneDrive deletions; no `data:image/`; no `liveUrl`), the screenshot validator
+  (`app/admin/_lib/validators.ts` — rejects `data:`, `javascript:`, `//host` **and `/\host`**,
+  which browsers read as `//host`), inbox threading, the guard helpers.
+- Tests are **included in `tsconfig`**, so `next build` typechecks them — a test-only type error
+  blocks a deploy (deliberate: tests never go unchecked). `server-only` is aliased to an empty
+  module in `vitest.config.ts`. `maxWorkers: 2` — each DB suite holds ~400 MB.
+
 ### Verification
 `scripts/verify.mjs` drives headless Chromium (Playwright) over all routes at desktop
 (1440) + mobile (390): checks console errors, horizontal overflow, and writes screenshots
 to `.verify/`. Playwright is **not** a project dependency (it would break the Vercel build);
 the script installs it on demand with `--no-save`, so it never touches `package.json`/lockfile.
 Run: `npm run build && npx next start -p 3100 &` then `npm run verify`.
+
+### Performance — what was actually heavy, and the trap in measuring it
+The landing page used to ship **7.99 MB / 210 requests**. Now: **0.81 MB / 43 requests** if the
+visitor doesn't scroll, **3.11 MB / 139** for a full scroll. Main-thread blocking on a normal
+desktop went from 13 long tasks (2288 ms) to 3 (417 ms); JS heap from 48–87 MB to 14–17 MB.
+
+- ⚠️ **Never benchmark this site in default headless Chromium.** It falls back to SwiftShader
+  (software rendering), which makes the blur/WebGL/canvas work look catastrophic — it reported
+  ~250 ms median frames and 24 s of blocking, i.e. ~4 fps, none of it real. Launch with
+  `chromium.launch({ args: ["--enable-gpu", "--ignore-gpu-blocklist"] })` and the same page is a
+  flat **16.7 ms (60 fps)**. Frame rate was never the problem; **bytes and blocked interaction
+  were**. Throttle CPU (`Emulation.setCPUThrottlingRate`, 4x) to model a real mid-range machine.
+- **The showreel was the bulk of it.** `public/brand/reel/` is now **80 frames at 1280×960**
+  (was 160 at 1600×1200): 7.07 MB → 2.14 MB. Frame *count* is a **memory** decision, not just
+  bandwidth — `VideoReveal` holds every frame as a decoded bitmap, so the old set had a ceiling of
+  160 × 1600 × 1200 × 4 B ≈ **1.14 GB** of bitmap vs ~0.37 GB now. Re-encode with
+  `node scripts/build-reel.mjs`, then update `FRAME_COUNT`/`FRAME_W`/`FRAME_H` to match.
+- **The preload is gated twice**: `mykt:ready` (don't starve the opening sequence) **and** an
+  IntersectionObserver (don't spend 2 MB on someone who never scrolls there). It loads every 4th
+  frame first so the scrub is usable at once, then backfills on `requestIdleCallback`; `draw()`
+  falls back to the nearest *arrived* frame, which is what makes the coarse pass look right.
+- ⚠️ **`rootMargin` on that observer must be in PIXELS.** `"150%"` = 1350 px, which already
+  overlaps the section at scroll 0 and silently defeated the gate (all 80 frames still loaded).
+  It's `"400px"`: measured, the section starts **805 px** below the fold at 1440×900. Note it is
+  only **130 px** down at 390×844 (mobile hero is 100svh, not 175vh), so **mobile still starts
+  immediately** — no percentage or pixel value satisfies both. The coarse-first pass is what
+  keeps that acceptable.
+- **Geometry was wildly over-tessellated.** `icosahedronGeometry(r, 64)` is **84,500 faces**, and
+  `MeshDistortMaterial` runs a vertex shader over all of them every frame. Both scenes had one:
+  hero core → detail 20 (8,820), Glyph blob → detail 16 (5,780). Torus/knot segment counts came
+  down similarly. Detail above ~20 is invisible under a smooth distort — don't raise it back.
+- **DPR is capped at `[1, 1.25]`** on both `<Canvas>`es, and drei `PerformanceMonitor` drops it
+  to 1 on sustained low fps (it's restarted on every resume so a pause doesn't read as a slow frame).
+- **`GlyphScene` mounts only when its section is near** (`show3d && near`). It's far below the
+  fold, and booting a second WebGL context + compiling shaders during the hydration burst was
+  contention for work nobody could see.
+- **Both canvases render only while on screen** — r3f `frameloop` flips to `"demand"` offscreen
+  (and the hero stays idle until `mykt:ready`, after one hidden frame to compile shaders). An r3f
+  canvas otherwise draws every frame forever once mounted.
+- **The 2026-10 lag pass** (client: "I can feel it in my cursor"). Removed every *constant* cost:
+  the JS cursor + its `mix-blend-mode`, the ambient spotlight's forever-rAF, `filter: blur()` on
+  animated full-viewport layers, the z-40 grain over everything, `backdrop-blur` on the fixed nav
+  (now `bg-paper/[0.93]`), looping repaint-only animations (`.beam`, SVG icon dashes), per-move
+  `getBoundingClientRect()` (magnetic button, roster orb, footer wordmark), and the 140px shadow
+  on the resizing `VideoReveal` frame. Measured on a real AMD iGPU, same probe before/after —
+  4x CPU: idle hero 27 → 64 fps, mouse-move input delay p95 54 → 19 ms, landing scroll 14 → 34
+  fps with long tasks 366 → 23; 1x: idle mid-page main-thread busy ~70% → ~26%, scroll jank
+  frames 14% → 1.5%. **Rule going forward: nothing may run every frame while the visitor is
+  doing nothing.** What's left during scroll is spread across layout/paint/commit with no single
+  hotspot (BeliefScrub per-word opacity and WorkGallery plates are the next candidates).
+- **Remaining lever**: time-to-interactive on the landing page is now *hydration*-bound, ~2.6 s
+  desktop / ~3.7 s at 4x CPU. A floor of ~2.14 s of that is the `Preloader`, which by client
+  request has **no sessionStorage gate** and so replays on every full load. Shortening it (or
+  gating repeat loads within a session) is the single biggest remaining win — but it's a client
+  decision, not a technical one.
 
 ### ⚠️ Stale `.next` cache (build/dev collision) — and how to sidestep it
 `next build` (production) and `next dev` write **different** client-reference/module
@@ -359,15 +662,40 @@ moving the repo outside OneDrive.
 - Reusable components: `Button`, `Section`, `Nav`, `Footer`, `ServiceCard`, `Reveal` (motion wrapper).
 - Footer is a **feature**, not a sigh-off: interactive giant wordmark
   (`FooterWordmark` — the outlined `Logo` mask, ghosted, with the accent gradient inking in
-  under a cursor-following spotlight; `.fw` CSS; touch = quiet static fill; width-capped at
-  820px because the mark is a raster), availability status + live PHT clock, social pill chips,
+  under the cursor: a soft "hole" in an ink cover clipped to the letters, moved by `transform`
+  only and measured once per hover; `.fw` CSS; touch = quiet static fill; full-bleed — the mark
+  is vector), availability status + live PHT clock, social pill chips,
   `fx/BackToTop` (uses `scrollToTop()` exported from `fx/SmoothScroll`), and a
-  `Developed by mykTech() · for mykTech()` credit line at the very bottom.
+  `Developed by R Ally's Tech · for R Ally's Tech` credit line at the very bottom.
 - `text-accent`/`bg-accent` are Tailwind v4 `@utility`s (not plain classes) so
   `hover:`/`group-hover:` variants work — keep it that way.
 - **Theme-safe styling**: reach for the semantic tokens (`bg-paper`, `bg-surface`, `text-ink`,
   `border-mist`, `text-slatey`). A literal `bg-white` / hex won't flip in dark mode. Inside a
   `.band`, `white/N` alphas are fine. See **Dark mode** above.
+
+## CMS upgrade — phased port of the "Portfolio Web v2" admin (in progress)
+Porting the admin/backend strengths of the client's personal-portfolio project
+(`C:\Users\User\OneDrive\Documents\Portfolio Web\v2`, Vite + Vercel Functions) onto **this**
+stack — mapped, not copied. Decisions (2026-10-02): keep per-item tables (not the reference's
+single JSON row — it stores all projects in one section, which is coarser than this); keep
+Supabase Auth and meet the reference's intent on top; roles owner + admin; `/fil` URL prefix for
+English/Filipino UI chrome; new pages Blog, Careers, Products; Vercel Hobby; no GitHub panel,
+no changelog, no press kit, no Spotify/resume/"Now"/Word-document visuals.
+- ✅ **Phase 1 — data model, migrations, tests**: schema above, our own hashed tokens,
+  `OWNER_EMAIL`, owner-only team, disable/revoke, durable limiter, IP hashing, Vitest + PGlite.
+- ⏳ **Phase 2 — public pages**: `/products`, `/careers` (apply → inbox as kind `application`;
+  ⚠️ `app/admin/inbox/page.tsx` currently renders non-contact rows as chat — handle it),
+  `/blog`; nav links appear once something is published; `/fil` i18n; Cmd+K search; live
+  updates (Realtime on `site_revision` after idle + focus refetch + 30 s poll, falling back to
+  polling at Supabase's 200-connection free cap).
+- ⏳ **Phase 3 — admin console**: editors for products/jobs/posts; autosave (debounced, dirty
+  fields only, optimistic concurrency on `updated_at` passed through *as a string*); history
+  panel + restore (logged, pre-restore backup); activity feed. ⚠️ `removeOrphanedShots` must not
+  delete images a stored revision still references.
+- ⏳ **Phase 4**: chat human takeover (`chat_sessions.mode`), real inbox replies via Resend,
+  `/status` (GitHub Action → `STATUS_INGEST_TOKEN`, its own secret; label Lighthouse — CI has
+  no GPU), live-URL embed probe at save time (SSRF-guarded), PWA (shell-only, RSC-aware, don't
+  replay the Preloader on install), security headers, Gemini model as env.
 
 ## Open questions / notes
 - MCP tooling requested ("ui ux pro max", "design thinking", "glif-mcp") is **not yet

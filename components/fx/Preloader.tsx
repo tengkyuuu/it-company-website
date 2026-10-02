@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Logo from "@/components/Logo";
+import { markReady } from "./ready";
 
 /**
  * Opening sequence, played on every full load of the site.
  *
- * 1. the mykTech() mark sits in gray on #111a24
+ * 1. the R Ally's Tech mark sits in gray on #111a24
  * 2. a raked band of white light sweeps left→right, leaving the mark white behind it
  * 3. it resolves to black with a thin white outline
  * 4. the panel lifts away and dispatches `mykt:ready` (the Hero headline waits on it)
@@ -37,7 +38,7 @@ export default function Preloader() {
       if (finished.current) return;
       finished.current = true;
       html.classList.remove("lenis-stopped");
-      window.dispatchEvent(new Event("mykt:ready"));
+      markReady(); // dispatches mykt:ready, and remembers it for late mounts
       setDone(true);
     };
     finishRef.current = finish;

@@ -5,8 +5,8 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "@/components/Icon";
 import KeySwitch from "@/components/fx/KeySwitch";
-import { services } from "@/lib/services";
-import { wants3D } from "@/lib/webgl";
+import type { Service } from "@/lib/services";
+import { observeVisible, wants3D } from "@/lib/webgl";
 
 const GlyphScene = dynamic(() => import("@/components/three/GlyphScene"), {
   ssr: false,
@@ -22,13 +22,44 @@ const GlyphScene = dynamic(() => import("@/components/three/GlyphScene"), {
  * reads as its own movement either way. That means no hardcoded white/XX
  * alphas inside: everything goes through the neutral ramp.
  */
-export default function ServicesGalaxy() {
+export default function ServicesGalaxy({ services }: { services: Service[] }) {
   const root = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   const [show3d, setShow3d] = useState(false);
 
+  // `wants3D()` says the device COULD run it; `near` says it's worth doing yet.
+  // Both are required before GlyphScene mounts. This section sits well below the
+  // fold, and booting a second WebGL context + compiling its shaders during the
+  // initial hydration burst was pure contention for work nobody could see.
+  const [near, setNear] = useState(false);
+  // …and once mounted, it only RENDERS while the section is actually visible.
+  // `near` latches (the context and compiled shaders are kept for the return
+  // trip); `inView` toggles. Mounted-but-offscreen costs nothing.
+  const [inView, setInView] = useState(false);
+
   useEffect(() => {
     setShow3d(wants3D());
+  }, []);
+
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    // one viewport of runway, so the scene is warm before it's on screen
+    const stopNear = observeVisible(
+      el,
+      (v) => {
+        if (v) {
+          setNear(true);
+          stopNear();
+        }
+      },
+      "100% 0px"
+    );
+    const stopView = observeVisible(el, setInView);
+    return () => {
+      stopNear();
+      stopView();
+    };
   }, []);
 
   // the row crossing the vertical middle of the viewport is "active"
@@ -68,8 +99,8 @@ export default function ServicesGalaxy() {
               </span>
 
               <div className="relative mt-4 h-[44vh]">
-                {show3d ? (
-                  <GlyphScene active={active} />
+                {show3d && near ? (
+                  <GlyphScene active={active} paused={!inView} />
                 ) : (
                   <div className="flex h-full items-center justify-center">
                     <div className="flex h-32 w-32 items-center justify-center rounded-[2rem] border border-mist text-ink">

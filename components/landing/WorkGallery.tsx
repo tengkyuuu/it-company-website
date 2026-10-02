@@ -152,7 +152,6 @@ export default function WorkGallery({ projects }: { projects: Project[] }) {
                 href={`/projects/${p.slug}`}
                 className="absolute inset-0 z-30"
                 aria-label={`${p.name} — project detail`}
-                data-cursor
               />
 
               {/* main shot — browser-framed, contained at native aspect */}

@@ -1,6 +1,6 @@
 export const site = {
   // Casing is deliberate and fixed — lowercase "myk", capital "T", trailing "()".
-  name: "mykTech()",
+  name: "R Ally's Tech",
   tagline: "Software, designed with intent.",
   // Canonical production URL (used for metadata, sitemap, JSON-LD). Update when
   // the custom domain is live; override with NEXT_PUBLIC_SITE_URL if needed.

@@ -1,39 +1,29 @@
-"use client";
+import { createClient } from "@/lib/supabase/server";
+import { LEAD_LITE_COLUMNS, threadLeads, type LeadLite } from "@/app/admin/_lib/inbox";
+import AdminNavLinks from "./AdminNavLinks";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+/**
+ * Server half of the admin nav: works out the open-inbox count, then hands the
+ * links to the client half (which needs usePathname for the active state).
+ *
+ * Counts conversations, not rows — a chat writes one snapshot row per exchange,
+ * and threadLeads() folds those back together exactly as the inbox page does.
+ * Best-effort: a missing `leads` table or a failed query just means no badge.
+ */
+export default async function AdminNav() {
+  let open = 0;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("leads")
+      .select(LEAD_LITE_COLUMNS)
+      .eq("handled", false)
+      .order("created_at", { ascending: false })
+      .limit(300);
+    if (!error && data) open = threadLeads(data as unknown as LeadLite[]).length;
+  } catch {
+    // no badge
+  }
 
-const links = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/projects", label: "Projects" },
-  { href: "/admin/team", label: "Team" },
-  { href: "/admin/settings", label: "Site settings" },
-];
-
-export default function AdminNav() {
-  const pathname = usePathname();
-
-  return (
-    <nav className="flex gap-1 overflow-x-auto md:flex-col md:gap-0.5 md:overflow-visible">
-      {links.map((l) => {
-        // /admin must not light up for every nested route
-        const active =
-          l.href === "/admin" ? pathname === "/admin" : pathname.startsWith(l.href);
-        return (
-          <Link
-            key={l.href}
-            href={l.href}
-            aria-current={active ? "page" : undefined}
-            className={`whitespace-nowrap rounded-xl px-3.5 py-2 text-sm transition-colors ${
-              active
-                ? "bg-ink/[0.07] font-medium text-ink"
-                : "text-ink/60 hover:bg-ink/[0.04] hover:text-ink"
-            }`}
-          >
-            {l.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  return <AdminNavLinks badges={{ "/admin/inbox": open }} />;
 }

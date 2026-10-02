@@ -5,16 +5,21 @@ import Nav from "@/components/Nav";
 import ScrollProgress from "@/components/ScrollProgress";
 import SmoothScroll from "@/components/fx/SmoothScroll";
 import AmbientBackground from "@/components/fx/AmbientBackground";
-import Cursor from "@/components/fx/Cursor";
 import Preloader from "@/components/fx/Preloader";
 import ScrollFX from "@/components/fx/ScrollFX";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 /**
- * Wraps the marketing pages in the site's full chrome — ambient background,
- * preloader, custom cursor, Lenis smooth scroll, nav, footer, grain.
+ * Wraps the marketing pages in the site's full chrome — ambient background
+ * (which also carries the grain), preloader, Lenis smooth scroll, nav, footer.
  *
- * The admin panel deliberately gets none of it: a CMS wants native scrolling, a
- * real cursor and no first-load counter. Gating here (rather than moving every
+ * There is deliberately no custom cursor and no full-viewport overlay above the
+ * content: a JS cursor always trails the OS one by a frame and stutters whenever
+ * the main thread is busy, and a fixed layer over everything is re-composited on
+ * every frame. Both were the lag visitors could feel.
+ *
+ * The admin panel deliberately gets none of it: a CMS wants native scrolling and
+ * no first-load counter. Gating here (rather than moving every
  * marketing route into a `(site)` route group) keeps the change small — the root
  * layout still owns <html>, the fonts and the theme, which admin does share.
  *
@@ -37,7 +42,6 @@ export default function SiteChrome({
     <>
       <AmbientBackground />
       <Preloader />
-      <Cursor />
       <ScrollProgress />
       <SmoothScroll>
         <Nav />
@@ -45,8 +49,10 @@ export default function SiteChrome({
         {footer}
       </SmoothScroll>
       <ScrollFX />
-      {/* filmic grain over the whole page (under nav/cursor) */}
-      <div className="grain pointer-events-none fixed inset-0 z-40" aria-hidden />
+      {/* Outside <SmoothScroll> on purpose: it's position:fixed, and Lenis puts a
+          transform on its wrapper, which would make `fixed` resolve against that
+          wrapper instead of the viewport and the launcher would scroll away. */}
+      <ChatWidget />
     </>
   );
 }

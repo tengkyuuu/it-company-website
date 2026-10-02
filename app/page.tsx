@@ -8,17 +8,17 @@ import WorkGallery from "@/components/landing/WorkGallery";
 import ProcessDeck from "@/components/landing/ProcessDeck";
 import BeliefScrub from "@/components/landing/BeliefScrub";
 import { Reveal } from "@/components/Reveal";
-import { getProjects } from "@/lib/cms";
+import { getProjects, getServices } from "@/lib/cms";
 
 export const metadata: Metadata = {
-  title: { absolute: "mykTech() — Software, designed with intent" },
+  title: { absolute: "R Ally's Tech — Software, designed with intent" },
   description:
-    "mykTech() is an IT studio in Dipolog City crafting web, mobile, and cloud products — with the eye of a design house.",
+    "R Ally's Tech is an IT studio in Dipolog City crafting web, mobile, and cloud products — with the eye of a design house.",
   alternates: { canonical: "/" },
 };
 
 export default async function Home() {
-  const projects = await getProjects();
+  const [projects, services] = await Promise.all([getProjects(), getServices()]);
 
   return (
     <>
@@ -37,7 +37,7 @@ export default async function Home() {
       <VideoReveal />
 
       {/* Services — dark band, sticky morphing 3D glyph + scrolling index */}
-      <ServicesGalaxy />
+      <ServicesGalaxy services={services} />
 
       {/* Selected Work — pinned horizontal gallery with parallax plates */}
       <div className="pt-24 md:pt-32">

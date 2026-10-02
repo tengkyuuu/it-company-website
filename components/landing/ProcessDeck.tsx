@@ -75,10 +75,12 @@ export default function ProcessDeck() {
             style={{ top: `calc(13vh + ${i * 1.75}rem)` }}
           >
             <div
-              className={`process-card relative mb-10 flex min-h-[46vh] flex-col justify-between overflow-hidden rounded-[2rem] border p-8 shadow-[0_30px_70px_-45px_rgba(15,23,42,0.45)] will-change-transform md:min-h-[52vh] md:p-12 ${
+              // will-change only on the cards that get scaled back as they're
+              // covered — the last one never animates, so it gets no layer
+              className={`process-card relative mb-10 flex min-h-[46vh] flex-col justify-between overflow-hidden rounded-[2rem] border p-8 shadow-[0_30px_70px_-45px_rgba(15,23,42,0.45)] md:min-h-[52vh] md:p-12 ${
                 last
                   ? "band border-ink/40 bg-ink text-paper grain"
-                  : "border-mist/70 bg-surface"
+                  : "border-mist/70 bg-surface will-change-transform"
               }`}
             >
               {last && (

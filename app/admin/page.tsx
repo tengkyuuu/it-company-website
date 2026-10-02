@@ -1,30 +1,126 @@
 import Link from "next/link";
 import { createClient, getProfile } from "@/lib/supabase/server";
-import { Card, Pill } from "@/components/admin/ui";
+import { isSupabaseConfigured, type LeadRow } from "@/lib/supabase/types";
+import { services as staticServices } from "@/lib/services";
+import { team as staticTeam } from "@/lib/team";
+import { Card, Notice, Pill } from "@/components/admin/ui";
+import SetupNotice from "@/components/admin/SetupNotice";
+import { describeDbError, isMissingTable } from "./_lib/server";
+import { LEAD_LITE_COLUMNS, threadLeads, type LeadLite } from "./_lib/inbox";
 
 export const metadata = { title: "Overview", robots: { index: false } };
 
+type DbError = { code?: string; message?: string } | null;
+
+/**
+ * The panel's front page. Every number is a real query; each query succeeds or
+ * fails on its own, so one missing table shows "Not set up" on its tile instead
+ * of taking the whole page down — and nothing is ever invented to fill a gap.
+ */
 export default async function AdminHome() {
+  if (!isSupabaseConfigured()) return <SetupNotice />;
+
   const profile = await getProfile();
   const supabase = await createClient();
 
-  const [projectsRes, teamRes] = await Promise.all([
+  const [projectsRes, servicesRes, rosterRes, teamRes, leadsRes] = await Promise.all([
     supabase
       .from("projects")
-      .select("id, name, slug, published, live_url, updated_at")
+      .select("id, name, published, img, updated_at")
       .order("updated_at", { ascending: false }),
+    supabase.from("services").select("id, published"),
+    supabase.from("team_members").select("id, published"),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase
+      .from("leads")
+      .select(`${LEAD_LITE_COLUMNS}, name, email, message`)
+      .order("created_at", { ascending: false })
+      .limit(300),
   ]);
 
   const projects = projectsRes.data ?? [];
-  const published = projects.filter((p) => p.published).length;
-  const withLive = projects.filter((p) => p.live_url).length;
+  const services = servicesRes.data ?? [];
+  const roster = rosterRes.data ?? [];
+  const threads = threadLeads(
+    (leadsRes.data ?? []) as unknown as (LeadLite & Pick<LeadRow, "name" | "email" | "message">)[]
+  );
+  const openThreads = threads.filter((t) => !t.handled);
 
-  const stats = [
-    { label: "Projects", value: projects.length, href: "/admin/projects" },
-    { label: "Published", value: published, href: "/admin/projects" },
-    { label: "Live embeds", value: withLive, href: "/admin/projects" },
-    { label: "Team", value: teamRes.count ?? 0, href: "/admin/team" },
+  // team management is the owner's alone; admins edit content
+  const isOwner = profile?.role === "owner";
+
+  /** what a tile shows when its query failed */
+  const failed = (error: DbError) =>
+    isMissingTable(error)
+      ? { value: "Not set up", sub: "Run supabase/schema.sql" }
+      : { value: "—", sub: "Couldn’t load" };
+
+  const tiles: { label: string; value: string; sub: string; href: string; attention?: boolean }[] = [
+    {
+      label: "Inbox",
+      href: "/admin/inbox",
+      ...(leadsRes.error
+        ? failed(leadsRes.error)
+        : {
+            value: `${openThreads.length} open`,
+            sub: `${threads.length} total`,
+            attention: openThreads.length > 0,
+          }),
+    },
+    {
+      label: "Projects",
+      href: "/admin/projects",
+      ...(projectsRes.error
+        ? failed(projectsRes.error)
+        : projects.length === 0
+          ? { value: "Built-in", sub: "Not imported yet" }
+          : {
+              value: `${projects.filter((p) => p.published).length} live`,
+              sub: `${projects.filter((p) => !p.published).length} draft`,
+            }),
+    },
+    {
+      label: "Services",
+      href: "/admin/services",
+      ...(servicesRes.error
+        ? failed(servicesRes.error)
+        : services.length === 0
+          ? { value: "Built-in", sub: `${staticServices.length} from lib/services.ts` }
+          : {
+              value: `${services.filter((s) => s.published).length} live`,
+              sub: `${services.filter((s) => !s.published).length} hidden`,
+            }),
+    },
+    {
+      label: "Roster",
+      href: "/admin/roster",
+      ...(rosterRes.error
+        ? failed(rosterRes.error)
+        : roster.length === 0
+          ? { value: "Built-in", sub: `${staticTeam.length} from lib/team.ts` }
+          : {
+              value: `${roster.filter((m) => m.published).length} shown`,
+              sub: `${roster.filter((m) => !m.published).length} hidden`,
+            }),
+    },
+    {
+      label: "Panel logins",
+      href: "/admin/team",
+      ...(teamRes.error
+        ? failed(teamRes.error)
+        : { value: String(teamRes.count ?? 0), sub: teamRes.count === 1 ? "account" : "accounts" }),
+    },
+  ];
+
+  const anyFailed = [projectsRes, servicesRes, rosterRes, teamRes, leadsRes].find(
+    (r) => r.error && !isMissingTable(r.error)
+  );
+
+  const quick = [
+    { href: "/admin/projects/new", label: "Add a project" },
+    { href: "/admin/services", label: "Edit services" },
+    { href: "/admin/settings", label: "Edit contact details" },
+    ...(isOwner ? [{ href: "/admin/team", label: "Invite a teammate" }] : []),
   ];
 
   return (
@@ -39,36 +135,86 @@ export default async function AdminHome() {
         </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Link key={s.label} href={s.href}>
-            <Card className="!p-5 transition-colors hover:border-mist">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-slatey">
-                {s.label}
-              </p>
-              <p className="mt-2 font-display text-3xl font-semibold tabular-nums">
-                {s.value}
-              </p>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      {projectsRes.error && (
-        <Card>
-          <p className="text-sm text-red-600">
-            Couldn’t reach the database: {projectsRes.error.message}
-          </p>
-          <p className="mt-2 text-sm text-ink/55">
-            The public site is unaffected — it falls back to the static content in{" "}
-            <code className="font-mono text-[13px]">lib/work.ts</code>. Running{" "}
-            <code className="font-mono text-[13px]">supabase/schema.sql</code>{" "}
-            usually fixes this.
-          </p>
-        </Card>
+      {anyFailed?.error && (
+        <Notice tone="error" title="Some numbers couldn’t be loaded">
+          {describeDbError(anyFailed.error)} The public site is unaffected — it falls
+          back to the built-in content.
+        </Notice>
       )}
 
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {tiles.map((t) => (
+          <li key={t.label} className={t.label === "Inbox" ? "col-span-2 lg:col-span-1" : ""}>
+            <Link
+              href={t.href}
+              className="group block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+            >
+              <Card className="h-full !p-5 transition-colors group-hover:border-mist">
+                <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-slatey">
+                  {t.label}
+                  {t.attention && (
+                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent-to" />
+                  )}
+                </p>
+                <p className="mt-2 font-display text-2xl font-semibold tabular-nums tracking-tight">
+                  {t.value}
+                </p>
+                <p className="mt-0.5 text-xs text-ink/50">{t.sub}</p>
+              </Card>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
       <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-display text-lg font-semibold tracking-tight">
+              Needs a reply
+            </h2>
+            <Link
+              href="/admin/inbox"
+              className="text-sm text-ink/55 transition-colors hover:text-ink"
+            >
+              Inbox →
+            </Link>
+          </div>
+          {leadsRes.error ? (
+            <p className="text-sm text-ink/55">The inbox couldn’t be loaded.</p>
+          ) : openThreads.length === 0 ? (
+            <p className="text-sm text-ink/55">
+              {threads.length === 0
+                ? "No enquiries or conversations yet."
+                : "All caught up — nothing open."}
+            </p>
+          ) : (
+            <ul className="divide-y divide-mist/70">
+              {openThreads.slice(0, 5).map(({ head }) => (
+                <li key={head.id} className="flex items-start gap-3 py-2.5">
+                  <Pill tone={head.kind === "contact" ? "live" : "muted"}>
+                    {head.kind === "contact" ? "Enquiry" : "Chat"}
+                  </Pill>
+                  <Link
+                    href={head.kind === "contact" ? "/admin/inbox?kind=contact" : "/admin/inbox?kind=chat"}
+                    className="min-w-0 flex-1 text-sm transition-colors hover:text-accent"
+                  >
+                    <span className="block truncate font-medium">
+                      {head.kind === "contact" ? head.name || head.email || "(no name)" : "Website visitor"}
+                    </span>
+                    <span className="block truncate text-ink/55">{head.message || "(empty)"}</span>
+                  </Link>
+                  <time
+                    dateTime={head.created_at}
+                    className="shrink-0 font-mono text-[11px] text-ink/45"
+                  >
+                    {ago(head.created_at)}
+                  </time>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
         <Card>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold tracking-tight">
@@ -81,11 +227,13 @@ export default async function AdminHome() {
               All →
             </Link>
           </div>
-          {projects.length === 0 ? (
+          {projectsRes.error ? (
+            <p className="text-sm text-ink/55">Projects couldn’t be loaded.</p>
+          ) : projects.length === 0 ? (
             <p className="text-sm text-ink/55">
-              No projects yet.{" "}
+              No projects in the database yet.{" "}
               <Link href="/admin/projects" className="text-accent">
-                Import the existing five
+                Import the existing ones
               </Link>{" "}
               to get started.
             </p>
@@ -99,37 +247,47 @@ export default async function AdminHome() {
                   >
                     {p.name}
                   </Link>
+                  {!p.img && <Pill tone="draft">No screenshot</Pill>}
                   <Pill tone={p.published ? "live" : "draft"}>
                     {p.published ? "Live" : "Draft"}
                   </Pill>
+                  <time
+                    dateTime={p.updated_at}
+                    className="hidden shrink-0 font-mono text-[11px] text-ink/45 sm:block"
+                  >
+                    {ago(p.updated_at)}
+                  </time>
                 </li>
               ))}
             </ul>
           )}
         </Card>
-
-        <Card>
-          <h2 className="mb-4 font-display text-lg font-semibold tracking-tight">
-            Quick actions
-          </h2>
-          <div className="flex flex-wrap gap-2.5">
-            {[
-              { href: "/admin/projects/new", label: "Add a project" },
-              { href: "/admin/team", label: "Invite a teammate" },
-              { href: "/admin/settings", label: "Edit site content" },
-              { href: "/projects", label: "View the site ↗" },
-            ].map((a) => (
-              <Link
-                key={a.href}
-                href={a.href}
-                className="rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist"
-              >
-                {a.label}
-              </Link>
-            ))}
-          </div>
-        </Card>
       </div>
+
+      <Card>
+        <h2 className="mb-4 font-display text-lg font-semibold tracking-tight">
+          Quick actions
+        </h2>
+        <div className="flex flex-wrap gap-2.5">
+          {quick.map((a) => (
+            <Link
+              key={a.href}
+              href={a.href}
+              className="rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+            >
+              {a.label}
+            </Link>
+          ))}
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+          >
+            View the site ↗
+          </a>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -146,4 +304,18 @@ function greeting() {
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
+}
+
+/** "5m", "3h", "2d", then a date — compact enough for a list row. */
+function ago(iso: string) {
+  const s = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
+  if (s < 60) return "now";
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  if (s < 7 * 86400) return `${Math.floor(s / 86400)}d`;
+  return new Date(iso).toLocaleDateString("en-PH", {
+    month: "short",
+    day: "numeric",
+    timeZone: "Asia/Manila",
+  });
 }

@@ -41,9 +41,11 @@ export default function ScrollFX() {
       }
     });
 
-    const id = window.setTimeout(() => ScrollTrigger.refresh(), 120);
+    // No ScrollTrigger.refresh() of our own: SmoothScroll already schedules one
+    // per route change (80ms in, after this effect has created its triggers),
+    // and a refresh re-measures every trigger and pin on the page — doing it
+    // twice per navigation was a second long task for nothing.
     return () => {
-      window.clearTimeout(id);
       ctx.revert();
     };
   }, [pathname]);

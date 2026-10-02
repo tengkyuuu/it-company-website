@@ -3,13 +3,14 @@ import Section, { SectionHeader, Eyebrow } from "@/components/Section";
 import Button from "@/components/Button";
 import { Reveal, RevealGroup, RevealItem } from "@/components/Reveal";
 import ServiceIndex from "@/components/services/ServiceIndex";
+import { getServices } from "@/lib/cms";
 import ServicesGlyph from "@/components/services/ServicesGlyph";
 import KeySwitch from "@/components/fx/KeySwitch";
 
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Web, mobile, cloud, AI, design and consulting — the full toolkit for building modern software at mykTech().",
+    "Web, mobile, cloud, AI, design and consulting — the full toolkit for building modern software at R Ally's Tech.",
   alternates: { canonical: "/services" },
 };
 
@@ -19,7 +20,8 @@ const engagements = [
   { no: "03", title: "Sprint", body: "A focused 2-week burst to validate, prototype, or unblock." },
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const services = await getServices();
   return (
     <>
       {/* Header — display type + cycling 3D glyph */}
@@ -30,6 +32,7 @@ export default function ServicesPage() {
         />
         <div className="grid items-center gap-10 md:grid-cols-[1fr_auto]">
           <SectionHeader
+            as="h1"
             eyebrow="Services"
             title={
               <>
@@ -49,7 +52,7 @@ export default function ServicesPage() {
       {/* Accordion index */}
       <Section className="pt-16 md:pt-24">
         <Reveal>
-          <ServiceIndex />
+          <ServiceIndex services={services} />
         </Reveal>
       </Section>
 
