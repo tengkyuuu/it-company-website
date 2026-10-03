@@ -212,7 +212,7 @@ body {
 .hr-accent {
   height: 1px;
   background: var(--accent);
-  border: 0;
+  border: 0
 }
 
 /* ----------------------------------------------------------------------------
