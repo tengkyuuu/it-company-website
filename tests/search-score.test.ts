@@ -235,6 +235,7 @@ describe("buildSearchIndex", () => {
       "/projects",
       "/about",
       "/location",
+      "/status",
     ]);
     expect(byType("project").length).toBe(5);
     expect(byType("service").length).toBe(6);

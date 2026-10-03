@@ -297,6 +297,39 @@ export type ChatSessionRow = {
   created_at: string;
   /** kept current by a trigger on chat_messages insert */
   last_message_at: string;
+  // Phase 4 (takeover). Optional on read: a database whose schema predates
+  // them won't return these columns.
+  /** sha256 hex of the visitor's key — never select this into a page */
+  visitor_key_hash?: string | null;
+  /** the visitor pressed "Talk to a person"; cleared on hand-back */
+  wants_human_at?: string | null;
+  taken_over_at?: string | null;
+  /** newest visitor message (trigger) — unread = newer than admin_read_at */
+  last_visitor_at?: string | null;
+  /** first visitor message, clipped (trigger) */
+  opening?: string | null;
+  /** newest message of any role, clipped (trigger) */
+  last_preview?: string | null;
+  last_role?: ChatMessageRole | null;
+  message_count?: number;
+};
+
+/** One answer sent (or attempted) from /admin/inbox. Service-role writes only. */
+export type LeadReplyRow = {
+  id: string;
+  lead_id: string;
+  author_id: string | null;
+  author_name: string;
+  to_email: string;
+  subject: string;
+  body: string;
+  status: "sent" | "failed";
+  /** Resend's message id when sent */
+  provider_id: string | null;
+  /** why it wasn't sent; '' when it was */
+  error: string;
+  sent_at: string | null;
+  created_at: string;
 };
 
 export type ChatMessageRow = {

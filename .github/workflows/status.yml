@@ -1,0 +1,129 @@
+# Publishes the numbers behind the public /status page.
+#
+#   tests       every push to main (and manual runs): the Vitest suite, then
+#               its totals POSTed to ${SITE_URL}/api/status/ingest. Posted
+#               whether the suite passes or fails; the job still fails when the
+#               suite does.
+#   lighthouse  every successful PRODUCTION deploy (Vercel's deployment_status
+#               event), weekly, and manual runs: Lighthouse against the live
+#               site, mobile + desktop, then the scores POSTed the same way.
+#
+# ── One-time setup (Repo → Settings → Secrets and variables → Actions) ──────
+#   Secret    STATUS_INGEST_TOKEN  a NEW random value used for nothing else:
+#               node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+#             Set the SAME value as STATUS_INGEST_TOKEN in Vercel (Production),
+#             then redeploy. Never reuse the service-role key, IP_HASH_SECRET or
+#             any session secret here: a leaked CI secret must only ever be able
+#             to post a status report.
+#   Variable  SITE_URL  the canonical production origin, e.g. https://example.com
+#             (no trailing path; must not redirect — the bearer is never
+#             replayed to a redirect target, so a redirecting origin fails).
+#
+# ⚠️ CI has NO GPU. GitHub-hosted runners render WebGL in software
+# (SwiftShader), so the site's 3D hero costs far more there than on a real
+# device: Lighthouse performance from this workflow is a LOWER BOUND, and the
+# page says so. Don't "fix" it with GPU flags — there is no GPU to enable.
+
+name: Status
+
+on:
+  push:
+    branches: [main]
+  deployment_status:
+  schedule:
+    - cron: "17 3 * * 1" # Mondays 03:17 UTC (11:17 PHT)
+  workflow_dispatch:
+    inputs:
+      report:
+        description: Which report to refresh
+        type: choice
+        options: [both, tests, lighthouse]
+        default: both
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests → /status
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.report != 'lighthouse')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Job-level, not workflow-level: every deployment_status event (previews,
+    # "pending" states) starts a run of this file, and a workflow-level group
+    # with cancel-in-progress would let those cancel a real test run.
+    concurrency:
+      group: status-tests-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Run the test suite
+        id: vitest
+        run: npx vitest run --reporter=default --reporter=json --outputFile.json=test-results/vitest.json
+
+      - name: Publish to /status
+        # !cancelled() rather than always(): a red suite is still published,
+        # but a run superseded by a newer push isn't (always() also fires on
+        # cancellation). Only main's results describe production.
+        if: ${{ !cancelled() && steps.vitest.outcome != 'skipped' && github.ref == 'refs/heads/main' }}
+        # Telemetry, not a gate: the suite step above decides the job's result.
+        continue-on-error: true
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          STATUS_INGEST_TOKEN: ${{ secrets.STATUS_INGEST_TOKEN }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: node scripts/ci/post-status.mjs tests test-results/vitest.json
+
+  lighthouse:
+    name: Lighthouse → /status
+    if: >-
+      (github.event_name == 'deployment_status' &&
+        github.event.deployment_status.state == 'success' &&
+        github.event.deployment.environment == 'Production') ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.report != 'tests' &&
+        github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: status-lighthouse
+      cancel-in-progress: true
+    env:
+      SITE_URL: ${{ vars.SITE_URL }}
+      # Pinned: a Lighthouse upgrade moves scores, and that should be a commit.
+      LIGHTHOUSE_PACKAGE: lighthouse@13.5.0
+      LIGHTHOUSE_PATHS: / /projects /services /about
+      LIGHTHOUSE_FORM_FACTORS: mobile desktop
+      LIGHTHOUSE_RUNS: "1"
+      LIGHTHOUSE_GPU: "false" # GitHub-hosted runners have no GPU (see the header)
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22 # Lighthouse 13 needs Node >= 22.19
+
+      - name: Run Lighthouse against production
+        run: node scripts/ci/post-status.mjs run-lighthouse lighthouse-reports
+
+      - name: Publish to /status
+        env:
+          STATUS_INGEST_TOKEN: ${{ secrets.STATUS_INGEST_TOKEN }}
+          # the deployed commit for deploy events; main's head otherwise
+          COMMIT_SHA: ${{ github.event.deployment.sha || github.sha }}
+        run: node scripts/ci/post-status.mjs lighthouse lighthouse-reports

@@ -50,6 +50,8 @@ export default async function ProjectPage({ params }: Params) {
   if (!p) notFound();
 
   const { prev, next } = await getProjectNeighbours(p.slug);
+  // a live embed is only attempted when the site hasn't been seen refusing it
+  const live = Boolean(p.liveUrl) && p.embeddable !== false;
   // the main shot is already the big preview above, so "Screens" is everything
   // else: the secondary shot plus the gallery, desktop and mobile apart
   const desktopShots = [
@@ -179,12 +181,10 @@ export default async function ProjectPage({ params }: Params) {
         <Reveal>
           <div className="mb-5 flex items-end justify-between gap-4">
             <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-              {p.liveUrl ? t("project.livePreview") : t("project.preview")}
+              {live ? t("project.livePreview") : t("project.preview")}
             </h2>
             <p className="max-w-xs text-right font-mono text-[11px] uppercase leading-relaxed tracking-widest text-ink/40">
-              {p.liveUrl
-                ? t("project.liveCaption")
-                : t("project.shotCaption")}
+              {live ? t("project.liveCaption") : t("project.shotCaption")}
             </p>
           </div>
           <LivePreview project={p} priority />

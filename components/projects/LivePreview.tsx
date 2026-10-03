@@ -20,6 +20,12 @@ import { useI18n } from "@/components/i18n/I18nProvider";
  *  - a site that refuses framing (X-Frame-Options / CSP frame-ancestors) can't
  *    be detected cross-origin, so the poster is never removed on a timeout —
  *    it simply stays, and "Open live site" is always available.
+ *
+ * The SERVER can detect it, though: saving a live URL in the panel probes its
+ * headers (lib/net/embed-probe.ts). A project known not to be embeddable
+ * (`embeddable === false` — it refuses framing, or didn't answer) never mounts
+ * the iframe: it shows the screenshot, "Open ↗" and a quiet note. Unknown
+ * (never checked) keeps the behaviour above.
  */
 const VIEWPORT = 1440;
 const LOAD_TIMEOUT = 9000;
@@ -28,13 +34,24 @@ export default function LivePreview({
   project,
   className = "",
   priority = false,
+  still = false,
 }: {
   project: Project;
   className?: string;
   priority?: boolean;
+  /**
+   * Picture only: no iframe, no Interact button, no "Open ↗" link. For use
+   * INSIDE another link (the /projects index cards) — an <a> or <button> in an
+   * <a> is invalid HTML, the browser re-parents it, and hydration fails
+   * (React #418) the moment a project gets a liveUrl.
+   */
+  still?: boolean;
 }) {
   const { t } = useI18n();
   const { liveUrl, url, img, name, dots } = project;
+  // known to refuse framing (or unreachable at the last check): link out instead
+  const refused = Boolean(liveUrl) && project.embeddable === false;
+  const frameUrl = refused || still ? undefined : liveUrl;
   const box = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -44,7 +61,7 @@ export default function LivePreview({
 
   // mount the iframe only when the frame is actually on screen
   useEffect(() => {
-    if (!liveUrl || !box.current) return;
+    if (!frameUrl || !box.current) return;
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
@@ -56,7 +73,7 @@ export default function LivePreview({
     );
     io.observe(box.current);
     return () => io.disconnect();
-  }, [liveUrl]);
+  }, [frameUrl]);
 
   // track the frame's pixel box so we can scale the desktop render into it
   useEffect(() => {
@@ -98,7 +115,20 @@ export default function LivePreview({
         </span>
 
         <span className="ml-auto flex items-center gap-2">
-          {liveUrl ? (
+          {still ? (
+            <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-paper/35">
+              {liveUrl && !refused ? t("preview.live") : t("preview.screenshot")}
+            </span>
+          ) : refused ? (
+            <a
+              href={liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-white/20 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60 transition-colors hover:border-white/45 hover:text-paper"
+            >
+              {t("preview.open")}
+            </a>
+          ) : liveUrl ? (
             <>
               <span className="hidden items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.15em] text-paper/45 sm:inline-flex">
                 <span className="relative flex h-1.5 w-1.5">
@@ -134,9 +164,9 @@ export default function LivePreview({
 
       {/* the preview itself — native screenshot aspect, never upscaled */}
       <div ref={box} className="relative aspect-[1536/743] w-full overflow-hidden">
-        {liveUrl && inView && scale > 0 && (
+        {frameUrl && inView && scale > 0 && (
           <iframe
-            src={liveUrl}
+            src={frameUrl}
             title={t("preview.frameTitle", { name })}
             loading="lazy"
             referrerPolicy="no-referrer"
@@ -162,11 +192,17 @@ export default function LivePreview({
           priority={priority}
           sizes="(max-width: 768px) 100vw, 70vw"
           className={`object-cover object-top transition-opacity duration-700 ${
-            liveUrl && loaded ? "opacity-0" : "opacity-100"
+            frameUrl && loaded ? "opacity-0" : "opacity-100"
           }`}
         />
 
-        {liveUrl && inView && !loaded && (
+        {refused && (
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center bg-gradient-to-t from-ink-900 to-transparent px-4 py-3 text-center font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60">
+            {t("preview.notEmbeddable")}
+          </span>
+        )}
+
+        {frameUrl && inView && !loaded && (
           <span className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 bg-gradient-to-t from-ink-900 to-transparent px-4 py-3 font-mono text-[10px] uppercase tracking-[0.15em] text-paper/60">
             {slow ? (
               <>{t("preview.blocked")}</>
@@ -177,7 +213,7 @@ export default function LivePreview({
         )}
 
         {/* click-to-interact catcher: keeps scroll on the page until asked */}
-        {liveUrl && !interactive && (
+        {frameUrl && !interactive && (
           <button
             type="button"
             onClick={() => setInteractive(true)}

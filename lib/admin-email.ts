@@ -21,7 +21,8 @@ import { site } from "@/lib/site";
  */
 
 export type SendResult =
-  | { ok: true }
+  /** `id` is Resend's message id (kept with inbox replies) */
+  | { ok: true; id?: string }
   | { ok: false; message: string; sandbox: boolean };
 
 /** Unquoted display name is correct — see the RFC 5322 note in lib/email.ts. */
@@ -198,6 +199,7 @@ async function send(message: {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
 }): Promise<SendResult> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -208,8 +210,8 @@ async function send(message: {
   // one retry on Resend's per-second rate limit (bulk invites hit it)
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const { error } = await resend.emails.send({ from: FROM, ...message });
-      if (!error) return { ok: true };
+      const { data, error } = await resend.emails.send({ from: FROM, ...message });
+      if (!error) return { ok: true, id: data?.id };
       if (error.name === "rate_limit_exceeded" && attempt === 0) {
         await new Promise((r) => setTimeout(r, 1100));
         continue;
@@ -328,5 +330,28 @@ export async function sendPasswordResetEmail(args: {
     subject: `Reset your ${site.name} panel password`,
     html,
     text,
+  });
+}
+
+/**
+ * A staff member's reply to an inbox lead (app/admin/inbox-actions.ts). The
+ * subject, text and escaped HTML are built by lib/lead-reply.ts. Sent from
+ * the panel sender (ADMIN_FROM_EMAIL → CONTACT_FROM_EMAIL → sandbox) with
+ * `replyTo` = the studio inbox, so when the person answers, the conversation
+ * carries on in the real mailbox rather than at a no-reply address.
+ * Non-throwing like every send here; the caller records sent / not sent.
+ */
+export async function sendLeadReplyEmail(args: {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}): Promise<SendResult> {
+  return send({
+    to: args.to,
+    subject: args.subject,
+    text: args.text,
+    html: args.html,
+    replyTo: process.env.CONTACT_TO_EMAIL || site.email,
   });
 }

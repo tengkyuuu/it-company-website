@@ -22,12 +22,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = (
     path: string,
     priority: number,
-    lastModified?: string
+    lastModified?: string,
+    changeFrequency: "daily" | "weekly" | "monthly" = "monthly"
   ): MetadataRoute.Sitemap =>
     locales.map((lang) => ({
       url: absoluteUrl(lang, path),
       ...(lastModified ? { lastModified } : {}),
-      changeFrequency: "monthly",
+      changeFrequency,
       priority,
       alternates: { languages: languageUrls(path, true) },
     }));
@@ -67,5 +68,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ]
     : [];
 
-  return [...pages, ...projectPages, ...productPages, ...jobPages, ...postPages];
+  // /status: footer-only (not in `nav`), always rendered, refreshed by every CI report
+  const statusPages = entries("/status", 0.3, undefined, "daily");
+
+  return [...pages, ...projectPages, ...productPages, ...jobPages, ...postPages, ...statusPages];
 }

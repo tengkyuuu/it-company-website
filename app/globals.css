@@ -505,6 +505,14 @@ body {
   }
 }
 
+/* Launched as the installed app (PWA): no opening sequence. The blocking head
+   script stamps data-display before the body paints, so the panel never shows;
+   Preloader sees the same attribute and hands over (mykt:ready) at once.
+   See components/pwa/display-mode.ts. */
+[data-display="standalone"] .pl {
+  display: none;
+}
+
 /* ----------------------------------------------------------------------------
    Footer wordmark — the outlined mark inks in with the accent gradient under a
    cursor-following spotlight (components/FooterWordmark.tsx).

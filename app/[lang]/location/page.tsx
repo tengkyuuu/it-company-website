@@ -9,8 +9,6 @@ import { getDictionary } from "@/lib/i18n/dictionary";
 import { localeMetadata } from "@/lib/i18n/metadata";
 import { pageLocale, toLocale, type LangParams } from "@/lib/i18n/params";
 
-export const dynamicParams = false;
-
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const lang = toLocale((await params).lang);
   return {

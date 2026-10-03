@@ -34,6 +34,7 @@ const site: DeepPartial<typeof en> = {
     developedFor: "para sa",
     backToTop: "Bumalik sa itaas",
     opensInNewTab: "(magbubukas sa bagong tab)",
+    statusLink: "Status",
   },
   home: {
     stackEyebrow: "Ang mga teknolohiyang gamit namin",
@@ -114,6 +115,76 @@ const site: DeepPartial<typeof en> = {
     hours: "Oras",
     mapTitle: "Lokasyon ng studio ng R Ally's Tech — Dipolog City",
     follow: "Sundan kami",
+  },
+  // ⚠️ DRAFT — the technical terms (test suite, commit, run, Lighthouse
+  // category names, LCP/CLS/TBT) stay English on purpose: they're what the
+  // tools and every developer call them.
+  status: {
+    metaTitle: "Status",
+    metaDescription:
+      "Ang pinakahuling automated test run at Lighthouse audit ng site na ito, eksakto kung paano iniulat ng CI.",
+    eyebrow: "Status ng sistema",
+    title: "Kumusta ang takbo ng site.",
+    intro:
+      "Sa bawat push sa main, pinapatakbo ang buong test suite, at sinusuri gamit ang Lighthouse ang bawat production deploy. Ito ang mga pinakahuling resulta — inilathala ng CI at ipinapakita nang eksakto kung paano iniulat.",
+    healthLabel: "Kabuuan",
+    healthPassing: "Pasado ang lahat ng test",
+    healthFailing: "May bumabagsak na test",
+    healthStale: "Walang bagong test run",
+    healthUnknown: "Hinihintay ang unang ulat",
+    testsTitle: "Test suite",
+    testsPassing: "Pasado",
+    testsFailing: "Bagsak",
+    passed: "Pasado",
+    failed: "Bagsak",
+    skipped: "Nilaktawan",
+    files: "Mga file",
+    duration: "Tagal",
+    testsSummary: "{passed} sa {total} na test ang pumasa",
+    runError: "May iniulat na error ang run sa labas ng mga indibidwal na test.",
+    failingTitle: "Ang mga bumagsak",
+    fileFailed: "hindi na-load ang file",
+    moreFailing: "at {count} pa",
+    testsEmpty:
+      "Wala pang naiulat na test run. Darating ang una sa susunod na push sa main.",
+    reported: "Iniulat",
+    commit: "Commit",
+    commitAria: "Commit {sha} sa GitHub",
+    run: "Run",
+    viewRun: "Tingnan ang run",
+    runner: "Runner",
+    tool: "Tool",
+    stale: "Luma na — huling iniulat {days} araw na ang nakalipas",
+    lighthouseTitle: "Lighthouse",
+    lighthouseLabel:
+      "Lighthouse · CI runner, walang GPU — pinakamababang tantiya ang mga performance score",
+    lighthouseLabelGpu: "Lighthouse · CI runner",
+    lighthouseNote:
+      "Walang graphics card ang mga runner ng GitHub, kaya software ang nagre-render ng WebGL/3D ng site doon — mas maganda ang takbo nito sa totoong device.",
+    mobile: "Mobile",
+    desktop: "Desktop",
+    performance: "Performance",
+    accessibility: "Accessibility",
+    bestPractices: "Best practices",
+    seo: "SEO",
+    scoreOutOf: "{label}: {score} sa 100",
+    scoreMissing: "{label}: hindi naiulat",
+    auditFailed: "Hindi natapos ang audit na ito.",
+    lcp: "LCP",
+    lcpFull: "Largest Contentful Paint",
+    cls: "CLS",
+    clsFull: "Cumulative Layout Shift",
+    tbt: "TBT",
+    tbtFull: "Total Blocking Time",
+    version: "Lighthouse {version}",
+    runsOne: "isang run bawat page",
+    runsMany: "median ng {count} run bawat page",
+    lighthouseEmpty:
+      "Wala pang naiulat na Lighthouse audit. May tumatakbo pagkatapos ng bawat production deploy.",
+    unavailable:
+      "Hindi ma-load ang status data ngayon. Subukan ulit pagkalipas ng ilang minuto.",
+    footnote:
+      "Ipinapakita nang eksakto kung paano ipinadala ng CI: hindi kailanman itinataas ang mga score at hindi kailanman ibinababa ang mga oras. Oras sa Pilipinas (PHT) ang mga petsa.",
   },
 };
 

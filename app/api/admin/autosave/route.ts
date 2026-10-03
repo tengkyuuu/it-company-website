@@ -19,8 +19,10 @@ import {
   revalidateSection,
   revalidateServices,
   revalidateSettings,
+  scheduleEmbedProbe,
 } from "@/app/admin/_lib/content";
 import { removeOrphanedUploads } from "@/app/admin/_lib/storage";
+import { EMBED_UNCHECKED, planEmbedCheck } from "@/lib/net/embed-plan";
 
 /**
  * POST /api/admin/autosave — the editors' debounced background save.
@@ -175,13 +177,23 @@ export async function POST(request: Request) {
   }
 
   const row = finalize(entity, patch, before);
-  const write = await guardedUpdate(supabase, entity, id, expectedUpdatedAt, row, {
-    actorId: guard.profile.id,
-  });
+  // the live_url unit: a changed address clears the old embed verdict in this
+  // same write, and is re-checked after the response (lib/net/embed-plan.ts)
+  const embed =
+    entity === "projects" ? planEmbedCheck(before, row, { explicit: false }) : null;
+  const write = await guardedUpdate(
+    supabase,
+    entity,
+    id,
+    expectedUpdatedAt,
+    embed?.reset ? { ...row, ...EMBED_UNCHECKED } : row,
+    { actorId: guard.profile.id }
+  );
 
   switch (write.kind) {
     case "ok":
       await afterWrite(supabase, entity, row, before);
+      if (embed?.probe && embed.url) scheduleEmbedProbe(supabase, String(id), embed.url);
       return reply({ ok: true, updatedAt: write.updatedAt, saved, ...errors });
     case "conflict":
       return reply({ ok: false, conflict: write.conflict }, 409);

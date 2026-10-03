@@ -99,6 +99,48 @@ function ColorField({
   );
 }
 
+/**
+ * "2026-10-03T06:05:00Z" → "3 Oct 2026, 14:05 PHT". Formatted by hand on the
+ * studio's clock (UTC+8, no DST) so the server render and the browser's
+ * hydration produce the same text whatever either one's locale or timezone.
+ */
+function checkedAtLabel(iso: string | null | undefined): string {
+  const t = iso ? Date.parse(iso) : NaN;
+  if (!Number.isFinite(t)) return "";
+  const d = new Date(t + 8 * 3600 * 1000);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${hh}:${mm} PHT`;
+}
+
+/**
+ * The last result of the save-time embed check (lib/net/embed-probe.ts) for
+ * the SAVED live URL. It runs in the background after a save, so a fresh
+ * result shows on the next load of this page.
+ */
+function EmbedCheck({ project }: { project: ProjectRow }) {
+  // a database without the embed columns: say nothing rather than "not checked"
+  if (!("embeddable" in project)) return null;
+  const when = checkedAtLabel(project.embed_checked_at);
+  let tone = "text-ink/45";
+  let text: string;
+  if (!project.embed_checked_at || project.embeddable == null) {
+    text = "Embed check: pending — it runs in the background after a save; reload to see the result.";
+  } else if (project.embeddable) {
+    tone = "text-emerald-700 dark:text-emerald-300";
+    text = `Embed check: this site allows framing, so the public preview is live. Checked ${when}.`;
+  } else {
+    tone = "text-amber-700 dark:text-amber-300";
+    text = `Embed check: ${project.embed_reason || "this site can’t be framed"}. The public page shows the screenshot with an “Open ↗” link instead. Checked ${when}.`;
+  }
+  return (
+    <p className={`mt-1.5 text-xs leading-relaxed ${tone}`} aria-live="polite">
+      {text}
+    </p>
+  );
+}
+
 export default function ProjectForm({
   project,
   defaultSortOrder = 0,
@@ -232,22 +274,25 @@ export default function ProjectForm({
             />
           </Field>
 
-          <Field
-            label="Live URL"
-            hint="Full https:// address. Set this and the preview becomes a real embedded iframe; leave it blank to show the screenshot. Check the domain actually resolves first."
-            error={fieldError("live_url")}
-          >
-            <Input
-              name="live_url"
-              type="url"
-              pattern="https://.*"
-              title="A full https:// address"
-              maxLength={500}
-              defaultValue={project?.live_url ?? ""}
-              placeholder="https://famecrm.app"
-              spellCheck={false}
-            />
-          </Field>
+          <div>
+            <Field
+              label="Live URL"
+              hint="Full https:// address. Set this and the preview becomes a real embedded iframe; leave it blank to show the screenshot. Check the domain actually resolves first."
+              error={fieldError("live_url")}
+            >
+              <Input
+                name="live_url"
+                type="url"
+                pattern="https://.*"
+                title="A full https:// address"
+                maxLength={500}
+                defaultValue={project?.live_url ?? ""}
+                placeholder="https://famecrm.app"
+                spellCheck={false}
+              />
+            </Field>
+            {project?.live_url && <EmbedCheck project={project} />}
+          </div>
 
           <Field
             label="Summary"

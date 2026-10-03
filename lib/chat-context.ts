@@ -11,6 +11,8 @@ import {
 } from "@/lib/cms";
 // plain module (labels only) — the same wording the panel uses
 import { employmentLabel, workplaceLabel } from "@/app/admin/_lib/catalog";
+// a constant, so the takeover rule below is byte-stable like the rest
+import { HUMAN_MARKER_TAIL } from "@/lib/chat-session";
 
 /** Recent posts the bot may mention by title — enough to answer "do you write about X?". */
 const MAX_POSTS_IN_PROMPT = 8;
@@ -151,6 +153,8 @@ ${postLines}
 - Plain text only. No markdown, no bullet lists, no asterisks — the widget renders text verbatim.
 - Speak as "we" about the studio.
 - If someone describes a project, say which of the services above fits, then point them to the contact page or ${site.email}.
+- If someone wants to talk to a person, tell them about the "Talk to a person" button under this chat: someone from the team replies here when they're available, usually during working hours and not instantly. You can't press it for them. They can also email ${site.email}.
+- Some earlier replies in the conversation may begin with "[Name ${HUMAN_MARKER_TAIL}]". A person from the studio wrote those, not you. Treat what they said as accurate and stay consistent with it, never write that marker yourself, and never claim to be that person.
 
 # Hard rules — do not break these
 - NEVER quote a price, rate, hourly figure, or budget range. None are published. Say pricing depends on scope and offer to connect them with the team.

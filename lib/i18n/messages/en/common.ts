@@ -81,6 +81,8 @@ const common = {
     blocked: "This site may block embedding — use “Open ↗”",
     interactLabel: "Interact with the live {name} preview",
     frameTitle: "{name} — live preview",
+    // the server checked: this site refuses to be shown inside another page
+    notEmbeddable: "This site can’t be shown here — open it in a new tab",
   },
   contact: {
     name: "Name",
@@ -118,6 +120,22 @@ const common = {
     disclaimer: "AI answers can be wrong — for anything binding, email us.",
     unavailable: "Chat is unavailable right now.",
     genericError: "Something went wrong.",
+    // human takeover (Phase 4) — honest about response times, never "instant"
+    badgeHuman: "With the team",
+    talkToPerson: "Talk to a person",
+    talkToPersonHint: "Someone from the team will reply here when they’re available.",
+    requested:
+      "We’ve let the team know. Someone will reply here when they’re available — usually during working hours (Philippine time), so it may not be right away. You can keep chatting with the assistant meanwhile, or email us.",
+    requestFailed: "Couldn’t reach the team just now — please email us instead.",
+    requestLimited: "We’ve already let the team know — they’ll reply here when they can.",
+    waiting: "Waiting for someone from the team…",
+    joined: "A person from the team joined",
+    left: "You’re back with the assistant",
+    humanAuthor: "{name} · from the team",
+    teamMember: "Someone from the team",
+    delivered: "Sent to the team",
+    humanDisclaimer: "You’re chatting with a person from the team. Replies may take a while.",
+    humanPlaceholder: "Write to the team…",
   },
   notFound: {
     eyebrow: "Error 404",

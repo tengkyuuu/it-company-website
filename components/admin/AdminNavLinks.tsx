@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/inbox", label: "Inbox" },
+  { href: "/admin/chats", label: "Live chat" },
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/products", label: "Products" },
   { href: "/admin/services", label: "Services" },
@@ -25,7 +26,7 @@ const links = [
  * Sidebar on desktop, a horizontally scrolling tab strip on small screens (the
  * strip bleeds to the screen edges and keeps the active tab scrolled into view).
  * `badges` maps an href to a count — the server wrapper (AdminNav) fills in the
- * open-inbox number.
+ * open-inbox number and the live chats that need a person.
  */
 export default function AdminNavLinks({ badges = {} }: { badges?: Record<string, number> }) {
   const pathname = usePathname();
@@ -69,7 +70,7 @@ export default function AdminNavLinks({ badges = {} }: { badges?: Record<string,
             {count > 0 && (
               <span className="min-w-[1.25rem] rounded-full bg-ink px-1.5 py-px text-center font-mono text-[10px] tabular-nums text-paper">
                 {count > 99 ? "99+" : count}
-                <span className="sr-only"> open</span>
+                <span className="sr-only">{l.href === "/admin/chats" ? " waiting for a person" : " open"}</span>
               </span>
             )}
           </Link>

@@ -11,8 +11,6 @@ import { localeMetadata } from "@/lib/i18n/metadata";
 import { localizePath } from "@/lib/i18n/paths";
 import { pageLocale, toLocale, type LangParams } from "@/lib/i18n/params";
 
-export const dynamicParams = false;
-
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const lang = toLocale((await params).lang);
   return {
@@ -74,7 +72,7 @@ export default async function ProjectsPage({ params }: LangParams) {
                     aria-label={t("projects.detailLabel", { name: p.name })}
                     className="block transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5"
                   >
-                    <LivePreview project={p} priority={i === 0} />
+                    <LivePreview project={p} priority={i === 0} still />
                   </Link>
                 </Reveal>
 

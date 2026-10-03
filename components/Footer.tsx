@@ -90,6 +90,8 @@ export default async function Footer({ lang }: { lang: Locale }) {
                 {navLabel(t, n)}
               </FooterLink>
             ))}
+            {/* footer-only on purpose: not a destination for visitors, so not in `nav` */}
+            <FooterLink href={localizePath(lang, "/status")}>{t("footer.statusLink")}</FooterLink>
           </FooterCol>
 
           <FooterCol title={t("footer.colServices")}>

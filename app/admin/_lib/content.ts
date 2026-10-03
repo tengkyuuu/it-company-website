@@ -1,8 +1,10 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import type { createClient } from "@/lib/supabase/server";
 import type { ContentEntityType } from "@/lib/supabase/types";
+import { probeEmbed } from "@/lib/net/embed-probe";
 import type { ConflictInfo } from "./autosave";
 import { NOTHING_CHANGED, dbFail, fail, type Result } from "./server";
 import { galleryUrls } from "./storage";
@@ -199,6 +201,55 @@ export function revalidateSection(section: Section, listingChanged: boolean) {
   revalidatePath(`/[lang]/${section}/[slug]`, "page");
   revalidatePath("/sitemap.xml");
   if (listingChanged) revalidatePath("/[lang]", "layout");
+}
+
+// ---------------------------------------------------------------------------
+// live-URL embed probe (lib/net/embed-probe.ts; when — lib/net/embed-plan.ts)
+// ---------------------------------------------------------------------------
+
+/**
+ * Check whether a project's live URL can be framed, AFTER the response has gone
+ * out (`after()`), so a slow or dead site never slows or fails a save. The
+ * verdict is written with the same (editor's) client that made the save, then
+ * every page that renders projects is revalidated so LivePreview picks it up.
+ *
+ * The write is skipped unless the row still holds the URL that was checked: a
+ * newer save — or a later probe for the next keystroke's value — wins. It's a
+ * read-then-write rather than `UPDATE … WHERE live_url = $url` alone because an
+ * UPDATE that matches nothing still fires the statement-level site_revision
+ * trigger, which would refresh every open public page for nothing.
+ *
+ * Never throws; failures are logged and the stored state stays "unchecked".
+ */
+export function scheduleEmbedProbe(supabase: Supabase, id: string, liveUrl: string) {
+  after(async () => {
+    try {
+      const result = await probeEmbed(liveUrl);
+      const { data: row, error: readError } = await supabase
+        .from("projects")
+        .select("live_url")
+        .eq("id", id)
+        .maybeSingle();
+      if (readError || !row || row.live_url !== liveUrl) return;
+
+      const { error } = await supabase
+        .from("projects")
+        .update({
+          embeddable: result.embeddable,
+          embed_reason: result.reason,
+          embed_checked_at: result.checkedAt,
+        })
+        .eq("id", id)
+        .eq("live_url", liveUrl);
+      if (error) {
+        console.warn(`[embed-probe] couldn't store the result for ${id}: ${error.message}`);
+        return;
+      }
+      revalidateProjects();
+    } catch (err) {
+      console.warn("[embed-probe] failed", err);
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------

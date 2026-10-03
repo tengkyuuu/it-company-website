@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured, type LeadRow } from "@/lib/supabase/types";
-import { site } from "@/lib/site";
+import { isSupabaseConfigured, type LeadReplyRow, type LeadRow } from "@/lib/supabase/types";
 import { Card, CardTitle, Notice, Pill } from "@/components/admin/ui";
 import SetupNotice from "@/components/admin/SetupNotice";
 import LeadActions from "@/components/admin/LeadActions";
+import LeadReply, { type ReplyView } from "@/components/admin/LeadReply";
 import { describeDbError, isMissingTable, isUuid } from "../_lib/server";
 import { LEAD_KIND_LABEL, threadLeads, type LeadLite } from "../_lib/inbox";
 
@@ -22,6 +22,13 @@ export const metadata = { title: "Inbox", robots: { index: false } };
  * back into one entry here (see ../_lib/inbox.ts), showing the newest — i.e.
  * fullest — transcript. Enquiries and applications are never threaded. Filters
  * are plain links, so they work without JS and survive a reload.
+ *
+ * Since Phase 4, new chats are stored as chat_sessions and handled in
+ * /admin/chats (takeover, replies); the chat route writes a `leads` row only
+ * when that store is unreachable or the visitor's tab predates it. The rows
+ * here are therefore the archive plus that fallback — never lost, never
+ * duplicated. Enquiries and applications get a Reply composer (LeadReply →
+ * app/admin/inbox-actions.ts) with the history of what was sent from here.
  */
 const LIMIT = 300;
 
@@ -40,29 +47,17 @@ function pick<T extends string>(value: string | undefined, allowed: readonly T[]
   return (allowed as readonly string[]).includes(value ?? "") ? (value as T) : fallback;
 }
 
-function replyHref(lead: LeadRow, subject: string) {
-  const quoted = (lead.message ?? "")
-    .split("\n")
-    .slice(0, 12)
-    .map((l) => `> ${l}`)
-    .join("\n");
-  const body = `Hi ${lead.name?.split(" ")[0] ?? "there"},\n\n\n\n${quoted}`;
-  return `mailto:${lead.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-const replyButton =
-  "mt-3 inline-flex items-center gap-1.5 rounded-full border border-mist/70 px-3.5 py-1.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40";
-
-/** Name, email, the message, and a reply link — what enquiries and applications share. */
+/** Name, email, the message, and the reply composer — what enquiries and applications share. */
 function PersonLead({
   lead,
   detail,
-  replySubject,
+  replies,
 }: {
   lead: LeadRow;
   /** the line under the email: the service asked about, the role applied for */
   detail?: React.ReactNode;
-  replySubject: string;
+  /** replies already sent (or attempted) from the panel, oldest first */
+  replies: ReplyView[];
 }) {
   return (
     <div className="mt-3 space-y-1">
@@ -86,9 +81,7 @@ function PersonLead({
         {lead.message}
       </p>
       {lead.email && (
-        <a href={replyHref(lead, replySubject)} className={replyButton}>
-          Reply by email <span aria-hidden>↗</span>
-        </a>
+        <LeadReply leadId={lead.id} to={lead.email} name={lead.name} history={replies} />
       )}
     </div>
   );
@@ -136,6 +129,31 @@ export default async function AdminInboxPage({
       .in("id", jobIds);
     if (jobsError) jobsFailed = true;
     for (const j of jobs ?? []) jobTitles.set(j.id as string, j.title as string);
+  }
+
+  // Replies sent (or attempted) from the panel, grouped per lead. The newest
+  // 1000 overall rather than an `in (…300 ids)` filter, which would blow past
+  // URL limits. Best-effort: before schema.sql is re-run the table doesn't
+  // exist, and the inbox simply shows no history (a send then explains).
+  const repliesByLead = new Map<string, ReplyView[]>();
+  {
+    const { data: replies } = await supabase
+      .from("lead_replies")
+      .select("id, lead_id, author_name, status, error, body, created_at")
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    for (const r of ((replies ?? []) as LeadReplyRow[]).reverse()) {
+      const list = repliesByLead.get(r.lead_id) ?? [];
+      list.push({
+        id: r.id,
+        author: r.author_name || "A teammate",
+        when: fmt(r.created_at),
+        status: r.status,
+        error: r.error,
+        body: r.body,
+      });
+      repliesByLead.set(r.lead_id, list);
+    }
   }
 
   const threads = threadLeads(rows);
@@ -194,10 +212,23 @@ export default async function AdminInboxPage({
       <header>
         <h1 className="font-display text-2xl font-semibold tracking-tight">Inbox</h1>
         <p className="mt-1 text-sm text-ink/55">
-          Contact submissions, job applications and chat conversations, newest first.
-          Enquiries are emailed too — this is the record.
+          Contact submissions and job applications, newest first — reply to them from here.
+          Enquiries are emailed too; this is the record.
         </p>
       </header>
+
+      {(kind === "all" || kind === "chat") && (
+        <p className="text-sm text-ink/60">
+          Chat conversations now live in{" "}
+          <Link
+            href="/admin/chats"
+            className="font-medium text-ink underline decoration-mist underline-offset-2 hover:decoration-ink"
+          >
+            Live chat
+          </Link>
+          , where you can take one over and reply. Transcripts from before that are kept here.
+        </p>
+      )}
 
       {error &&
         (isMissingTable(error) ? (
@@ -303,6 +334,7 @@ export default async function AdminInboxPage({
                       {LEAD_KIND_LABEL[lead.kind] ?? lead.kind}
                     </Pill>
                     <Pill tone={handled ? "muted" : "draft"}>{handled ? "Handled" : "Open"}</Pill>
+                    {lead.replied_at && <Pill tone="live">Replied</Pill>}
                     <time dateTime={lead.created_at} className="font-mono text-[11px] text-ink/45">
                       {fmt(lead.created_at)} PHT
                       {lead.kind === "chat" && lead.turns ? ` · ${lead.turns} messages` : ""}
@@ -313,17 +345,13 @@ export default async function AdminInboxPage({
                     <PersonLead
                       lead={lead}
                       detail={lead.service ? `About: ${lead.service}` : undefined}
-                      replySubject={`Re: your enquiry to ${site.name}`}
+                      replies={repliesByLead.get(lead.id) ?? []}
                     />
                   ) : lead.kind === "application" ? (
                     <PersonLead
                       lead={lead}
                       detail={appliedFor(lead)}
-                      replySubject={
-                        lead.job_id && jobTitles.get(lead.job_id)
-                          ? `Re: your application — ${jobTitles.get(lead.job_id)}`
-                          : `Re: your application to ${site.name}`
-                      }
+                      replies={repliesByLead.get(lead.id) ?? []}
                     />
                   ) : (
                     <details className="group mt-3">

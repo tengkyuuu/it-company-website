@@ -11,8 +11,6 @@ import { localeMetadata } from "@/lib/i18n/metadata";
 import { localizePath } from "@/lib/i18n/paths";
 import { pageLocale, toLocale, type LangParams } from "@/lib/i18n/params";
 
-export const dynamicParams = false;
-
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   const lang = toLocale((await params).lang);
   return {

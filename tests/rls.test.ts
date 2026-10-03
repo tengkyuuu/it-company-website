@@ -30,6 +30,7 @@ const STAFF_TABLES = [
   "content_revisions",
   "chat_sessions",
   "chat_messages",
+  "lead_replies",
   "security_limits",
   "invitations",
   "profiles",
@@ -58,6 +59,9 @@ async function seedPrivateRows(db: PGlite) {
   await db.exec(`
     insert into public.leads (kind, name, email, message, ip_hash)
       values ('contact', 'Visitor', 'visitor@example.test', 'Hello', 'h1');
+    insert into public.lead_replies (lead_id, to_email, subject, body, status, sent_at)
+      select id, 'visitor@example.test', 'Re: your enquiry', 'Thanks!', 'sent', now()
+        from public.leads limit 1;
     insert into public.auth_tokens (token_hash, purpose, email, expires_at)
       values ('${"a".repeat(64)}', 'invite', 'new@example.test', now() + interval '1 day');
     insert into public.activity_log (action, entity_type, entity_id)
@@ -226,6 +230,13 @@ describe("row level security", () => {
         return res.rows[0].n;
       });
       expect(drafts).toBeGreaterThan(0);
+    });
+
+    it("an admin reads live chats and inbox replies", async () => {
+      const admin = await createStaff(db, "admin");
+      for (const t of ["chat_sessions", "chat_messages", "lead_replies"]) {
+        expect(await asUser(db, { sub: admin.id }, () => visible(db, t)), t).toBeGreaterThan(0);
+      }
     });
 
     it("only the owner reads invitations", async () => {

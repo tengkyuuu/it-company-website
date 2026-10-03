@@ -14,8 +14,6 @@ import { localeMetadata } from "@/lib/i18n/metadata";
 import { localizePath } from "@/lib/i18n/paths";
 import { pageLocale, toLocale, type LangParams } from "@/lib/i18n/params";
 
-export const dynamicParams = false;
-
 /** Features shown on a sheet; the rest are on the product page. */
 const SHEET_FEATURES = 5;
 

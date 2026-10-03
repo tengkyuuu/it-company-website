@@ -24,9 +24,12 @@ const syne = Syne({
  * agree on lives here so they can't drift: fonts, global CSS, the pre-paint
  * theme script, the theme context, analytics.
  *
- * - ThemeScript stays first in <head>: it stamps data-theme before any paint.
- * - suppressHydrationWarning: data-theme is written by that script, not React.
+ * - ThemeScript stays first in <head>: it stamps data-theme (and, for an
+ *   installed-app launch, data-display) before any paint.
+ * - suppressHydrationWarning: those attributes are written by that script, not React.
  * - SiteAnalytics drops /admin events itself.
+ * - theme-color per OS scheme (the paper token) tints the browser UI and the
+ *   installed app's title bar; the manifest itself is app/manifest.ts.
  */
 export default function DocumentShell({
   lang,
@@ -46,6 +49,9 @@ export default function DocumentShell({
     >
       <head>
         <ThemeScript />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F8FAFC" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B1220" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         {head}
       </head>
       <body className="min-h-screen antialiased">

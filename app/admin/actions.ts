@@ -28,8 +28,10 @@ import {
   projectImages,
   revalidateProjects,
   revalidateSettings,
+  scheduleEmbedProbe,
 } from "./_lib/content";
 import { removeOrphanedUploads } from "./_lib/storage";
+import { EMBED_UNCHECKED, planEmbedCheck } from "@/lib/net/embed-plan";
 
 /**
  * Field parsing lives in ./_lib/schemas.ts (shared with autosave, so the two
@@ -83,20 +85,27 @@ export async function saveProject(formData: FormData): Promise<ActionResult> {
     if (!expected) return fail(STALE_FORM);
 
     // read the previous version first, so screenshots this edit dropped can be
-    // cleaned out of Storage once the new version is safely saved
+    // cleaned out of Storage once the new version is safely saved — and so the
+    // live-URL embed check knows whether the address changed. `*`, not a column
+    // list: a database without the embed columns must still save.
     const { data: before, error: readError } = await supabase
       .from("projects")
-      .select("img, img2, gallery")
+      .select("*")
       .eq("id", id)
       .maybeSingle();
     if (readError) return dbFail(readError);
     if (!before) return fail(PROJECT_GONE);
 
-    const write = await guardedUpdate(supabase, "projects", id, expected, row, { actorId: me.id });
+    // a changed live URL clears the old verdict in this same write
+    const embed = planEmbedCheck(before, row, { explicit: true });
+    const values = embed.reset ? { ...row, ...EMBED_UNCHECKED } : row;
+
+    const write = await guardedUpdate(supabase, "projects", id, expected, values, { actorId: me.id });
     if (write.kind !== "ok") return outcomeFail(write, PROJECT_GONE, onError);
 
     await removeOrphanedUploads(supabase, projectImages(before));
     revalidateProjects();
+    if (embed.probe && embed.url) scheduleEmbedProbe(supabase, id, embed.url);
     return ok("Project saved.", { updatedAt: write.updatedAt });
   }
 
@@ -104,6 +113,7 @@ export async function saveProject(formData: FormData): Promise<ActionResult> {
   if (error) return onError(error);
 
   revalidateProjects();
+  if (row.live_url) scheduleEmbedProbe(supabase, data.id as string, row.live_url);
   return ok("Project created.", { id: data.id as string });
 }
 

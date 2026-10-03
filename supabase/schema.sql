@@ -25,6 +25,7 @@
 --   activity_log      the panel's audit feed
 --   chat_sessions     live-chat conversations (AI, or taken over by a human)
 --   chat_messages     the messages inside them
+--   lead_replies      answers emailed from the inbox (sent or not, and why)
 --   status_reports    latest CI test / Lighthouse results (public status page)
 --   site_revision     one counter bumped on every content change (live updates)
 --   work bucket       public storage for uploaded screenshots
@@ -422,17 +423,32 @@ alter table public.projects add column if not exists testimonial_role   text not
 
 -- Phase 1: can live_url actually be framed? A site that sends X-Frame-Options /
 -- frame-ancestors can't be detected from the browser (cross-origin), so the
--- server probes it and records the answer here. NULL = never checked (the
--- preview then falls back to the screenshot, as before).
+-- server probes it (after a save) and records the answer here. NULL = never
+-- checked: the preview behaves as before (tries the iframe; "Open ↗" stays).
+-- false = known to refuse framing: the preview shows the screenshot instead.
 alter table public.projects add column if not exists embeddable       boolean;
 -- human-readable why, e.g. "X-Frame-Options: DENY" — shown to staff in the panel
 alter table public.projects add column if not exists embed_reason     text not null default '';
 alter table public.projects add column if not exists embed_checked_at timestamptz;
 
+-- updated_at is the editors' concurrency token (autosave and Save both write
+-- `where updated_at = <what I loaded>`). The embed probe writes its verdict in
+-- the background after a save; if that moved updated_at, the editor's next
+-- save would report a false "someone saved a newer version". So an update that
+-- touches ONLY the probe columns keeps the old updated_at. Tables without
+-- those columns are unaffected, and a save that changes nothing still moves
+-- updated_at as before.
 create or replace function public.touch_updated_at()
 returns trigger language plpgsql as $$
+declare
+  probe constant text[] := array['updated_at', 'embeddable', 'embed_reason', 'embed_checked_at'];
 begin
-  new.updated_at := now();
+  if (to_jsonb(new) - probe) = (to_jsonb(old) - probe)
+     and (to_jsonb(new) - 'updated_at') is distinct from (to_jsonb(old) - 'updated_at') then
+    new.updated_at := old.updated_at;
+  else
+    new.updated_at := now();
+  end if;
   return new;
 end;
 $$;
@@ -1177,7 +1193,10 @@ begin
   v_actor := auth.uid();
 
   if tg_op = 'UPDATE' then
-    if (v_old - 'updated_at') = (to_jsonb(new) - 'updated_at') then
+    -- nothing but updated_at / the background embed-probe verdict changed:
+    -- not an edit worth a revision (see touch_updated_at)
+    if (v_old - array['updated_at', 'embeddable', 'embed_reason', 'embed_checked_at'])
+       = (to_jsonb(new) - array['updated_at', 'embeddable', 'embed_reason', 'embed_checked_at']) then
       return null;
     end if;
 
@@ -1280,8 +1299,10 @@ begin
     v_row := to_jsonb(new);
     v_old := to_jsonb(old);
 
-    -- a save that changed nothing but updated_at isn't activity
-    if (v_old - 'updated_at') = (v_row - 'updated_at') then
+    -- a save that changed nothing but updated_at (or only the background
+    -- embed-probe verdict) isn't activity
+    if (v_old - array['updated_at', 'embeddable', 'embed_reason', 'embed_checked_at'])
+       = (v_row - array['updated_at', 'embeddable', 'embed_reason', 'embed_checked_at']) then
       return null;
     end if;
 
@@ -1369,6 +1390,50 @@ create table if not exists public.chat_sessions (
 create index if not exists chat_sessions_last_message_idx
   on public.chat_sessions (last_message_at desc);
 
+-- Phase 4 — human takeover.
+--   visitor_key_hash  sha256 (hex) of a random key the visitor's browser holds
+--                     next to the session id. The chat routes require the key on
+--                     every request, so a session id seen in a log or a
+--                     screenshot is not enough to read or post into the
+--                     conversation. Only the hash is stored.
+--   wants_human_at    the visitor pressed "Talk to a person" (the console lists
+--                     these first). Cleared when staff hand the chat back.
+--   taken_over_at     when the current person took it over.
+--   last_visitor_at   newest VISITOR message — unread means newer than
+--                     admin_read_at (last_message_at also moves on staff and AI
+--                     messages, so it can't answer that).
+--   opening / last_preview / last_role / message_count
+--                     denormalised for the console list, so it is one query.
+-- The last five are kept by the touch_chat_session trigger below — no writer
+-- has to remember them.
+alter table public.chat_sessions add column if not exists visitor_key_hash text;
+alter table public.chat_sessions add column if not exists wants_human_at   timestamptz;
+alter table public.chat_sessions add column if not exists taken_over_at    timestamptz;
+alter table public.chat_sessions add column if not exists last_visitor_at  timestamptz;
+alter table public.chat_sessions add column if not exists opening          text;
+alter table public.chat_sessions add column if not exists last_preview     text;
+alter table public.chat_sessions add column if not exists last_role        text;
+alter table public.chat_sessions add column if not exists message_count    integer not null default 0;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.chat_sessions'::regclass
+      and conname = 'chat_sessions_visitor_key_hash_check'
+  ) then
+    alter table public.chat_sessions
+      add constraint chat_sessions_visitor_key_hash_check
+      check (visitor_key_hash is null or visitor_key_hash ~ '^[0-9a-f]{64}$');
+  end if;
+end;
+$$;
+
+-- the console's "needs a person" set and the nav badge: small, so a partial index
+create index if not exists chat_sessions_attention_idx
+  on public.chat_sessions (last_message_at desc)
+  where mode = 'human' or wants_human_at is not null;
+
 create table if not exists public.chat_messages (
   id         bigint generated always as identity primary key,
   session_id uuid not null references public.chat_sessions (id) on delete cascade,
@@ -1384,7 +1449,8 @@ create index if not exists chat_messages_session_idx
 
 -- Keep chat_sessions.last_message_at honest whoever writes the message —
 -- including a staff reply inserted straight through RLS, which has no reason
--- to also remember to touch the session. The inbox sorts on this column.
+-- to also remember to touch the session. The console sorts on this column,
+-- decides "unread" from last_visitor_at, and lists opening / last_preview.
 create or replace function public.touch_chat_session()
 returns trigger
 language plpgsql
@@ -1393,7 +1459,19 @@ set search_path = public
 as $$
 begin
   update public.chat_sessions
-     set last_message_at = greatest(last_message_at, new.created_at)
+     set last_message_at = greatest(last_message_at, new.created_at),
+         last_visitor_at = case
+           when new.role = 'visitor'
+             then greatest(coalesce(last_visitor_at, new.created_at), new.created_at)
+           else last_visitor_at
+         end,
+         opening = coalesce(
+           opening,
+           case when new.role = 'visitor' then left(new.content, 200) end
+         ),
+         last_preview  = left(new.content, 200),
+         last_role     = new.role,
+         message_count = message_count + 1
    where id = new.session_id;
   return null;
 end;
@@ -1425,10 +1503,58 @@ create policy chat_messages_staff_reply on public.chat_messages
     public.is_staff() and role = 'human' and author_id = auth.uid()
   );
 
+-- Staff may change only the takeover / read-state columns. In particular not
+-- visitor_key_hash: setting it to a known value would let a panel account post
+-- through the public chat route AS the visitor. Column-level, so the RLS
+-- policy above still decides which rows. (REVOKE ALL also drops column grants,
+-- so this pair is safe to re-run.)
 revoke all on public.chat_sessions, public.chat_messages from anon, authenticated;
-grant select, update on public.chat_sessions to authenticated;
+grant select on public.chat_sessions to authenticated;
+grant update (mode, taken_over_by, taken_over_at, admin_read_at, wants_human_at)
+  on public.chat_sessions to authenticated;
 grant select, insert on public.chat_messages to authenticated;
 grant select, insert, update, delete on public.chat_sessions, public.chat_messages to service_role;
+
+-- ----------------------------------------------------------------------------
+-- lead_replies — answers sent from /admin/inbox (Phase 4).
+--
+-- One row per attempt, sent or not: Resend's sandbox only delivers to the
+-- account owner, so a reply can fail for reasons the panel must show plainly,
+-- and the record must never claim an email went out when it didn't
+-- (status 'failed', sent_at null, `error` says why).
+-- Written ONLY by server code with the service role, after the send — so a
+-- staff session can't insert a "sent" row for an email that never left. Staff
+-- read; nobody else sees it. Deleting the lead deletes its replies.
+-- ----------------------------------------------------------------------------
+create table if not exists public.lead_replies (
+  id          uuid primary key default gen_random_uuid(),
+  lead_id     uuid not null references public.leads (id) on delete cascade,
+  author_id   uuid,
+  -- denormalised so the history still reads after the person is removed
+  author_name text not null default '',
+  to_email    text not null,
+  subject     text not null,
+  body        text not null,
+  status      text not null check (status in ('sent', 'failed')),
+  -- Resend's message id when sent
+  provider_id text,
+  -- why it wasn't sent ('' when it was)
+  error       text not null default '',
+  sent_at     timestamptz,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists lead_replies_lead_idx on public.lead_replies (lead_id, created_at);
+
+alter table public.lead_replies enable row level security;
+
+drop policy if exists lead_replies_staff_read on public.lead_replies;
+create policy lead_replies_staff_read on public.lead_replies
+  for select using (public.is_staff());
+
+revoke all on public.lead_replies from anon, authenticated;
+grant select on public.lead_replies to authenticated;
+grant select, insert, update, delete on public.lead_replies to service_role;
 
 -- ----------------------------------------------------------------------------
 -- status_reports — the latest CI results, one row per kind, upserted by CI

@@ -837,6 +837,9 @@ export const ACTIVITY_SECTIONS: { value: string; label: string; entityTypes: str
   ...CONTENT_TABLES.map((t) => ({ value: t, label: ENTITY[t].section, entityTypes: [t] })),
   { value: "team", label: "Team (logins)", entityTypes: ["invitation", "team_member"] },
   { value: "storage", label: "Storage", entityTypes: ["storage"] },
+  // Phase 4: chat.takeover / chat.handback, and inbox.reply
+  { value: "chats", label: "Live chat", entityTypes: ["chat_session"] },
+  { value: "inbox", label: "Inbox replies", entityTypes: ["lead"] },
 ];
 
 /**
@@ -930,6 +933,36 @@ export function describeActivity(
       return say(["created the owner account"], ["The owner account was created"]);
     case "inbox.reply":
       return say([`replied to ${label || "an enquiry"}`], [`${label || "An enquiry"} was answered`]);
+    // live chat (app/admin/chat-actions.ts). Logged on takeover / hand-back
+    // only — never per message. The label is the chat's short id, not the
+    // visitor's words; `started_at` says which conversation it was.
+    case "chat.takeover": {
+      const started = detailStr(d, "started_at");
+      const from = detailStr(d, "from");
+      const which: SentencePart[] = [
+        "the chat ",
+        { label: label || "a visitor chat" },
+        ...(started ? [` (started ${fmt(started)})`] : []),
+      ];
+      return say(
+        ["took over ", ...which, ...(from ? [` from ${from}`] : [])],
+        [`The chat `, { label: label || "a visitor chat" }, " was taken over by a person"]
+      );
+    }
+    case "chat.handback": {
+      const started = detailStr(d, "started_at");
+      const tail: SentencePart[] = started ? [` (started ${fmt(started)})`] : [];
+      if (d.dismissed === true) {
+        return say(
+          ["dismissed the request for a person in the chat ", { label: label || "a visitor chat" }, ...tail],
+          ["A request for a person in the chat ", { label: label || "a visitor chat" }, " was dismissed"]
+        );
+      }
+      return say(
+        ["handed the chat ", { label: label || "a visitor chat" }, ...tail, " back to the assistant"],
+        ["The chat ", { label: label || "a visitor chat" }, " was handed back to the assistant"]
+      );
+    }
   }
 
   // anything newer than this file: still readable, never blank
@@ -959,6 +992,10 @@ export function activityHref(
   }
   if (row.entity_type === "invitation" || row.entity_type === "team_member") return "/admin/team";
   if (row.action.startsWith("storage.")) return "/admin/settings#storage";
+  if (row.entity_type === "chat_session" && /^[0-9a-f-]{36}$/i.test(row.entity_id)) {
+    return `/admin/chats/${row.entity_id}`;
+  }
+  if (row.action === "inbox.reply") return "/admin/inbox";
   return null;
 }
 

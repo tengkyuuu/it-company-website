@@ -46,7 +46,13 @@ async function insertLead(row: Record<string, unknown>): Promise<boolean> {
   if (!isSupabaseConfigured()) return false;
   try {
     const supabase = createAdminClient();
-    const { error } = await supabase.from("leads").insert(row);
+    // bounded: the chat route awaits this before closing its stream (a
+    // serverless instance may freeze once the response ends), so an
+    // unreachable database must cost seconds, not a TCP timeout
+    const { error } = await supabase
+      .from("leads")
+      .insert(row)
+      .abortSignal(AbortSignal.timeout(3000));
     if (error) {
       console.warn("[leads] insert failed:", error.message);
       return false;
@@ -116,7 +122,12 @@ export async function saveApplicationLead(input: {
 }
 
 /**
- * Called by app/api/chat/route.ts once a reply is complete.
+ * Called by app/api/chat/route.ts once a reply is complete — since Phase 4
+ * only as the FALLBACK: conversations are stored in chat_sessions /
+ * chat_messages (lib/chat-store.ts) and handled in /admin/chats. This row is
+ * written when that store is unreachable (or not migrated yet), or when the
+ * visitor's tab is still running the previous deploy's widget (no session),
+ * so a conversation is never lost — and never recorded twice.
  *
  * One row per exchange, holding the whole visible transcript so far, so the
  * inbox shows a readable conversation instead of orphaned fragments. That does

@@ -83,6 +83,41 @@ describe("updated_at as a concurrency token", () => {
     expect(await guarded(bob, "projects", id, afterAlice, "name = 'Bob'")).toBe(1);
   });
 
+  it("the background embed-probe verdict never moves the token, nor leaves history", async () => {
+    const { id } = await one<{ id: string }>(
+      db,
+      `insert into public.projects (slug, name, live_url, updated_at)
+       values ('conc-probe', 'Probed', 'https://example.com', '2026-10-02T06:41:07.555555+00') returning id`
+    );
+    const loaded = await token("projects", id);
+    const counts = async () =>
+      one<{ revs: number; acts: number }>(
+        db,
+        `select (select count(*)::int from public.content_revisions where entity_type = 'projects' and entity_id = $1) as revs,
+                (select count(*)::int from public.activity_log where entity_type = 'projects' and entity_id = $1 and action = 'update') as acts`,
+        [id]
+      );
+    const before = await counts();
+
+    // the probe writes only its own columns (as the editor, like the real code)
+    await asUser(db, { sub: alice.id }, () =>
+      db.query(
+        `update public.projects set embeddable = false, embed_reason = 'X-Frame-Options: DENY',
+           embed_checked_at = now() where id = $1`,
+        [id]
+      )
+    );
+    // so a tab that loaded before the probe can still save — no false conflict
+    expect(await token("projects", id)).toBe(loaded);
+    expect(await counts()).toEqual(before);
+
+    // a real edit still moves the token, and the probe columns ride along unharmed
+    expect(await guarded(alice, "projects", id, loaded, "name = 'Edited'")).toBe(1);
+    expect(await token("projects", id)).not.toBe(loaded);
+    const row = await one<{ embeddable: boolean | null }>(db, "select embeddable from public.projects where id = $1", [id]);
+    expect(row.embeddable).toBe(false);
+  });
+
   it("microseconds survive the string round-trip — and a Date round-trip would break every save", async () => {
     const { id } = await one<{ id: string }>(
       db,

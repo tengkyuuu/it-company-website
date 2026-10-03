@@ -18,6 +18,13 @@ export type Project = {
    * as each project goes live; nothing else needs to change.
    */
   liveUrl?: string;
+  /**
+   * The server's verdict on whether liveUrl can be framed (the save-time probe,
+   * lib/net/embed-probe.ts). `false` = it refuses framing or didn't answer, so
+   * the preview shows the screenshot + "Open ↗" instead of an iframe that would
+   * only display the browser's refusal page. Undefined = never checked.
+   */
+  embeddable?: boolean;
   year: string;
   /** one line, used on the index */
   summary: string;

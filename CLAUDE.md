@@ -276,7 +276,12 @@ reflow. Two non-obvious rules, both learned the hard way here:
   IntersectionObserver-gated mount, rendered at 1440px then CSS-scaled via ResizeObserver so you
   see the *desktop* layout, pointer-events off until "Interact" is clicked (otherwise the iframe
   eats the page scroll), and the screenshot poster is **never** removed on a timeout — a site that
-  refuses framing can't be detected cross-origin, so "Open ↗" is always present.
+  refuses framing can't be detected cross-origin, so "Open ↗" is always present. Since Phase 4
+  the **server** checks instead (see "Embed probe"): `embeddable === false` skips the iframe and
+  shows the screenshot + "Open ↗"; never-checked behaves as before. ⚠️ Inside another link (the
+  `/projects` index cards) render it with **`still`** — an `<a>`/`<button>` inside an `<a>` is
+  invalid HTML, the browser re-parents it, and hydration fails (React #418) as soon as a project
+  has a `liveUrl`.
 - `Button` is **magnetic** (springs toward the cursor on mouse; measures its rect once on
   `pointerenter`, never per move). The filmic **grain** lives inside `AmbientBackground`,
   *behind* content (it used to be a fixed z-40 layer over everything, composited every frame).
@@ -364,7 +369,26 @@ reflow. Two non-obvious rules, both learned the hard way here:
     (`lib/security.ts`), charged before Gemini runs or anything is stored. (It used to be an
     in-memory Map per warm instance, which reset on every cold start.)
   - **Env**: `GEMINI_API_KEY` (server-only, never `NEXT_PUBLIC_`). Unset ⇒ 503 + "chat isn't
-    configured yet" in the widget; the rest of the site is unaffected.
+    configured yet" in the widget; the rest of the site is unaffected. `GEMINI_MODEL` overrides
+    the model (`lib/chat-config.ts`, the one place it's read; default `gemini-3.6-flash`).
+    `GOOGLE_GEMINI_BASE_URL` is honoured by the SDK — handy for pointing it at a local stub.
+  - **Sessions & human takeover** (Phase 4). The widget makes a session id **and a separate
+    256-bit visitor key** (sessionStorage); the server stores only `sha256(key)`
+    (`chat_sessions.visitor_key_hash`) and checks it on every request — a session id alone gets
+    a 403. Sessions are insert-then-reread, never upserted (mode / key can't be overwritten).
+    Messages live in `chat_messages` (service role, `lib/chat-store.ts`: non-throwing, 2.5 s
+    timeout, 15 s circuit breaker → a DB outage falls back to the old behaviour: answer from the
+    browser's history, transcript to `leads`). `mode = 'human'` ⇒ the visitor message is stored
+    and **Gemini is not called**. On hand-back the model reads the stored conversation, with a
+    person's turns as model turns tagged `[Name from the team, writing in person]` (a fixed
+    system-prompt rule explains the tag, so the prompt stays byte-stable). Visitor polling
+    (`GET /api/chat/messages`, key in `x-chat-key`) runs only while the panel is open, the tab
+    visible, and a person has the chat / was asked for / ≤3 min since the visitor's last message;
+    4→8→15 s backoff, 240 / 10 min per IP. "Talk to a person" sets `wants_human_at` (5 / 10 min) —
+    the copy promises working hours, never instant. Console: `/admin/chats` (waiting first,
+    "Live chat" nav badge), take over / hand back / reply via `app/admin/chat-actions.ts`;
+    only `chat.takeover` / `chat.handback` are logged, never messages. New chats live only in
+    sessions; the inbox keeps legacy/fallback `leads` chat rows.
 - **Admin panel / CMS** (`/admin`, Supabase) — **entirely optional**. With the env vars unset
   the marketing site builds and renders exactly as before and `/admin` shows setup steps
   (`components/admin/SetupNotice`); nothing hard-depends on a database.
@@ -583,6 +607,12 @@ reflow. Two non-obvious rules, both learned the hard way here:
       Every function there is **non-throwing**: the contact form's job is to email and the bot's
       is to answer, so a paused database must never turn a delivered enquiry into an error banner.
       Contact leads are still emailed; this is a record, not a replacement.
+      **Replies** (Phase 4, `app/admin/inbox-actions.ts` → `replyToLead`): plain text + escaped
+      HTML via Resend, from `ADMIN_FROM_EMAIL`/`CONTACT_FROM_EMAIL`, `replyTo` = `CONTACT_TO_EMAIL`
+      so the conversation continues in the real mailbox; 30 / hour per staff member. Every attempt
+      is stored in `lead_replies` (`sent` + Resend id, or `failed` + reason); `replied_at` and the
+      `inbox.reply` log line only on a real send. On failure (e.g. the Resend sandbox) the panel
+      says why and offers "Copy reply" + a prefilled `mailto:` — it never claims a send it didn't make.
     - Both new tables treat **empty as "not set up"**, not "no content" — `lib/cms.ts` serves the
       static list, and each page offers an *import* rather than showing a scary warning.
   - **Two root layouts, one document shell.** `app/[lang]/layout.tsx` (public, `<html lang>` per
@@ -592,6 +622,35 @@ reflow. Two non-obvious rules, both learned the hard way here:
     preloader, ambient, nav, footer) is no longer pathname-gated: the admin simply never renders
     inside it. `Footer` is passed to it **as a prop** (client component ← async server component).
     The per-route fade (`template.tsx`) is public-only.
+- **Security headers** (Phase 4, `lib/security-headers.mjs` → `next.config.mjs` `headers()`):
+  CSP + nosniff + `strict-origin-when-cross-origin` + Permissions-Policy + COOP on every route;
+  `/admin` adds `X-Frame-Options: DENY`, `frame-src 'none'`, `noindex`. **No nonce**: a nonce
+  makes every page render per request and loses static rendering, so `script-src` allows
+  `'unsafe-inline'` (Next's inline RSC payload, ThemeScript); everything else is locked down
+  (`connect-src` = self + the Supabase origin https/wss from env; `img-src`/`frame-src` https:
+  because CMS images and live previews may be any host). HSTS and `upgrade-insecure-requests` are
+  gated on `VERCEL=1`, **not** `NODE_ENV` — a local `next start` is "production" over http.
+  `tests/security-headers.test.ts` scans the source for every absolute origin; a new external
+  origin fails it until it's allowed or listed as never-fetched. zod 4 tries `new Function` in
+  the browser, so `lib/contact-schema.ts` sets `z.config({ jitless: true })` client-side.
+- **PWA** (Phase 4): `app/manifest.ts`, icons in `public/icons/` (`scripts/build-icons.mjs`),
+  `public/sw.js` registered from the public layout only, after `whenReady()` + idle, production
+  only. Precaches `/offline.html` (self-contained, bilingual) + icons + wordmarks;
+  `/_next/static/**` cache-first; navigations network-first → offline page; **never touches**
+  `/admin`, `/api`, `/_next/image`, `/_vercel`, or RSC requests (a cached RSC payload from
+  another build breaks hydration). A new SW waits — `skipWaiting` only on a posted message, no
+  `clients.claim()`. Bump the cache version string in `sw.js` when its strategy changes.
+  **Standalone launch skips the Preloader**: the blocking head script sets
+  `<html data-display="standalone">` before paint, CSS hides `.pl`, and `Preloader` calls
+  `markReady()` at once so everything gated on `whenReady()` still starts.
+- **Embed probe** (Phase 4, `lib/net/`): after a project's `live_url` is saved (explicit Save or
+  autosave), `after()` probes it — **SSRF-guarded** (`safe-fetch.ts`: https on the default port
+  only, private/loopback/link-local/CGNAT/ULA/mapped addresses refused, the IP validated **inside
+  the connection's own DNS lookup** so rebinding can't slip through, ≤3 redirects each
+  re-checked, 5 s, headers only) — and stores `embeddable` / `embed_reason` / `embed_checked_at`
+  from `frame-ancestors` (wins) or `X-Frame-Options`. ⚠️ `touch_updated_at` and the
+  revision/activity triggers **ignore probe-only updates** — otherwise the background write would
+  move `updated_at` and every editor would see a false autosave conflict.
 - **Robustness**: `app/[lang]/not-found.tsx` + `error.tsx` (branded, in the visitor's language);
   unmatched public URLs reach them through `app/[lang]/[...missing]` with a real 404 status
   (middleware rewrites everything public under `/en`/`/fil`, and there is no root not-found any
@@ -625,9 +684,15 @@ reflow. Two non-obvious rules, both learned the hard way here:
   everything else → **rewrite** to `/en/…`. Path-only — no DB, no cookies, **no Accept-Language
   redirect** (uncacheable, and it hides pages from crawlers). Switching language is a full
   navigation between two prerendered pages; there is no client-side locale state.
-- **`dynamicParams`**: single-param pages set it `false`; `[slug]` pages keep the default `true`
-  **on purpose** — Next applies it per route, so `false` anywhere up the tree (e.g. the `[lang]`
-  layout) would 404 every project published after the deploy.
+- ⚠️ **Never set `dynamicParams = false` on a public page.** In Next 15 such a page 404s after
+  *on-demand* revalidation: the admin's `revalidatePath("/[lang]", "layout")` (or the status
+  ingest's revalidation) regenerates it, the regeneration throws `Internal: NoFallbackError`, and
+  it serves a 404 — or stale HTML that fails to hydrate — until the next deploy. The Phase 2 i18n
+  move had put it on the nine single-param pages; that shipped to production, and any admin save
+  could knock home / `/projects` / `/fil/*` offline (found and fixed 2026-10-03). It isn't needed:
+  middleware only lets `/en/*` and `/fil/*` reach `app/[lang]`, and `pageLocale()` 404s anything
+  else. `tests/static-params.test.ts` enforces both. (`[slug]` pages also keep the default `true`
+  so content published after a deploy renders on demand.)
 - **API**: server `getDictionary(lang)` → `{ t }` (typed keys, `{var}` interpolation, fallback
   lang → en → key); page pattern `const lang = await pageLocale(params)` (404s junk locales) and
   `...localeMetadata(lang, "/path")` in `generateMetadata` (canonical, hreflang en/fil/x-default,
@@ -679,6 +744,22 @@ reflow. Two non-obvious rules, both learned the hard way here:
 - Careers, the sitemap and the `[lang]` layout use `revalidate = 3600`: "closed" is decided at
   render time in Asia/Manila, so pages must refresh hourly even without an admin edit.
 
+### /status (Phase 4)
+- Public `app/[lang]/status` (both locales, ISR 1 h + on-demand): latest test run and Lighthouse
+  scores per page × mobile/desktop, labelled **"CI runner, no GPU — performance is a lower
+  bound"** (the WebGL hero renders in software there; see the SwiftShader trap). Never invents
+  or rounds up; stale after 7 days; empty state per panel. Footer link + sitemap + ⌘K entry.
+- Ingest `POST /api/status/ingest`: `Authorization: Bearer <STATUS_INGEST_TOKEN>` — its **own**
+  random secret (≥ 32 chars), compared via sha256 + `timingSafeEqual`; rate limit **after**
+  auth (before it, anyone could burn the budget and lock CI out); JSON ≤ 64 KB; strict zod
+  (`lib/status-schema.ts`, shared with the CI builder `scripts/ci/status-payload.mjs`). Upserts
+  `status_reports` (service role) and revalidates the page.
+- CI `.github/workflows/status.yml`: tests on push to main (posted with `!cancelled()`, so a
+  failing suite is still reported); Lighthouse on a successful **Production** `deployment_status`,
+  weekly, and manually. Needs repo secret `STATUS_INGEST_TOKEN` (same value in Vercel) and repo
+  variable `SITE_URL` — a public origin that doesn't redirect: **Vercel Deployment Protection
+  on Production would block both the audits and the POST.**
+
 ### Search (⌘K) & live updates
 - **Palette**: always-loaded part is only `components/search/SearchLauncher.tsx` (key + event
   listeners); `SearchPalette.tsx` is a separate chunk loaded on first open, inert until
@@ -702,7 +783,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
   without `NEXT_PUBLIC_SUPABASE_URL`.
 
 ### Tests (`npm test` — Vitest + PGlite)
-`tests/` — **25 suites, 581 tests** (2026-10-03, after Phase 3). Philosophy (from the reference project): test
+`tests/` — **37 suites, 878 tests** (2026-10-03, after Phase 4). Philosophy (from the reference project): test
 derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
 - **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
   (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,
@@ -860,10 +941,14 @@ no changelog, no press kit, no Spotify/resume/"Now"/Word-document visuals.
   stand-in with sign-in (two-tab conflict, offline recovery, restore, deleted-item restore).
   Optional schema follow-ups suggested, not applied: a `content_revisions.kind` column to
   replace the `__revision` marker, and a scheduled purge of revisions for long-deleted items.
-- ⏳ **Phase 4**: chat human takeover (`chat_sessions.mode`), real inbox replies via Resend,
-  `/status` (GitHub Action → `STATUS_INGEST_TOKEN`, its own secret; label Lighthouse — CI has
-  no GPU), live-URL embed probe at save time (SSRF-guarded), PWA (shell-only, RSC-aware, don't
-  replay the Preloader on install), security headers, Gemini model as env.
+- ✅ **Phase 4**: chat human takeover, inbox email replies, `GEMINI_MODEL`, security headers,
+  PWA, SSRF-guarded embed probe, `/status` + CI ingest. Verified in a browser against local
+  Supabase **and Gemini** stand-ins (takeover both ways, reply failure fallback, CSP sweep, offline
+  navigation, the probe refusing 127.0.0.1). Also fixed two older bugs this testing surfaced:
+  `dynamicParams = false` 404ing pages after revalidation (was live on main), and nested links
+  in the `/projects` index breaking hydration once a project has a `liveUrl`.
+  **Needs `supabase/schema.sql` re-run** (chat session columns, `lead_replies`, probe-aware
+  triggers) — until then chat behaves as before and `/admin/chats` says "schema out of date".
 
 ## Open questions / notes
 - MCP tooling requested ("ui ux pro max", "design thinking", "glif-mcp") is **not yet

@@ -81,6 +81,7 @@ const common: DeepPartial<typeof en> = {
     blocked: "Maaaring hindi pinapayagan ng site na ito ang pag-embed — gamitin ang “Buksan ↗”",
     interactLabel: "Subukan ang live preview ng {name}",
     frameTitle: "{name} — live preview",
+    notEmbeddable: "Hindi maipapakita rito ang site na ito — buksan ito sa bagong tab",
   },
   contact: {
     name: "Pangalan",
@@ -118,6 +119,22 @@ const common: DeepPartial<typeof en> = {
     disclaimer: "Puwedeng magkamali ang AI — para sa anumang pormal na usapan, mag-email sa amin.",
     unavailable: "Hindi available ang chat sa ngayon.",
     genericError: "May nangyaring mali.",
+    // human takeover (Phase 4) — DRAFT, ipa-review sa native speaker
+    badgeHuman: "Kasama ang team",
+    talkToPerson: "Makipag-usap sa tao",
+    talkToPersonHint: "May sasagot dito mula sa team kapag available sila.",
+    requested:
+      "Naabisuhan na namin ang team. May sasagot dito kapag available sila — kadalasan sa oras ng trabaho (oras sa Pilipinas), kaya baka hindi agad-agad. Puwede kang magpatuloy sa assistant habang naghihintay, o mag-email sa amin.",
+    requestFailed: "Hindi maabot ang team sa ngayon — mag-email na lang sa amin.",
+    requestLimited: "Naabisuhan na namin ang team — sasagot sila dito kapag kaya na nila.",
+    waiting: "Naghihintay ng sasagot mula sa team…",
+    joined: "May sumali mula sa team",
+    left: "Bumalik ka na sa assistant",
+    humanAuthor: "{name} · mula sa team",
+    teamMember: "Isang tao mula sa team",
+    delivered: "Naipadala sa team",
+    humanDisclaimer: "Tao mula sa team ang kausap mo. Baka matagalan ang sagot.",
+    humanPlaceholder: "Sumulat sa team…",
   },
   notFound: {
     eyebrow: "Error 404",

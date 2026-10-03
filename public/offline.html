@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F8FAFC">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B1220">
+<title>Offline · R Ally's Tech</title>
+<!--
+  Served by public/sw.js when a navigation can't reach the network. Entirely
+  self-contained — inline styles, an inline SVG mark, no fonts, no requests —
+  because by definition nothing else can load. Both languages are on the page;
+  the one matching the URL the visitor asked for (/fil/… → Filipino) leads.
+  Colours are the site's paper/surface/ink tokens; the theme follows the stored
+  preference (localStorage "mykt-theme"), then the OS.
+-->
+<script>
+(function () {
+  var d = document.documentElement;
+  try {
+    var s = localStorage.getItem("mykt-theme");
+    var dark = s === "dark" || (s !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    d.setAttribute("data-theme", dark ? "dark" : "light");
+  } catch (e) { d.setAttribute("data-theme", "light"); }
+  if (/^\/fil(\/|$)/.test(location.pathname)) { d.setAttribute("lang", "fil"); d.setAttribute("data-lead", "fil"); }
+})();
+</script>
+<style>
+  :root {
+    --paper: #F8FAFC; --surface: #FFFFFF; --mist: #CBD5E1; --slatey: #94A3B8; --ink: #1E293B;
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --paper: #0B1220; --surface: #131D30; --mist: #2A3647; --slatey: #8496B0; --ink: #E6EDF7;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: grid; place-items: center; padding: 24px 16px;
+    background: var(--paper); color: var(--ink);
+    font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    width: 100%; max-width: 520px; padding: 40px 32px;
+    background: var(--surface); border: 1px solid var(--mist); border-radius: 24px;
+    box-shadow: 0 30px 80px -50px rgba(15, 23, 42, 0.45);
+  }
+  .mark { display: block; width: 44px; height: 46px; margin-bottom: 28px; }
+  .eyebrow {
+    margin: 0 0 10px; font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 0.08em; color: color-mix(in srgb, var(--ink) 70%, var(--surface));
+  }
+  h1 { margin: 0; font-size: clamp(28px, 7vw, 38px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 700; }
+  p { margin: 12px 0 0; color: color-mix(in srgb, var(--ink) 78%, var(--surface)); }
+  .alt { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--mist); }
+  .alt h2 { margin: 0; font-size: 18px; letter-spacing: -0.01em; }
+  .alt p { margin-top: 6px; font-size: 14px; }
+  [data-lead="fil"] .stack { display: flex; flex-direction: column-reverse; }
+  [data-lead="fil"] .alt { margin-top: 0; padding-top: 0; border-top: 0; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--mist); }
+  button {
+    margin-top: 32px; padding: 12px 22px; border: 0; border-radius: 999px; cursor: pointer;
+    background: var(--ink); color: var(--paper); font: inherit; font-size: 15px; font-weight: 600;
+    transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  button:hover { transform: translateY(-1px); box-shadow: 0 10px 30px -12px rgba(184, 92, 122, 0.6); }
+  button:focus-visible { outline: 2px solid #E0A23A; outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { button { transition: none; } button:hover { transform: none; } }
+</style>
+</head>
+<body>
+<main>
+  <svg class="mark" viewBox="20 95 680 711" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#9D5A8F"/><stop offset="0.5" stop-color="#B85C7A"/><stop offset="1" stop-color="#E0A23A"/>
+      </linearGradient>
+    </defs>
+    <path fill="url(#g)" d="M333 441.141L280 441.141L280 776.141L345 776.141L345 795.141L20 795.141L20 776.141L85 776.141L85 114.141L20 114.141L20 95.141L322 95.141Q452 95.141 506.500 108.641Q561 122.141 583 141.141Q631 180.141 631 265.141Q631 350.141 589 386.641Q547 423.141 461 430.141L461 433.141Q542 444.141 574 481.141Q606 518.141 606 605.141L606 658.141Q606 710.141 611.500 728.141Q617 746.141 635 746.141Q653 746.141 663.500 729.641Q674 713.141 683 660.141L700 662.141Q689 747.141 661.500 776.141Q634 805.141 552 805.141Q470 805.141 435.500 766.641Q401 728.141 401 622.141L401 549.141Q401 493.141 386.500 467.141Q372 441.141 333 441.141M313 114.141L280 114.141L280 422.141L312 422.141Q369 422.141 396.500 387.141Q424 352.141 424 273.141L424 244.141Q424 165.141 397.500 139.641Q371 114.141 313 114.141"/>
+  </svg>
+  <p class="eyebrow">R Ally's Tech</p>
+  <div class="stack">
+    <section lang="en">
+      <h1>You're offline.</h1>
+      <p>This page needs a connection. Check your Wi-Fi or mobile data, then try again — we'll pick up right where you left off.</p>
+    </section>
+    <section class="alt" lang="fil">
+      <h2>Wala kang koneksyon.</h2>
+      <p>Kailangan ng internet ang pahinang ito. Tingnan ang iyong Wi-Fi o mobile data, saka subukang muli.</p>
+    </section>
+  </div>
+  <button type="button" id="retry">Try again · Subukang muli</button>
+</main>
+<script>
+  document.getElementById("retry").addEventListener("click", function () { location.reload(); });
+  // back online → load the page that was asked for
+  window.addEventListener("online", function () { location.reload(); });
+</script>
+</body>
+</html>

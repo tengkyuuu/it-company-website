@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import DocumentShell from "@/components/DocumentShell";
 import SiteChrome from "@/components/SiteChrome";
 import Footer from "@/components/Footer";
+import ServiceWorkerRegistrar from "@/components/pwa/ServiceWorkerRegistrar";
 import { getPublishedSections } from "@/lib/cms";
 import { buildSearchIndex } from "@/lib/search";
 import { locales } from "@/lib/i18n/config";
@@ -127,6 +128,8 @@ export default async function LangLayout({ children, params }: Props) {
       >
         {children}
       </SiteChrome>
+      {/* PWA: registers public/sw.js after the opening sequence, production only */}
+      <ServiceWorkerRegistrar />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

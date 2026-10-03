@@ -69,6 +69,9 @@ function rowToProject(r: ProjectRow): Project {
     category: r.category,
     url: r.url,
     liveUrl: r.live_url ?? undefined,
+    // the save-time probe's verdict for live_url; null/absent = never checked
+    // (the verdict is cleared in the same write that changes the URL)
+    embeddable: r.live_url && typeof r.embeddable === "boolean" ? r.embeddable : undefined,
     year: r.year,
     summary: r.summary,
     description: r.description,

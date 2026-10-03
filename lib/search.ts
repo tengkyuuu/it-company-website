@@ -140,6 +140,14 @@ async function build(lang: Locale): Promise<SearchEntry[]> {
         content.phone,
       ],
       "/location"
+    ),
+    entry(
+      "page",
+      "status",
+      t("footer.statusLink"),
+      t("status.title"),
+      [en.t("footer.statusLink"), "uptime health tests lighthouse performance CI"],
+      "/status"
     )
   );
 

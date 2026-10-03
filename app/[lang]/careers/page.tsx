@@ -12,7 +12,6 @@ import { localeMetadata } from "@/lib/i18n/metadata";
 import { localizePath } from "@/lib/i18n/paths";
 import { pageLocale, toLocale, type LangParams } from "@/lib/i18n/params";
 
-export const dynamicParams = false;
 // Roles close by the calendar (closes_at, Asia/Manila) — not by an edit that
 // would trigger revalidatePath — so re-render at least hourly.
 export const revalidate = 3600;

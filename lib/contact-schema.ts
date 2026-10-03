@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { services } from "@/lib/services";
 
+// ContactForm imports `serviceOptions` from this module, so zod and the schema
+// below also evaluate in the BROWSER. Zod 4 probes `new Function("")` when an
+// object schema is built (to pick its JIT parser); under the site's CSP, which
+// has no 'unsafe-eval' (lib/security-headers.mjs), that probe is reported as a
+// CSP violation even though zod catches the throw. jitless skips the probe.
+// Browser only — the server keeps the JIT.
+if (typeof window !== "undefined") z.config({ jitless: true });
+
 // Service <option>s — derived from the single source of truth in lib/services.ts.
 export const serviceOptions: string[] = [
   ...services.map((s) => s.title),

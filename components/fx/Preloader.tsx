@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Logo from "@/components/Logo";
+import { isStandaloneLaunch } from "@/components/pwa/display-mode";
 import { markReady } from "./ready";
 
 /**
@@ -21,6 +22,12 @@ import { markReady } from "./ready";
  *
  * No sessionStorage gate — the client asked for this on each opening. It replays
  * on a real page load only; client-side route changes don't remount it.
+ *
+ * Except when launched as the installed app (PWA): the head script marks
+ * <html data-display="standalone"> before first paint, CSS hides `.pl` before it
+ * can show, and this hands over at once — markReady() still fires, so the hero,
+ * chat launcher, search and live updates (all gated on whenReady()) start
+ * normally, just without the 2.1 s wait. See components/pwa/display-mode.ts.
  */
 const TOTAL_MS = 2140; // keep in sync with the pl-out delay + duration in globals.css
 
@@ -31,6 +38,15 @@ export default function Preloader() {
   const finishRef = useRef<() => void>(() => {});
 
   useEffect(() => {
+    // installed-app launch: the sequence is already hidden by CSS (it never
+    // painted), so there is nothing to wait for — no scroll lock either
+    if (isStandaloneLaunch()) {
+      finished.current = true;
+      markReady();
+      setDone(true);
+      return;
+    }
+
     const html = document.documentElement;
     html.classList.add("lenis-stopped");
 
