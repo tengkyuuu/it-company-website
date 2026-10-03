@@ -10,7 +10,8 @@ import {
   WORKPLACES,
 } from "@/app/admin/_lib/catalog";
 import type { JobRow } from "@/lib/supabase/types";
-import { SaveBar, SlugField, useAutoSlug, useUnsavedGuard } from "./CatalogFormParts";
+import { SaveBar, SlugField, useAutoSlug } from "./CatalogFormParts";
+import { useAutosave } from "./useAutosave";
 import {
   Card,
   CardTitle,
@@ -41,17 +42,22 @@ export default function JobForm({
   justCreated?: boolean;
 }) {
   const router = useRouter();
-  const [dirty, setDirty] = useState(false);
   const [closesAt, setClosesAt] = useState(job?.closes_at?.slice(0, 10) ?? "");
   const slug = useAutoSlug(job?.slug);
-  useUnsavedGuard(dirty);
 
-  const { result, pending, formProps, fieldError } = useFormAction(saveJob, {
+  // the action reaches `autosave` through a closure — it only runs on submit
+  const { result, pending, formProps } = useFormAction((fd) => autosave.wrapSave(saveJob)(fd), {
     onSuccess: (r) => {
-      setDirty(false);
       if (!job && r.id) router.replace(`/admin/careers/${r.id}?created=1`);
     },
   });
+  // an existing role's fields autosave as you type; slug / visibility / order need Save
+  const autosave = useAutosave(formProps.ref, {
+    entity: "jobs",
+    id: job?.id,
+    updatedAt: job?.updated_at,
+  });
+  const fieldError = autosave.fieldError;
 
   const shown =
     result ??
@@ -61,7 +67,7 @@ export default function JobForm({
   const passed = Boolean(closesAt) && closesAt < today;
 
   return (
-    <form {...formProps} onChange={() => setDirty(true)} className="space-y-6">
+    <form {...formProps} className="space-y-6">
       <Card>
         <CardTitle hint="How the role is introduced on /careers and its own page.">The role</CardTitle>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -219,12 +225,13 @@ export default function JobForm({
       </Card>
 
       <input type="hidden" name="id" value={job?.id ?? ""} />
+      <input {...autosave.tokenInputProps} />
 
       <SaveBar
         result={shown}
         pending={pending}
         uploading={0}
-        dirty={dirty}
+        autosave={autosave}
         isNew={!job}
         noun="role"
         backHref="/admin/careers"

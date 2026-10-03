@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProjectForm from "@/components/admin/ProjectForm";
+import HistoryPanel from "@/components/admin/HistoryPanel";
 import { getServices, getTeam } from "@/lib/cms";
 import { Pill } from "@/components/admin/ui";
 import { createClient } from "@/lib/supabase/server";
@@ -72,6 +73,7 @@ export default async function EditProjectPage({
         serviceOptions={services.map((s) => s.title)}
         rosterOptions={team.map((m) => m.name)}
       />
+      <HistoryPanel entityType="projects" entityId={project.id} noun="project" />
     </div>
   );
 }

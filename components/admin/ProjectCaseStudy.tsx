@@ -10,6 +10,12 @@ import { Field, Input, Select } from "./ui";
  * that file stays about the basics. Everything here submits through the same
  * <form>: repeating rows use repeated input names (result_value, gallery_src…),
  * which the server action reads back with getAll() as parallel arrays.
+ *
+ * Autosave treats each set of parallel arrays as ONE unit (results, gallery —
+ * see app/admin/_lib/autosave.ts), always sent whole. Typing in a row fires a
+ * native input event the form's autosave hears by itself; adding, removing or
+ * reordering rows (and an upload landing) don't, so every such change calls
+ * `onChange` — the form passes autosave's markDirty for the group.
  */
 
 const chipBase =

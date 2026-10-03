@@ -7,7 +7,8 @@ import { MAX_FEATURES, MAX_PRODUCT_GALLERY, PUBLIC_PATH } from "@/app/admin/_lib
 import type { ProductRow } from "@/lib/supabase/types";
 import ImageField from "./ImageField";
 import { GalleryEditor } from "./ProjectCaseStudy";
-import { SaveBar, SlugField, useAutoSlug, useUnsavedGuard } from "./CatalogFormParts";
+import { SaveBar, SlugField, useAutoSlug } from "./CatalogFormParts";
+import { useAutosave } from "./useAutosave";
 import {
   Card,
   CardTitle,
@@ -22,8 +23,9 @@ import {
 /**
  * One of the studio's OWN products (client work is a project). Mirrors
  * ProjectForm: submits through useFormAction so a failed save keeps every
- * field, holds the save while an image is uploading, and warns before leaving
- * with unsaved edits.
+ * field, autosaves an existing product's fields as you type (useAutosave —
+ * slug, visibility and order still need Save), holds saves while an image is
+ * uploading, and warns before leaving only while something is unsaved.
  */
 export default function ProductForm({
   product,
@@ -34,21 +36,26 @@ export default function ProductForm({
   justCreated?: boolean;
 }) {
   const router = useRouter();
-  const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(0);
   const slug = useAutoSlug(product?.slug);
-  useUnsavedGuard(dirty);
 
-  const { result, pending, formProps, fieldError } = useFormAction(saveProduct, {
+  // the action reaches `autosave` through a closure — it only runs on submit,
+  // long after both hooks exist
+  const { result, pending, formProps } = useFormAction((fd) => autosave.wrapSave(saveProduct)(fd), {
     onSuccess: (r) => {
-      setDirty(false);
       // a create lands on the edit page, so a second click can't insert a
       // duplicate and the URL now points at something real
       if (!product && r.id) router.replace(`/admin/products/${r.id}?created=1`);
     },
   });
+  const autosave = useAutosave(formProps.ref, {
+    entity: "products",
+    id: product?.id,
+    updatedAt: product?.updated_at,
+    paused: uploading > 0,
+  });
+  const fieldError = autosave.fieldError;
 
-  const markDirty = () => setDirty(true);
   const onBusy = (busy: boolean) => setUploading((n) => Math.max(0, n + (busy ? 1 : -1)));
   const shown =
     result ??
@@ -57,7 +64,7 @@ export default function ProductForm({
       : null);
 
   return (
-    <form {...formProps} onChange={markDirty} className="space-y-6">
+    <form {...formProps} className="space-y-6">
       <Card>
         <CardTitle hint="How the product is introduced on /products and its own page.">
           The basics
@@ -176,7 +183,7 @@ export default function ProductForm({
             hint="Capture at 1536px wide or more — the site never upscales."
             error={fieldError("image")}
             onBusyChange={onBusy}
-            onValueChange={markDirty}
+            onValueChange={() => autosave.markDirty("image")}
           />
         </div>
       </Card>
@@ -189,7 +196,7 @@ export default function ProductForm({
           initial={product?.gallery ?? []}
           max={MAX_PRODUCT_GALLERY}
           error={fieldError("gallery")}
-          onChange={markDirty}
+          onChange={() => autosave.markDirty("gallery_src")}
           onBusyChange={onBusy}
         />
       </Card>
@@ -224,12 +231,13 @@ export default function ProductForm({
       </Card>
 
       <input type="hidden" name="id" value={product?.id ?? ""} />
+      <input {...autosave.tokenInputProps} />
 
       <SaveBar
         result={shown}
         pending={pending}
         uploading={uploading}
-        dirty={dirty}
+        autosave={autosave}
         isNew={!product}
         noun="product"
         backHref="/admin/products"

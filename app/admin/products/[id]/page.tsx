@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import ProductForm from "@/components/admin/ProductForm";
+import HistoryPanel from "@/components/admin/HistoryPanel";
 import { BackLink, UpdatedAt } from "@/components/admin/CatalogParts";
 import { Pill } from "@/components/admin/ui";
 import { createClient } from "@/lib/supabase/server";
@@ -45,6 +46,7 @@ export default async function EditProductPage({
       </header>
       {/* keyed by id so moving between products never carries one's edits into the next */}
       <ProductForm key={product.id} product={product} justCreated={created === "1"} />
+      <HistoryPanel entityType="products" entityId={product.id} noun="product" />
     </div>
   );
 }

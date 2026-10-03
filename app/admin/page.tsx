@@ -6,6 +6,8 @@ import { team as staticTeam } from "@/lib/team";
 import { isJobClosed, manilaToday } from "@/lib/cms";
 import { Card, Notice, Pill } from "@/components/admin/ui";
 import SetupNotice from "@/components/admin/SetupNotice";
+import ActivityList from "@/components/admin/ActivityList";
+import { loadActivity } from "./_lib/history";
 import { describeDbError, isMissingTable } from "./_lib/server";
 import { LEAD_KIND_LABEL, LEAD_LITE_COLUMNS, threadLeads, type LeadLite } from "./_lib/inbox";
 
@@ -23,6 +25,8 @@ export default async function AdminHome() {
 
   const profile = await getProfile();
   const supabase = await createClient();
+  // runs alongside the tile queries below; never throws (errors come back as a result)
+  const activityPromise = loadActivity({ limit: 8 }).catch(() => null);
 
   const [
     projectsRes,
@@ -51,6 +55,7 @@ export default async function AdminHome() {
     supabase.from("posts").select("id, published"),
   ]);
 
+  const activity = await activityPromise;
   const projects = projectsRes.data ?? [];
   const services = servicesRes.data ?? [];
   const roster = rosterRes.data ?? [];
@@ -331,6 +336,33 @@ export default async function AdminHome() {
           )}
         </Card>
       </div>
+
+      <Card>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold tracking-tight">
+            Recent activity
+          </h2>
+          <Link
+            href="/admin/activity"
+            className="text-sm text-ink/55 transition-colors hover:text-ink"
+          >
+            All activity →
+          </Link>
+        </div>
+        {!activity || !activity.ok ? (
+          <p className="py-2 text-sm text-ink/55">
+            {activity && !activity.ok && activity.notSetUp
+              ? "The activity log isn’t set up yet — re-run supabase/schema.sql."
+              : "Activity couldn’t be loaded."}
+          </p>
+        ) : activity.items.length === 0 ? (
+          <p className="py-2 text-sm text-ink/55">
+            Nothing yet — edits, publishing and invites will show up here.
+          </p>
+        ) : (
+          <ActivityList items={activity.items} compact />
+        )}
+      </Card>
 
       <Card>
         <h2 className="mb-4 font-display text-lg font-semibold tracking-tight">

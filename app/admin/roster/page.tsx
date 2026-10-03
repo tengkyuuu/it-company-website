@@ -6,6 +6,9 @@ import MemberForm from "@/components/admin/MemberForm";
 import ImportButton from "@/components/admin/ImportButton";
 import { describeDbError, isMissingTable } from "../_lib/server";
 import SetupNotice from "@/components/admin/SetupNotice";
+import HistoryPanel from "@/components/admin/HistoryPanel";
+import RecentlyDeleted from "@/components/admin/RecentlyDeleted";
+import { loadRecentlyDeleted } from "../_lib/history";
 
 export const metadata = { title: "Public roster", robots: { index: false } };
 
@@ -22,11 +25,14 @@ export default async function AdminRosterPage() {
   if (!isSupabaseConfigured()) return <SetupNotice />;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("team_members")
-    .select("*")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  const [{ data, error }, deleted] = await Promise.all([
+    supabase
+      .from("team_members")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    loadRecentlyDeleted("team_members"),
+  ]);
 
   const rows = (data ?? []) as TeamMemberRow[];
   const live = rows.filter((m) => m.published).length;
@@ -107,11 +113,16 @@ export default async function AdminRosterPage() {
                   </div>
                   <MemberForm mode="edit" member={m} />
                 </div>
+                <div className="mt-4 border-t border-mist/70 pt-4">
+                  <HistoryPanel entityType="team_members" entityId={m.id} noun="roster entry" variant="inline" />
+                </div>
               </Card>
             </li>
           ))}
         </ul>
       )}
+
+      {!error && <RecentlyDeleted items={deleted} noun="roster entry" />}
     </div>
   );
 }

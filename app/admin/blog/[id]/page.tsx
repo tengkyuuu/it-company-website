@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import PostForm from "@/components/admin/PostForm";
+import HistoryPanel from "@/components/admin/HistoryPanel";
 import { BackLink, UpdatedAt } from "@/components/admin/CatalogParts";
 import { Pill } from "@/components/admin/ui";
 import { getTeam, manilaToday } from "@/lib/cms";
@@ -56,6 +57,7 @@ export default async function EditPostPage({
         today={manilaToday()}
         justCreated={created === "1"}
       />
+      <HistoryPanel entityType="posts" entityId={post.id} noun="post" />
     </div>
   );
 }

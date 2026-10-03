@@ -1,31 +1,35 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isJobClosed, manilaToday } from "@/lib/cms";
-import {
-  MAX_FEATURES,
-  MAX_LIST_ITEMS,
-  MAX_POST_TAGS,
-  MAX_PRODUCT_GALLERY,
-  manilaDate,
-} from "./_lib/catalog";
 import {
   NOTHING_CHANGED,
   dbFail,
   fail,
-  int,
   isUuid,
   ok,
-  readGallery,
   requireStaff,
   str,
-  toList,
-  zodFail,
+  type Result,
 } from "./_lib/server";
-import { galleryUrls, removeOrphanedUploads } from "./_lib/storage";
-import { ctaUrl, imagePath } from "./_lib/validators";
+import {
+  parseJobForm,
+  parsePostForm,
+  parseProductForm,
+  stampPublishedAt,
+  type JobValues,
+  type PostValues,
+  type ProductValues,
+} from "./_lib/schemas";
+import {
+  STALE_FORM,
+  guardedUpdate,
+  outcomeFail,
+  postImages,
+  productImages,
+  revalidateSection,
+} from "./_lib/content";
+import { removeOrphanedUploads } from "./_lib/storage";
 
 /**
  * Server actions for the studio's own catalogue: products, open roles (the
@@ -34,7 +38,11 @@ import { ctaUrl, imagePath } from "./_lib/validators";
  *  - every exported action calls requireStaff() first — a Server Action is a
  *    public POST endpoint, middleware doesn't run for it (action-guards.test.ts
  *    fails the build otherwise);
- *  - zod with per-field messages; a slug collision lands on the slug input;
+ *  - zod with per-field messages (./_lib/schemas.ts, shared with autosave); a
+ *    slug collision lands on the slug input;
+ *  - an edit writes only if the row is still at the `updated_at` the form was
+ *    loaded with (./_lib/content.ts → guardedUpdate) — a stale tab gets a
+ *    conflict instead of overwriting a newer save;
  *  - every UPDATE/DELETE asks for the affected rows back, because RLS reports a
  *    refused write as a success that touched nothing;
  *  - images a save or delete dropped are removed from Storage only once nothing
@@ -46,48 +54,9 @@ import { ctaUrl, imagePath } from "./_lib/validators";
  * a pattern no page matches yet is harmless.
  */
 
-export type ActionResult = {
-  ok: boolean;
-  message: string;
-  fieldErrors?: Record<string, string>;
-  id?: string;
-};
+export type ActionResult = Result;
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
-type Section = "products" | "careers" | "blog";
-
-/**
- * `listingChanged` = the nav/footer link may have appeared or disappeared
- * (getPublishedSections in lib/cms.ts). That link lives in the [lang] layout,
- * so the whole layout is refreshed — only then, since it re-renders every page.
- */
-function revalidateSection(section: Section, listingChanged: boolean) {
-  revalidatePath("/admin", "layout");
-  revalidatePath(`/[lang]/${section}`, "page");
-  revalidatePath(`/[lang]/${section}/[slug]`, "page");
-  revalidatePath("/sitemap.xml");
-  if (listingChanged) revalidatePath("/[lang]", "layout");
-}
-
-const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-const slug = z
-  .string()
-  .min(1, "Slug is required")
-  .max(60, "Keep the slug under 60 characters")
-  .regex(slugRe, "Use lowercase letters, numbers and single hyphens");
-
-/** 'YYYY-MM-DD' that is a real day (no 2026-02-31). */
-const isCalendarDate = (v: string) => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
-  const [y, m, d] = v.split("-").map(Number);
-  const t = new Date(Date.UTC(y, m - 1, d));
-  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
-};
-
-const optionalDate = z
-  .string()
-  .refine((v) => v === "" || isCalendarDate(v), "Use a real date, or leave it blank");
 
 /** Turn the unique-slug violation into a message on the slug field. */
 function writeFail(error: { code?: string; message?: string }, value: string, noun: string) {
@@ -153,71 +122,24 @@ function readPublished(fd: FormData) {
    products
    =========================================================================== */
 
-const ProductSchema = z.object({
-  slug,
-  name: z.string().min(1, "Name is required").max(120),
-  tagline: z.string().max(160),
-  summary: z.string().max(400),
-  description: z.string().max(6000),
-  image: imagePath,
-  status: z.string().max(40, "Keep the badge to a word or two"),
-  cta_label: z.string().max(40, "Keep the button label short"),
-  cta_url: ctaUrl,
-  published: z.boolean(),
-  sort_order: z.number().int().min(0).max(9999),
-});
-
-/** Every Storage URL a product row references. */
-const productImages = (r: { image?: string | null; gallery?: unknown }) => [
-  r.image,
-  ...galleryUrls(r.gallery),
-];
+const PRODUCT_GONE = "This product no longer exists — it may have been deleted in another tab.";
 
 export async function saveProduct(formData: FormData): Promise<ActionResult> {
-  await requireStaff();
+  const me = await requireStaff();
 
   const id = str(formData, "id");
   if (id && !isUuid(id)) return fail("That product id isn't valid — reload the page.");
 
-  const parsed = ProductSchema.safeParse({
-    slug: str(formData, "slug").toLowerCase(),
-    name: str(formData, "name"),
-    tagline: str(formData, "tagline"),
-    summary: str(formData, "summary"),
-    description: str(formData, "description"),
-    image: str(formData, "image"),
-    status: str(formData, "status"),
-    cta_label: str(formData, "cta_label"),
-    cta_url: str(formData, "cta_url"),
-    published: formData.get("published") === "on",
-    sort_order: int(formData, "sort_order"),
-  });
-  if (!parsed.success) return zodFail(parsed.error);
-  const values = parsed.data;
-
-  // a button needs both halves — half a CTA would silently not render
-  if (values.cta_url && !values.cta_label) {
-    const msg = "Say what the button says, e.g. “Try it free”.";
-    return fail(msg, { cta_label: msg });
-  }
-  if (values.cta_label && !values.cta_url) {
-    const msg = "Add where the button goes — or clear the label.";
-    return fail(msg, { cta_url: msg });
-  }
-
-  const gallery = readGallery(formData, MAX_PRODUCT_GALLERY);
-  if ("error" in gallery) return fail(gallery.error!, { gallery: gallery.error! });
-
-  const row = {
-    ...values,
-    image: values.image || null,
-    features: toList(formData.get("features"), { commas: false, max: MAX_FEATURES, maxLen: 200 }),
-    gallery: gallery.rows,
-  };
+  const parsed = parseProductForm(formData);
+  if (parsed.message) return fail(parsed.message, parsed.fieldErrors);
+  const row = parsed.values as ProductValues;
 
   const supabase = await createClient();
 
   if (id) {
+    const expected = str(formData, "updated_at");
+    if (!expected) return fail(STALE_FORM);
+
     // the previous version, so images this edit dropped can be cleaned out of
     // Storage once the new version is safely saved
     const { data: before, error: readError } = await supabase
@@ -226,15 +148,18 @@ export async function saveProduct(formData: FormData): Promise<ActionResult> {
       .eq("id", id)
       .maybeSingle();
     if (readError) return dbFail(readError);
-    if (!before) return fail("This product no longer exists — it may have been deleted in another tab.");
+    if (!before) return fail(PRODUCT_GONE);
 
-    const { data, error } = await supabase.from("products").update(row).eq("id", id).select("id");
-    if (error) return writeFail(error, row.slug, "product");
-    if (!data?.length) return fail(NOTHING_CHANGED);
+    const write = await guardedUpdate(supabase, "products", id, expected, row, { actorId: me.id });
+    if (write.kind !== "ok") {
+      return outcomeFail(write, PRODUCT_GONE, (e) => writeFail(e, row.slug, "product"));
+    }
 
     await removeOrphanedUploads(supabase, productImages(before));
     revalidateSection("products", before.published !== row.published);
-    return ok(row.published ? "Product saved — live on the site." : "Product saved as a draft.");
+    return ok(row.published ? "Product saved — live on the site." : "Product saved as a draft.", {
+      updatedAt: write.updatedAt,
+    });
   }
 
   // new products land at the end of the list, whatever the form said
@@ -303,62 +228,21 @@ export async function moveProduct(formData: FormData): Promise<ActionResult> {
    jobs — the careers page
    =========================================================================== */
 
-const JobSchema = z.object({
-  slug,
-  title: z.string().min(1, "Title is required").max(120),
-  department: z.string().max(80),
-  location: z.string().max(120),
-  employment_type: z.enum(["full-time", "part-time", "contract", "internship"], {
-    message: "Pick an employment type",
-  }),
-  workplace: z.enum(["onsite", "hybrid", "remote"], { message: "Pick where the work happens" }),
-  summary: z.string().max(400),
-  description: z.string().max(6000),
-  closes_at: optionalDate,
-  published: z.boolean(),
-  sort_order: z.number().int().min(0).max(9999),
-});
+const JOB_GONE = "This role no longer exists — it may have been deleted in another tab.";
 
 /** Would /careers list it? (published, and its last day isn't behind us) */
 const listed = (r: { published: boolean; closes_at: string | null }, today: string) =>
   r.published && !isJobClosed(r.closes_at, today);
 
 export async function saveJob(formData: FormData): Promise<ActionResult> {
-  await requireStaff();
+  const me = await requireStaff();
 
   const id = str(formData, "id");
   if (id && !isUuid(id)) return fail("That role's id isn't valid — reload the page.");
 
-  const parsed = JobSchema.safeParse({
-    slug: str(formData, "slug").toLowerCase(),
-    title: str(formData, "title"),
-    department: str(formData, "department"),
-    location: str(formData, "location"),
-    employment_type: str(formData, "employment_type"),
-    workplace: str(formData, "workplace"),
-    summary: str(formData, "summary"),
-    description: str(formData, "description"),
-    closes_at: str(formData, "closes_at"),
-    published: formData.get("published") === "on",
-    sort_order: int(formData, "sort_order"),
-  });
-  if (!parsed.success) return zodFail(parsed.error);
-  const values = parsed.data;
-
-  const row = {
-    ...values,
-    closes_at: values.closes_at || null,
-    responsibilities: toList(formData.get("responsibilities"), {
-      commas: false,
-      max: MAX_LIST_ITEMS,
-      maxLen: 300,
-    }),
-    requirements: toList(formData.get("requirements"), {
-      commas: false,
-      max: MAX_LIST_ITEMS,
-      maxLen: 300,
-    }),
-  };
+  const parsed = parseJobForm(formData);
+  if (parsed.message) return fail(parsed.message, parsed.fieldErrors);
+  const row = parsed.values as JobValues;
 
   const today = manilaToday();
   // saving a published role whose last day has passed is allowed (e.g. fixing
@@ -373,20 +257,22 @@ export async function saveJob(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
 
   if (id) {
+    const expected = str(formData, "updated_at");
+    if (!expected) return fail(STALE_FORM);
+
     const { data: before, error: readError } = await supabase
       .from("jobs")
       .select("published, closes_at")
       .eq("id", id)
       .maybeSingle();
     if (readError) return dbFail(readError);
-    if (!before) return fail("This role no longer exists — it may have been deleted in another tab.");
+    if (!before) return fail(JOB_GONE);
 
-    const { data, error } = await supabase.from("jobs").update(row).eq("id", id).select("id");
-    if (error) return writeFail(error, row.slug, "role");
-    if (!data?.length) return fail(NOTHING_CHANGED);
+    const write = await guardedUpdate(supabase, "jobs", id, expected, row, { actorId: me.id });
+    if (write.kind !== "ok") return outcomeFail(write, JOB_GONE, (e) => writeFail(e, row.slug, "role"));
 
     revalidateSection("careers", listed(before, today) !== listed(row, today));
-    return ok(savedMessage(false));
+    return ok(savedMessage(false), { updatedAt: write.updatedAt });
   }
 
   const { data, error } = await supabase
@@ -458,81 +344,55 @@ export async function moveJob(formData: FormData): Promise<ActionResult> {
    posts — the blog. No manual order: newest published first.
    =========================================================================== */
 
-const PostSchema = z.object({
-  slug,
-  title: z.string().min(1, "Title is required").max(160),
-  excerpt: z.string().max(400),
-  body: z.string().max(60000, "That's very long — consider splitting it into two posts"),
-  cover_image: imagePath,
-  author_name: z.string().max(120),
-  published: z.boolean(),
-  // a date, not a schedule: the index lists every published post, so a future
-  // date would show "tomorrow" on a post that's already live
-  published_at: optionalDate.refine(
-    (v) => v === "" || v <= manilaToday(),
-    "Scheduling isn't supported — pick today or an earlier date."
-  ),
-});
+const POST_GONE = "This post no longer exists — it may have been deleted in another tab.";
 
 export async function savePost(formData: FormData): Promise<ActionResult> {
-  await requireStaff();
+  const me = await requireStaff();
 
   const id = str(formData, "id");
   if (id && !isUuid(id)) return fail("That post id isn't valid — reload the page.");
 
-  const parsed = PostSchema.safeParse({
-    slug: str(formData, "slug").toLowerCase(),
-    title: str(formData, "title"),
-    excerpt: str(formData, "excerpt"),
-    // not str(): trimming would eat a markdown body's meaningful indentation
-    body: String(formData.get("body") ?? "").replace(/\s+$/, ""),
-    cover_image: str(formData, "cover_image"),
-    author_name: str(formData, "author_name"),
-    published: formData.get("published") === "on",
-    published_at: str(formData, "published_at"),
-  });
-  if (!parsed.success) return zodFail(parsed.error);
-  const { published_at: day, ...values } = parsed.data;
-
-  const row = {
-    ...values,
-    cover_image: values.cover_image || null,
-    tags: toList(formData.get("tags"), { max: MAX_POST_TAGS, maxLen: 40 }),
-  };
-  // blank = let the database stamp it on first publish; a date = midnight
-  // that day in Manila (the form only knows the day)
-  const stamp = (keep: string | null) =>
-    !day ? null : keep && manilaDate(keep) === day ? keep : `${day}T00:00:00+08:00`;
+  const parsed = parsePostForm(formData);
+  if (parsed.message) return fail(parsed.message, parsed.fieldErrors);
+  // published_at is the form's DAY; stampPublishedAt turns it into a timestamp
+  const { published_at: day, ...row } = parsed.values as PostValues;
 
   const supabase = await createClient();
 
   if (id) {
+    const expected = str(formData, "updated_at");
+    if (!expected) return fail(STALE_FORM);
+
     const { data: before, error: readError } = await supabase
       .from("posts")
       .select("published, published_at, cover_image")
       .eq("id", id)
       .maybeSingle();
     if (readError) return dbFail(readError);
-    if (!before) return fail("This post no longer exists — it may have been deleted in another tab.");
+    if (!before) return fail(POST_GONE);
 
     // an untouched date keeps its exact timestamp, so re-saving a post never
     // reshuffles posts published the same day (or logs a no-op revision)
-    const { data, error } = await supabase
-      .from("posts")
-      .update({ ...row, published_at: stamp(before.published_at) })
-      .eq("id", id)
-      .select("id");
-    if (error) return writeFail(error, row.slug, "post");
-    if (!data?.length) return fail(NOTHING_CHANGED);
+    const write = await guardedUpdate(
+      supabase,
+      "posts",
+      id,
+      expected,
+      { ...row, published_at: stampPublishedAt(day, before.published_at) },
+      { actorId: me.id }
+    );
+    if (write.kind !== "ok") return outcomeFail(write, POST_GONE, (e) => writeFail(e, row.slug, "post"));
 
-    await removeOrphanedUploads(supabase, [before.cover_image]);
+    await removeOrphanedUploads(supabase, postImages(before));
     revalidateSection("blog", before.published !== row.published);
-    return ok(row.published ? "Post saved — live on the blog." : "Post saved as a draft.");
+    return ok(row.published ? "Post saved — live on the blog." : "Post saved as a draft.", {
+      updatedAt: write.updatedAt,
+    });
   }
 
   const { data, error } = await supabase
     .from("posts")
-    .insert({ ...row, published_at: stamp(null) })
+    .insert({ ...row, published_at: stampPublishedAt(day, null) })
     .select("id")
     .single();
   if (error) return writeFail(error, row.slug, "post");
@@ -557,7 +417,7 @@ export async function deletePost(formData: FormData): Promise<ActionResult> {
   if (error) return dbFail(error);
   if (!data?.length) return fail(NOTHING_CHANGED);
 
-  await removeOrphanedUploads(supabase, [data[0].cover_image]);
+  await removeOrphanedUploads(supabase, postImages(data[0]));
   revalidateSection("blog", Boolean(data[0].published));
   return ok(`Deleted “${data[0].title}”.`);
 }

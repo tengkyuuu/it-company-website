@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 // grouped by what they edit: the work we sell (projects, products, services),
-// what we publish (blog, careers), who we are (roster), then panel admin
+// what we publish (blog, careers), who we are (roster), then panel admin —
+// ending with the audit feed (who changed what)
 const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/inbox", label: "Inbox" },
@@ -17,6 +18,7 @@ const links = [
   { href: "/admin/roster", label: "Roster" },
   { href: "/admin/team", label: "Team" },
   { href: "/admin/settings", label: "Site settings" },
+  { href: "/admin/activity", label: "Activity" },
 ];
 
 /**

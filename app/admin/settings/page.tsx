@@ -3,6 +3,8 @@ import { isSupabaseConfigured, type SiteSettingsRow } from "@/lib/supabase/types
 import { Notice } from "@/components/admin/ui";
 import SetupNotice from "@/components/admin/SetupNotice";
 import SettingsForm from "@/components/admin/SettingsForm";
+import HistoryPanel from "@/components/admin/HistoryPanel";
+import StorageSweep from "@/components/admin/StorageSweep";
 import { describeDbError, isMissingTable } from "../_lib/server";
 
 export const metadata = { title: "Site settings", robots: { index: false } };
@@ -59,8 +61,14 @@ export default async function SettingsPage() {
           it’s safe to run again and re-seeds the single settings row.
         </Notice>
       ) : (
-        <SettingsForm settings={data as SiteSettingsRow} />
+        <>
+          <SettingsForm settings={data as SiteSettingsRow} />
+          <HistoryPanel entityType="site_settings" entityId="1" subject="the site settings" />
+        </>
       )}
+
+      {/* housekeeping for the upload bucket — see components/admin/StorageSweep */}
+      <StorageSweep />
     </div>
   );
 }

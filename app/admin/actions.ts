@@ -2,43 +2,45 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
-import { createClient, getProfile } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { site } from "@/lib/site";
+import { createClient } from "@/lib/supabase/server";
 import { projects as staticProjects } from "@/lib/work";
 import {
   NOTHING_CHANGED,
   dbFail,
-  int,
+  fail,
   isUuid,
+  ok,
+  requireStaff,
   str,
-  toList,
-  zodFail,
+  type Result,
 } from "./_lib/server";
-import { imagePath, isUrl } from "./_lib/validators";
+import {
+  NEEDS_SHOT,
+  parseProjectForm,
+  parseSettingsForm,
+  type ProjectValues,
+  type SettingsValues,
+} from "./_lib/schemas";
+import {
+  STALE_FORM,
+  guardedUpdate,
+  outcomeFail,
+  projectImages,
+  revalidateProjects,
+  revalidateSettings,
+} from "./_lib/content";
 import { removeOrphanedUploads } from "./_lib/storage";
 
-export type ActionResult = {
-  ok: boolean;
-  message: string;
-  fieldErrors?: Record<string, string>;
-  id?: string;
-};
+/**
+ * Field parsing lives in ./_lib/schemas.ts (shared with autosave, so the two
+ * can't drift); the version-checked write, revalidation and image lists in
+ * ./_lib/content.ts. Every edit-form save sends the row's `updated_at` as it
+ * was when the form loaded (or as the last save returned it) and writes only
+ * if the row is still at that version — a stale tab gets a conflict, never a
+ * silent overwrite of someone's newer save.
+ */
 
-const ok = (message: string): ActionResult => ({ ok: true, message });
-const fail = (message: string, fieldErrors?: Record<string, string>): ActionResult => ({
-  ok: false,
-  message,
-  ...(fieldErrors ? { fieldErrors } : {}),
-});
-
-/** Every mutation goes through this: no session, no writes. */
-async function requireStaff() {
-  const profile = await getProfile();
-  if (!profile) redirect("/admin/login");
-  return profile;
-}
+export type ActionResult = Result;
 
 // ---------------------------------------------------------------------------
 // auth
@@ -55,180 +57,21 @@ export async function signOut() {
 // projects
 // ---------------------------------------------------------------------------
 
-const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const hexRe = /^#[0-9a-fA-F]{6}$/;
-
-const hex = z.string().regex(hexRe, "Use a 6-digit hex like #7c5cff");
-
-const ProjectSchema = z.object({
-  slug: z
-    .string()
-    .min(1, "Slug is required")
-    .max(60, "Keep the slug under 60 characters")
-    .regex(slugRe, "Use lowercase letters, numbers and single hyphens"),
-  name: z.string().min(1, "Name is required").max(120),
-  category: z.string().max(120),
-  url: z.string().max(200),
-  // https only: this becomes an <iframe src> on an https site, where http is
-  // blocked as mixed content — and javascript: would run in our own origin
-  live_url: z
-    .string()
-    .max(500)
-    .refine((v) => v === "" || isUrl(v, /^https:\/\//i), "Live URL must be a full https:// address"),
-  year: z.string().max(20),
-  summary: z.string().max(400),
-  description: z.string().max(4000),
-  img: imagePath,
-  img2: imagePath,
-  dot1: hex,
-  dot2: hex,
-  dot3: hex,
-  published: z.boolean(),
-  sort_order: z.number().int().min(0).max(9999),
-  // case-study detail — all optional
-  client: z.string().max(120),
-  industry: z.string().max(120),
-  timeline: z.string().max(120),
-  challenge: z.string().max(4000),
-  approach: z.string().max(4000),
-  outcome: z.string().max(4000),
-  testimonial_quote: z.string().max(1200),
-  testimonial_author: z.string().max(120),
-  testimonial_role: z.string().max(120),
-});
-
-const MAX_RESULTS = 4;
-const MAX_GALLERY = 12;
-
-/**
- * The repeating rows (results, gallery) arrive as parallel arrays — every row
- * renders all of its inputs, so index i of each array belongs to the same row.
- * Fully blank rows are dropped; half-filled ones are an error, not a silent loss.
- */
-function readResults(fd: FormData) {
-  const values = fd.getAll("result_value").map((v) => String(v).trim());
-  const labels = fd.getAll("result_label").map((v) => String(v).trim());
-  const rows = values
-    .map((value, i) => ({ value: value.slice(0, 16), label: (labels[i] ?? "").slice(0, 80) }))
-    .filter((r) => r.value || r.label);
-  if (rows.some((r) => !r.value || !r.label)) {
-    return { error: "Each result needs both a number and what it measures." } as const;
-  }
-  return { rows: rows.slice(0, MAX_RESULTS) } as const;
-}
-
-function readGallery(fd: FormData) {
-  const srcs = fd.getAll("gallery_src").map((v) => String(v).trim());
-  const captions = fd.getAll("gallery_caption").map((v) => String(v).trim());
-  const kinds = fd.getAll("gallery_kind").map(String);
-  const rows = srcs
-    .map((src, i) => ({
-      src,
-      caption: (captions[i] ?? "").slice(0, 200),
-      kind: kinds[i] === "mobile" ? ("mobile" as const) : ("desktop" as const),
-    }))
-    .filter((r) => r.src);
-  const bad = rows.find((r) => !imagePath.safeParse(r.src).success);
-  if (bad) return { error: "One of the gallery images has an invalid address — re-upload it." } as const;
-  return { rows: rows.slice(0, MAX_GALLERY) } as const;
-}
-
-/** Checkbox values (repeated name) + an optional free-text "other" list, merged. */
-function readPicked(fd: FormData, key: string, otherKey: string | null, max: number) {
-  const picked = fd.getAll(key).map((v) => String(v).trim().slice(0, 60)).filter(Boolean);
-  const other = otherKey ? toList(fd.get(otherKey), { max, maxLen: 60 }) : [];
-  return [...new Set([...picked, ...other])].slice(0, max);
-}
-
-/** Every Storage URL a project row references — screenshots and gallery alike. */
-function shotUrls(r: { img?: string | null; img2?: string | null; gallery?: unknown }) {
-  const gallery = Array.isArray(r.gallery)
-    ? r.gallery.map((g: { src?: unknown }) => (typeof g?.src === "string" ? g.src : null))
-    : [];
-  return [r.img, r.img2, ...gallery];
-}
-
-/**
- * Everything that renders projects: the landing gallery, the index, every
- * detail page (each one's prev/next links depend on order and visibility, and
- * a rename has to refresh the OLD url too — the dynamic pattern covers both),
- * the sitemap, and the panel itself.
- */
-function revalidateProjects() {
-  revalidatePath("/admin", "layout");
-  revalidatePath("/[lang]", "page"); // landing gallery, both locales
-  revalidatePath("/[lang]/projects", "page");
-  revalidatePath("/[lang]/projects/[slug]", "page");
-  revalidatePath("/sitemap.xml");
-}
-
-const NEEDS_SHOT =
-  "Add a main screenshot before publishing — without one the site falls back to a placeholder image.";
+const PROJECT_GONE = "This project no longer exists — it may have been deleted in another tab.";
 
 // Uploads this edit dropped are cleaned out of Storage by
 // removeOrphanedUploads (./_lib/storage.ts) — shared with products and posts,
 // and it keeps any file another table or a stored revision still references.
 
 export async function saveProject(formData: FormData): Promise<ActionResult> {
-  await requireStaff();
+  const me = await requireStaff();
 
   const id = str(formData, "id");
   if (id && !isUuid(id)) return fail("That project id isn't valid — reload the page.");
 
-  const parsed = ProjectSchema.safeParse({
-    slug: str(formData, "slug").toLowerCase(),
-    name: str(formData, "name"),
-    category: str(formData, "category"),
-    url: str(formData, "url"),
-    live_url: str(formData, "live_url"),
-    year: str(formData, "year"),
-    summary: str(formData, "summary"),
-    description: str(formData, "description"),
-    img: str(formData, "img"),
-    img2: str(formData, "img2"),
-    dot1: str(formData, "dot1"),
-    dot2: str(formData, "dot2"),
-    dot3: str(formData, "dot3"),
-    published: formData.get("published") === "on",
-    sort_order: int(formData, "sort_order"),
-    client: str(formData, "client"),
-    industry: str(formData, "industry"),
-    timeline: str(formData, "timeline"),
-    challenge: str(formData, "challenge"),
-    approach: str(formData, "approach"),
-    outcome: str(formData, "outcome"),
-    testimonial_quote: str(formData, "testimonial_quote"),
-    testimonial_author: str(formData, "testimonial_author"),
-    testimonial_role: str(formData, "testimonial_role"),
-  });
-  if (!parsed.success) return zodFail(parsed.error);
-
-  const { dot1, dot2, dot3, ...values } = parsed.data;
-  if (values.published && !values.img) return fail(NEEDS_SHOT, { img: NEEDS_SHOT });
-  if (values.testimonial_quote && !values.testimonial_author) {
-    const who = "Say who said it — an unattributed quote reads as invented.";
-    return fail(who, { testimonial_author: who });
-  }
-
-  const results = readResults(formData);
-  if ("error" in results) return fail(results.error!, { results: results.error! });
-  const gallery = readGallery(formData);
-  if ("error" in gallery) return fail(gallery.error!, { gallery: gallery.error! });
-
-  const row = {
-    ...values,
-    live_url: values.live_url || null,
-    img: values.img || null,
-    img2: values.img2 || null,
-    highlights: toList(formData.get("highlights"), { commas: false }),
-    tags: toList(formData.get("tags"), { max: 12, maxLen: 40 }),
-    dots: [dot1, dot2, dot3],
-    services: readPicked(formData, "services", "services_other", 12),
-    team: readPicked(formData, "team", null, 30),
-    stack: toList(formData.get("stack"), { max: 24, maxLen: 40 }),
-    results: results.rows,
-    gallery: gallery.rows,
-  };
+  const parsed = parseProjectForm(formData);
+  if (parsed.message) return fail(parsed.message, parsed.fieldErrors);
+  const row = parsed.values as ProjectValues;
 
   const supabase = await createClient();
   const taken = `“${row.slug}” is already used by another project.`;
@@ -236,6 +79,9 @@ export async function saveProject(formData: FormData): Promise<ActionResult> {
     error.code === "23505" ? fail(taken, { slug: taken }) : dbFail(error);
 
   if (id) {
+    const expected = str(formData, "updated_at");
+    if (!expected) return fail(STALE_FORM);
+
     // read the previous version first, so screenshots this edit dropped can be
     // cleaned out of Storage once the new version is safely saved
     const { data: before, error: readError } = await supabase
@@ -244,28 +90,21 @@ export async function saveProject(formData: FormData): Promise<ActionResult> {
       .eq("id", id)
       .maybeSingle();
     if (readError) return dbFail(readError);
-    if (!before) {
-      return fail("This project no longer exists — it may have been deleted in another tab.");
-    }
+    if (!before) return fail(PROJECT_GONE);
 
-    const { data, error } = await supabase
-      .from("projects")
-      .update(row)
-      .eq("id", id)
-      .select("id");
-    if (error) return onError(error);
-    if (!data?.length) return fail(NOTHING_CHANGED);
+    const write = await guardedUpdate(supabase, "projects", id, expected, row, { actorId: me.id });
+    if (write.kind !== "ok") return outcomeFail(write, PROJECT_GONE, onError);
 
-    await removeOrphanedUploads(supabase, shotUrls(before));
+    await removeOrphanedUploads(supabase, projectImages(before));
     revalidateProjects();
-    return ok("Project saved.");
+    return ok("Project saved.", { updatedAt: write.updatedAt });
   }
 
   const { data, error } = await supabase.from("projects").insert(row).select("id").single();
   if (error) return onError(error);
 
   revalidateProjects();
-  return { ok: true, message: "Project created.", id: data.id as string };
+  return ok("Project created.", { id: data.id as string });
 }
 
 export async function deleteProject(formData: FormData): Promise<ActionResult> {
@@ -282,7 +121,7 @@ export async function deleteProject(formData: FormData): Promise<ActionResult> {
   if (error) return dbFail(error);
   if (!data?.length) return fail(NOTHING_CHANGED);
 
-  await removeOrphanedUploads(supabase, shotUrls(data[0]));
+  await removeOrphanedUploads(supabase, projectImages(data[0]));
   revalidateProjects();
   return ok(`Deleted “${data[0].name}”.`);
 }
@@ -424,72 +263,30 @@ export async function importStaticProjects(): Promise<ActionResult> {
 // site settings
 // ---------------------------------------------------------------------------
 
-const SettingsSchema = z.object({
-  brand_name: z.string().min(1, "Brand name is required").max(80),
-  tagline: z.string().max(200),
-  email: z.string().min(1, "Email is required").max(200).email("Enter a valid email address"),
-  phone: z.string().max(60),
-  address_line1: z.string().max(160),
-  address_line2: z.string().max(160),
-  hours: z.string().max(120),
-  availability: z.string().max(120),
-  available: z.boolean(),
-});
-
-const MAX_SOCIALS = 12;
+const SETTINGS_MISSING =
+  "The settings row is missing or locked — re-run supabase/schema.sql (it seeds the row), or check your account's permissions.";
 
 export async function saveSettings(formData: FormData): Promise<ActionResult> {
-  await requireStaff();
+  const me = await requireStaff();
 
-  const parsed = SettingsSchema.safeParse({
-    brand_name: str(formData, "brand_name"),
-    tagline: str(formData, "tagline"),
-    email: str(formData, "email"),
-    phone: str(formData, "phone"),
-    address_line1: str(formData, "address_line1"),
-    address_line2: str(formData, "address_line2"),
-    hours: str(formData, "hours"),
-    availability: str(formData, "availability"),
-    available: formData.get("available") === "on",
-  });
-  if (!parsed.success) return zodFail(parsed.error);
+  const parsed = parseSettingsForm(formData);
+  if (parsed.message) return fail(parsed.message, parsed.fieldErrors);
 
-  // socials arrive as parallel social_label[] / social_href[] arrays. A fully
-  // blank row is ignored; a HALF-filled one is an error rather than being
-  // silently dropped, which used to lose a link someone thought they'd saved.
-  const labels = formData.getAll("social_label").map((v) => String(v).trim());
-  const hrefs = formData.getAll("social_href").map((v) => String(v).trim());
-  const socials: { label: string; href: string }[] = [];
-
-  for (let i = 0; i < Math.max(labels.length, hrefs.length); i++) {
-    const label = labels[i] ?? "";
-    const href = hrefs[i] ?? "";
-    if (!label && !href) continue;
-
-    const key = `social_${i}`;
-    if (!label) return fail(`Social link ${i + 1} has a URL but no label.`, { [key]: "Add a label" });
-    if (!href) return fail(`“${label}” needs a URL.`, { [key]: "Add the full URL" });
-    if (!/^(https?:\/\/\S+|mailto:\S+@\S+)$/i.test(href)) {
-      const msg = `“${label}” needs a full URL starting with https://`;
-      return fail(msg, { [key]: msg });
-    }
-    socials.push({ label: label.slice(0, 40), href: href.slice(0, 300) });
-  }
-  if (socials.length > MAX_SOCIALS) return fail(`Keep it to ${MAX_SOCIALS} social links or fewer.`);
+  const expected = str(formData, "updated_at");
+  if (!expected) return fail(STALE_FORM);
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("site_settings")
-    .update({ ...parsed.data, socials })
-    .eq("id", 1)
-    .select("id");
-  if (error) return dbFail(error);
-  if (!data?.length) {
-    return fail(
-      "The settings row is missing or locked — re-run supabase/schema.sql (it seeds the row), or check your account's permissions."
-    );
-  }
+  const write = await guardedUpdate(
+    supabase,
+    "site_settings",
+    1,
+    expected,
+    parsed.values as SettingsValues,
+    { actorId: me.id }
+  );
+  if (write.kind === "gone" || write.kind === "denied") return fail(SETTINGS_MISSING);
+  if (write.kind !== "ok") return outcomeFail(write, SETTINGS_MISSING);
 
-  revalidatePath("/[lang]", "layout"); // footer on every public page, both locales
-  return ok("Settings saved — the public site is updated.");
+  revalidateSettings();
+  return ok("Settings saved — the public site is updated.", { updatedAt: write.updatedAt });
 }

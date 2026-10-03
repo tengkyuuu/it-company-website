@@ -4,6 +4,8 @@ import { isSupabaseConfigured, type ProductRow } from "@/lib/supabase/types";
 import { Card, Notice, Pill } from "@/components/admin/ui";
 import CatalogRowActions from "@/components/admin/CatalogRowActions";
 import SetupNotice from "@/components/admin/SetupNotice";
+import RecentlyDeleted from "@/components/admin/RecentlyDeleted";
+import { loadRecentlyDeleted } from "../_lib/history";
 import { describeDbError, isMissingTable } from "../_lib/server";
 
 export const metadata = { title: "Products", robots: { index: false } };
@@ -20,11 +22,14 @@ export default async function AdminProductsPage() {
   if (!isSupabaseConfigured()) return <SetupNotice />;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("products")
-    .select("id, slug, name, tagline, status, image, published, sort_order")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  const [{ data, error }, deleted] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id, slug, name, tagline, status, image, published, sort_order")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    loadRecentlyDeleted("products"),
+  ]);
 
   const products = (data ?? []) as Pick<
     ProductRow,
@@ -143,6 +148,8 @@ export default async function AdminProductsPage() {
           ))}
         </ol>
       )}
+
+      {!error && <RecentlyDeleted items={deleted} noun="product" />}
     </div>
   );
 }

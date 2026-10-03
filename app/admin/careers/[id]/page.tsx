@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import JobForm from "@/components/admin/JobForm";
+import HistoryPanel from "@/components/admin/HistoryPanel";
 import { BackLink, UpdatedAt } from "@/components/admin/CatalogParts";
 import { Pill } from "@/components/admin/ui";
 import { isJobClosed, manilaToday } from "@/lib/cms";
@@ -70,6 +71,7 @@ export default async function EditJobPage({
       </header>
       {/* keyed by id so moving between roles never carries one's edits into the next */}
       <JobForm key={job.id} job={job} today={today} justCreated={created === "1"} />
+      <HistoryPanel entityType="jobs" entityId={job.id} noun="role" />
     </div>
   );
 }

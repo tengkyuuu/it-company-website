@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { services as staticServices } from "@/lib/services";
 import { team as staticTeam } from "@/lib/team";
@@ -10,14 +9,25 @@ import {
   dbFail,
   fail,
   ids,
-  int,
   isUuid,
   ok,
   requireStaff,
   str,
-  toList,
-  zodFail,
+  type Result,
 } from "./_lib/server";
+import {
+  parseMemberForm,
+  parseServiceForm,
+  type MemberValues,
+  type ServiceValues,
+} from "./_lib/schemas";
+import {
+  STALE_FORM,
+  guardedUpdate,
+  outcomeFail,
+  revalidateRoster,
+  revalidateServices,
+} from "./_lib/content";
 
 /**
  * Server actions for the three things the panel couldn't edit before:
@@ -26,89 +36,54 @@ import {
  * Separate file from actions.ts purely to keep that one readable — Next.js is
  * happy with server actions spread across modules. The shared helpers live in
  * ./_lib/server.ts because a `"use server"` module may only export async
- * functions, so `ok`/`fail` can't be exported from here.
+ * functions, so `ok`/`fail` can't be exported from here. Field parsing is in
+ * ./_lib/schemas.ts (shared with autosave); the version-checked write and the
+ * revalidation sets are in ./_lib/content.ts.
  *
  * Every UPDATE/DELETE asks for the affected rows back: Supabase reports a write
  * that row-level security filtered out as a success touching zero rows, and
  * without the check the panel would say "Saved." when nothing was.
  */
 
-export type ActionResult = {
-  ok: boolean;
-  message: string;
-  fieldErrors?: Record<string, string>;
-  id?: string;
-};
-
-const slugRe = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export type ActionResult = Result;
 
 /* ===========================================================================
    services
 
-   Note the revalidate set: services render on the landing page, on /services,
-   AND in the footer of every page. The footer lives in the root layout, so a
-   save must invalidate the layout too — without that an edit looks saved but
-   the footer keeps the old list until the next deploy.
+   Note the revalidate set (revalidateServices): services render on the landing
+   page, on /services, AND in the footer of every page, so a save invalidates
+   the layout too.
    =========================================================================== */
 
-const ICON_VALUES = ["web", "app", "design", "cloud", "ai", "consult"] as const;
-
-const ServiceSchema = z.object({
-  slug: z
-    .string()
-    .min(1, "Slug is required")
-    .max(60, "Keep the slug under 60 characters")
-    .regex(slugRe, "Use lowercase letters, numbers and single hyphens"),
-  title: z.string().min(1, "Title is required").max(120),
-  blurb: z.string().max(300),
-  detail: z.string().max(2000),
-  icon: z.enum(ICON_VALUES, { message: "Pick one of the six icons" }),
-  published: z.boolean(),
-  sort_order: z.number().int().min(0).max(9999),
-});
-
-function revalidateServices() {
-  revalidatePath("/admin", "layout");
-  revalidatePath("/[lang]/services", "page");
-  revalidatePath("/[lang]", "page");
-  revalidatePath("/[lang]", "layout"); // the footer lists services on every public page
-}
+const SERVICE_GONE = "This service no longer exists — it may have been deleted in another tab.";
 
 export async function saveService(formData: FormData): Promise<ActionResult> {
-  await requireStaff();
+  const me = await requireStaff();
 
   const id = str(formData, "id");
   if (id && !isUuid(id)) return fail("That service id isn't valid — reload the page.");
 
-  const parsed = ServiceSchema.safeParse({
-    slug: str(formData, "slug").toLowerCase(),
-    title: str(formData, "title"),
-    blurb: str(formData, "blurb"),
-    detail: str(formData, "detail"),
-    icon: str(formData, "icon") || "web",
-    published: formData.get("published") === "on",
-    sort_order: int(formData, "sort_order"),
-  });
-  if (!parsed.success) return zodFail(parsed.error);
+  const parsed = parseServiceForm(formData);
+  if (parsed.message) return fail(parsed.message, parsed.fieldErrors);
 
-  const record = { ...parsed.data, deliverables: toList(formData.get("deliverables"), { max: 12, maxLen: 60 }) };
+  const record = parsed.values as ServiceValues;
   const taken = `“${record.slug}” is already used by another service.`;
+  const onError = (error: { code?: string; message?: string }) =>
+    error.code === "23505" ? fail(taken, { slug: taken }) : dbFail(error);
 
   const supabase = await createClient();
   if (id) {
-    const { data, error } = await supabase
-      .from("services")
-      .update(record)
-      .eq("id", id)
-      .select("id");
-    if (error) return error.code === "23505" ? fail(taken, { slug: taken }) : dbFail(error);
-    if (!data?.length) return fail(NOTHING_CHANGED);
+    const expected = str(formData, "updated_at");
+    if (!expected) return fail(STALE_FORM);
+
+    const write = await guardedUpdate(supabase, "services", id, expected, record, { actorId: me.id });
+    if (write.kind !== "ok") return outcomeFail(write, SERVICE_GONE, onError);
     revalidateServices();
-    return ok("Service updated — live on the site now.");
+    return ok("Service updated — live on the site now.", { updatedAt: write.updatedAt });
   }
 
   const { data, error } = await supabase.from("services").insert(record).select("id").single();
-  if (error) return error.code === "23505" ? fail(taken, { slug: taken }) : dbFail(error);
+  if (error) return onError(error);
 
   revalidateServices();
   return ok(
@@ -182,50 +157,28 @@ export async function importStaticServices(): Promise<ActionResult> {
    Not panel logins; see the note on the table in supabase/schema.sql.
    =========================================================================== */
 
-const MemberSchema = z.object({
-  name: z.string().min(1, "Name is required").max(120),
-  role: z.string().max(160),
-  initials: z
-    .string()
-    .max(4, "Up to 4 characters")
-    .regex(/^[\p{L}\p{N}]*$/u, "Letters and numbers only"),
-  published: z.boolean(),
-  sort_order: z.number().int().min(0).max(9999),
-});
-
-function revalidateRoster() {
-  revalidatePath("/admin", "layout");
-  revalidatePath("/[lang]/about", "page");
-}
+const MEMBER_GONE = "This person is no longer on the roster — they may have been removed in another tab.";
 
 export async function saveMember(formData: FormData): Promise<ActionResult> {
-  await requireStaff();
+  const me = await requireStaff();
 
   const id = str(formData, "id");
   if (id && !isUuid(id)) return fail("That member id isn't valid — reload the page.");
 
-  const parsed = MemberSchema.safeParse({
-    name: str(formData, "name"),
-    role: str(formData, "role"),
-    initials: str(formData, "initials").toUpperCase(),
-    published: formData.get("published") === "on",
-    sort_order: int(formData, "sort_order"),
-  });
-  if (!parsed.success) return zodFail(parsed.error);
+  const parsed = parseMemberForm(formData);
+  if (parsed.message) return fail(parsed.message, parsed.fieldErrors);
 
-  const row = parsed.data;
+  const row = parsed.values as MemberValues;
   const supabase = await createClient();
 
   if (id) {
-    const { data, error } = await supabase
-      .from("team_members")
-      .update(row)
-      .eq("id", id)
-      .select("id");
-    if (error) return dbFail(error);
-    if (!data?.length) return fail(NOTHING_CHANGED);
+    const expected = str(formData, "updated_at");
+    if (!expected) return fail(STALE_FORM);
+
+    const write = await guardedUpdate(supabase, "team_members", id, expected, row, { actorId: me.id });
+    if (write.kind !== "ok") return outcomeFail(write, MEMBER_GONE);
     revalidateRoster();
-    return ok(`${row.name} updated.`);
+    return ok(`${row.name} updated.`, { updatedAt: write.updatedAt });
   }
 
   const { data, error } = await supabase.from("team_members").insert(row).select("id").single();

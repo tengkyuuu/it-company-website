@@ -6,7 +6,8 @@ import { savePost } from "@/app/admin/catalog-actions";
 import { MAX_POST_TAGS, PUBLIC_PATH, manilaDate } from "@/app/admin/_lib/catalog";
 import type { PostRow } from "@/lib/supabase/types";
 import ImageField from "./ImageField";
-import { SaveBar, SlugField, useAutoSlug, useUnsavedGuard } from "./CatalogFormParts";
+import { SaveBar, SlugField, useAutoSlug } from "./CatalogFormParts";
+import { useAutosave } from "./useAutosave";
 import {
   Card,
   CardTitle,
@@ -25,16 +26,19 @@ const SOMEONE_ELSE = "__someone-else__";
 /**
  * Byline: pick someone from the public roster (Admin → Roster), or type a
  * name — a guest author, or someone who isn't on the site. The resolved name
- * is what submits, in one hidden `author_name` field.
+ * is what submits, in one hidden `author_name` field — which changes without
+ * an input event of its own, hence `onValueChange` (autosave's markDirty).
  */
 function AuthorField({
   roster,
   saved,
   error,
+  onValueChange,
 }: {
   roster: string[];
   saved: string;
   error?: string;
+  onValueChange?: () => void;
 }) {
   const known = saved === "" || roster.includes(saved);
   const [choice, setChoice] = useState(known ? saved : SOMEONE_ELSE);
@@ -48,7 +52,13 @@ function AuthorField({
         hint={roster.length ? "From the public roster." : "The roster is empty — type a name instead."}
         error={choice === SOMEONE_ELSE ? undefined : error}
       >
-        <Select value={choice} onChange={(e) => setChoice(e.target.value)}>
+        <Select
+          value={choice}
+          onChange={(e) => {
+            setChoice(e.target.value);
+            onValueChange?.();
+          }}
+        >
           <option value="">No byline</option>
           {roster.map((name) => (
             <option key={name} value={name}>
@@ -62,7 +72,10 @@ function AuthorField({
         <Field label="Author name" error={error}>
           <Input
             value={other}
-            onChange={(e) => setOther(e.target.value)}
+            onChange={(e) => {
+              setOther(e.target.value);
+              onValueChange?.();
+            }}
             maxLength={120}
             placeholder="Full name"
           />
@@ -88,19 +101,24 @@ export default function PostForm({
   justCreated?: boolean;
 }) {
   const router = useRouter();
-  const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(0);
   const slug = useAutoSlug(post?.slug);
-  useUnsavedGuard(dirty);
 
-  const { result, pending, formProps, fieldError } = useFormAction(savePost, {
+  // the action reaches `autosave` through a closure — it only runs on submit
+  const { result, pending, formProps } = useFormAction((fd) => autosave.wrapSave(savePost)(fd), {
     onSuccess: (r) => {
-      setDirty(false);
       if (!post && r.id) router.replace(`/admin/blog/${r.id}?created=1`);
     },
   });
+  // an existing post's fields autosave as you type; slug / visibility need Save
+  const autosave = useAutosave(formProps.ref, {
+    entity: "posts",
+    id: post?.id,
+    updatedAt: post?.updated_at,
+    paused: uploading > 0,
+  });
+  const fieldError = autosave.fieldError;
 
-  const markDirty = () => setDirty(true);
   const onBusy = (busy: boolean) => setUploading((n) => Math.max(0, n + (busy ? 1 : -1)));
   const shown =
     result ??
@@ -109,7 +127,7 @@ export default function PostForm({
       : null);
 
   return (
-    <form {...formProps} onChange={markDirty} className="space-y-6">
+    <form {...formProps} className="space-y-6">
       <Card>
         <CardTitle hint="The excerpt shows on the blog index and in link previews.">
           The post
@@ -176,7 +194,7 @@ export default function PostForm({
             defaultValue={post?.cover_image}
             error={fieldError("cover_image")}
             onBusyChange={onBusy}
-            onValueChange={markDirty}
+            onValueChange={() => autosave.markDirty("cover_image")}
           />
         </div>
       </Card>
@@ -184,7 +202,12 @@ export default function PostForm({
       <Card>
         <CardTitle>Byline &amp; tags</CardTitle>
         <div className="grid gap-5 sm:grid-cols-2">
-          <AuthorField roster={roster} saved={post?.author_name ?? ""} error={fieldError("author_name")} />
+          <AuthorField
+            roster={roster}
+            saved={post?.author_name ?? ""}
+            error={fieldError("author_name")}
+            onValueChange={() => autosave.markDirty("author_name")}
+          />
           <Field
             label="Tags"
             hint={`One per line or comma-separated — up to ${MAX_POST_TAGS}.`}
@@ -225,12 +248,13 @@ export default function PostForm({
       </Card>
 
       <input type="hidden" name="id" value={post?.id ?? ""} />
+      <input {...autosave.tokenInputProps} />
 
       <SaveBar
         result={shown}
         pending={pending}
         uploading={uploading}
-        dirty={dirty}
+        autosave={autosave}
         isNew={!post}
         noun="post"
         backHref="/admin/blog"

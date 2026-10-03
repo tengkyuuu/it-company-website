@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { saveProject } from "@/app/admin/actions";
 import type { ProjectRow } from "@/lib/supabase/types";
+import AutosaveStatus from "./AutosaveStatus";
+import ConflictBanner from "./ConflictBanner";
 import ImageField from "./ImageField";
 import { CheckChips, GalleryEditor, ResultsEditor } from "./ProjectCaseStudy";
+import { useAutosave } from "./useAutosave";
 import {
   Banner,
   Card,
@@ -35,17 +38,23 @@ function slugify(s: string) {
     .replace(/-+$/, "");
 }
 
-/** Swatch + hex text, kept in sync so either can be edited. */
+/**
+ * Swatch + hex text, kept in sync so either can be edited. The swatch has no
+ * name (only the hex input submits), so its changes are reported through
+ * `onValueChange` — autosave would never hear about them otherwise.
+ */
 function ColorField({
   name,
   label,
   defaultValue,
   error,
+  onValueChange,
 }: {
   name: string;
   label: string;
   defaultValue: string;
   error?: string;
+  onValueChange?: () => void;
 }) {
   const [value, setValue] = useState(defaultValue);
   const valid = /^#[0-9a-fA-F]{6}$/.test(value);
@@ -61,7 +70,10 @@ function ColorField({
           type="color"
           // a color input rejects anything that isn't #rrggbb
           value={valid ? value.toLowerCase() : "#000000"}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            onValueChange?.();
+          }}
           className="h-11 w-14 shrink-0 cursor-pointer rounded-lg border border-mist/70 bg-paper p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
           aria-label={`${label} swatch`}
         />
@@ -105,47 +117,46 @@ export default function ProjectForm({
   rosterOptions?: string[];
 }) {
   const router = useRouter();
-  const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(0);
 
-  const { result, pending, formProps, fieldError } = useFormAction(saveProject, {
+  // the action reaches `autosave` through a closure — it only runs on submit,
+  // long after both hooks exist
+  const { result, pending, formProps } = useFormAction((fd) => autosave.wrapSave(saveProject)(fd), {
     onSuccess: (r) => {
-      setDirty(false);
       // a create lands on the edit page, so a second click can't insert a
       // duplicate and the URL now points at something real
       if (!project && r.id) router.replace(`/admin/projects/${r.id}?created=1`);
     },
   });
+  // An existing project's fields autosave as you type (dirty fields only,
+  // version-checked — see useAutosave). Slug, visibility and order still need
+  // Save. The hook also owns the leave-page prompt.
+  const autosave = useAutosave(formProps.ref, {
+    entity: "projects",
+    id: project?.id,
+    updatedAt: project?.updated_at,
+    paused: uploading > 0,
+  });
+  const fieldError = autosave.fieldError;
 
   // slug follows the name on a NEW project until someone edits it by hand
   const [slug, setSlug] = useState(project?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(project));
   const renaming = Boolean(project?.published && slug !== project.slug);
 
-  // closing the tab / reloading with unsaved edits asks first
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
-
   const dots = project?.dots?.length === 3 ? project.dots : DEFAULT_DOTS;
   // saved services split into the chips we offer and free-text extras
   const savedServices = project?.services ?? [];
   const pickedServices = savedServices.filter((s) => serviceOptions.includes(s));
   const otherServices = savedServices.filter((s) => !serviceOptions.includes(s));
-  const markDirty = () => setDirty(true);
+  const markDirty = autosave.markDirty;
   const onBusy = (busy: boolean) => setUploading((n) => Math.max(0, n + (busy ? 1 : -1)));
 
   const shown =
     result ?? (justCreated ? { ok: true, message: "Project created. Keep editing, or publish it when it's ready." } : null);
 
   return (
-    <form {...formProps} onChange={markDirty} className="space-y-6">
+    <form {...formProps} className="space-y-6">
       <Card>
         <CardTitle hint="How the project is introduced on /projects and its own page.">
           The basics
@@ -378,7 +389,7 @@ export default function ProjectForm({
           initial={project?.results ?? []}
           max={4}
           error={fieldError("results")}
-          onChange={markDirty}
+          onChange={() => markDirty("result_value")}
         />
       </Card>
 
@@ -428,7 +439,7 @@ export default function ProjectForm({
             hint="Required to publish. Capture at 1536px wide or more — the site never upscales."
             error={fieldError("img")}
             onBusyChange={onBusy}
-            onValueChange={markDirty}
+            onValueChange={() => markDirty("img")}
           />
           <ImageField
             name="img2"
@@ -436,7 +447,7 @@ export default function ProjectForm({
             defaultValue={project?.img2}
             error={fieldError("img2")}
             onBusyChange={onBusy}
-            onValueChange={markDirty}
+            onValueChange={() => markDirty("img2")}
           />
         </div>
       </Card>
@@ -449,7 +460,7 @@ export default function ProjectForm({
           initial={project?.gallery ?? []}
           max={12}
           error={fieldError("gallery")}
-          onChange={markDirty}
+          onChange={() => markDirty("gallery_src")}
           onBusyChange={onBusy}
         />
       </Card>
@@ -498,6 +509,7 @@ export default function ProjectForm({
               label={["Primary", "Secondary", "Deep / background"][i]}
               defaultValue={dots[i]}
               error={fieldError(`dot${i + 1}`)}
+              onValueChange={() => markDirty(`dot${i + 1}`)}
             />
           ))}
         </div>
@@ -530,11 +542,14 @@ export default function ProjectForm({
       </Card>
 
       <input type="hidden" name="id" value={project?.id ?? ""} />
+      <input {...autosave.tokenInputProps} />
 
       {/* sticky so the save button and its result are always in reach on a
           long form — the banner sits right where the eye is after clicking */}
       <div className="sticky bottom-0 z-10 -mx-1 space-y-3 rounded-2xl border border-mist/70 bg-paper/90 p-3 backdrop-blur-xl md:p-4">
-        <Banner result={shown} />
+        <ConflictBanner autosave={autosave} />
+        {/* the conflict banner says it better — no duplicate red line */}
+        <Banner result={autosave.conflict ? null : shown} />
         <div className="flex flex-wrap items-center gap-3">
           <SubmitButton
             pending={pending}
@@ -546,17 +561,13 @@ export default function ProjectForm({
           <Link
             href="/admin/projects"
             onClick={(e) => {
-              if (dirty && !window.confirm("Discard your unsaved changes?")) e.preventDefault();
+              if (!autosave.confirmLeave()) e.preventDefault();
             }}
             className="rounded-full border border-mist/70 px-5 py-2.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
           >
             {project ? "Back" : "Cancel"}
           </Link>
-          {dirty && !pending && (
-            <span className="font-mono text-[11px] uppercase tracking-widest text-slatey">
-              Unsaved changes
-            </span>
-          )}
+          <AutosaveStatus autosave={autosave} />
           {project?.slug && project.published && (
             <Link
               href={`/projects/${project.slug}`}

@@ -4,6 +4,8 @@ import { isSupabaseConfigured, type PostRow } from "@/lib/supabase/types";
 import { Card, Notice, Pill } from "@/components/admin/ui";
 import CatalogRowActions from "@/components/admin/CatalogRowActions";
 import SetupNotice from "@/components/admin/SetupNotice";
+import RecentlyDeleted from "@/components/admin/RecentlyDeleted";
+import { loadRecentlyDeleted } from "../_lib/history";
 import { describeDbError, isMissingTable } from "../_lib/server";
 import { formatDay, manilaDate } from "../_lib/catalog";
 
@@ -21,11 +23,14 @@ export default async function AdminBlogPage() {
   if (!isSupabaseConfigured()) return <SetupNotice />;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("posts")
-    .select("id, slug, title, cover_image, author_name, tags, published, published_at, updated_at")
-    .order("published_at", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false });
+  const [{ data, error }, deleted] = await Promise.all([
+    supabase
+      .from("posts")
+      .select("id, slug, title, cover_image, author_name, tags, published, published_at, updated_at")
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false }),
+    loadRecentlyDeleted("posts"),
+  ]);
 
   const posts = (data ?? []) as Pick<
     PostRow,
@@ -154,6 +159,8 @@ export default async function AdminBlogPage() {
           ))}
         </ul>
       )}
+
+      {!error && <RecentlyDeleted items={deleted} noun="post" />}
     </div>
   );
 }

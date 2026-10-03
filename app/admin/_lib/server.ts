@@ -1,11 +1,16 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 import type { ZodError } from "zod";
-import { getProfile } from "@/lib/supabase/server";
+import { getAccess, getProfile } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ProfileRow } from "@/lib/supabase/types";
-import { imagePath } from "./validators";
+import type { ConflictInfo } from "./autosave";
+
+// The pure form helpers moved to ./schemas.ts (a plain module the autosave
+// route and the tests share); re-exported so existing imports keep working.
+export { int, readGallery, str, toList } from "./schemas";
 
 /**
  * Shared plumbing for the panel's server actions and pages.
@@ -24,6 +29,10 @@ export type Result = {
   fieldErrors?: Record<string, string>;
   /** id of a row the action just created, so the client can navigate to it */
   id?: string;
+  /** the row's new updated_at after a save — the form's next concurrency token */
+  updatedAt?: string;
+  /** set when the save was refused because someone saved a newer version */
+  conflict?: ConflictInfo;
 };
 
 export const ok = (message: string, extra: Partial<Result> = {}): Result => ({
@@ -57,6 +66,38 @@ export async function requireOwner(): Promise<{ me: ProfileRow } | { denied: Res
     return { denied: fail("Only the owner can manage the team.") };
   }
   return { me };
+}
+
+/**
+ * requireStaff() for Route Handlers (app/api/admin/**). A Route Handler is a
+ * public POST endpoint exactly like a Server Action — middleware.ts doesn't
+ * even run for /api — so each one checks the session itself
+ * (tests/route-guards.test.ts fails the build otherwise). Answers with JSON
+ * instead of redirecting: the caller is fetch(), which would otherwise follow
+ * the redirect and get the login page's HTML back as a "200".
+ */
+export async function requireStaffForRoute(): Promise<
+  { profile: ProfileRow } | { response: NextResponse }
+> {
+  const noStore = { "Cache-Control": "no-store" };
+  const access = await getAccess();
+  if (access.state === "signed-out") {
+    return {
+      response: NextResponse.json(
+        { ok: false, error: "Your session has expired — sign in again in another tab. Your edits are kept here." },
+        { status: 401, headers: noStore }
+      ),
+    };
+  }
+  if (access.state !== "ok") {
+    return {
+      response: NextResponse.json(
+        { ok: false, error: "Your account no longer has access to the panel." },
+        { status: 403, headers: noStore }
+      ),
+    };
+  }
+  return { profile: access.profile };
 }
 
 /**
@@ -162,62 +203,10 @@ export function zodFail(error: ZodError): Result {
   );
 }
 
-/**
- * "a, b\nc" -> ["a","b","c"], de-duplicated and bounded so a paste can't bloat
- * a row. `commas: false` splits on newlines only — for sentence-like items
- * (project highlights), where a comma is punctuation, not a separator.
- */
-export function toList(
-  value: unknown,
-  { max = 30, maxLen = 200, commas = true } = {}
-): string[] {
-  if (typeof value !== "string") return [];
-  const seen = new Set<string>();
-  for (const raw of value.split(commas ? /[\n,]/ : /\n/)) {
-    const s = raw.trim().slice(0, maxLen);
-    if (s) seen.add(s);
-    if (seen.size >= max) break;
-  }
-  return [...seen];
-}
-
-/** Read a FormData field as a trimmed string. */
-export const str = (fd: FormData, key: string) => String(fd.get(key) ?? "").trim();
-
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (s: string) => uuidRe.test(s);
 
 /** All `id` values in the form that look like uuids (bulk actions send several). */
 export function ids(fd: FormData, key = "id"): string[] {
   return [...new Set(fd.getAll(key).map(String).filter(isUuid))];
-}
-
-/** A whole number from a form field, clamped — never NaN. */
-export function int(fd: FormData, key: string, { min = 0, max = 9999 } = {}) {
-  const n = Math.round(Number(fd.get(key) ?? 0));
-  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : min;
-}
-
-/**
- * The gallery rows GalleryEditor (components/admin/ProjectCaseStudy.tsx)
- * submits: parallel gallery_src / gallery_caption / gallery_kind arrays, one
- * index per row. Rows without an image are dropped; a bad address is an error,
- * not a silent loss. (actions.ts keeps its own copy for projects.)
- */
-export function readGallery(fd: FormData, max: number) {
-  const srcs = fd.getAll("gallery_src").map((v) => String(v).trim());
-  const captions = fd.getAll("gallery_caption").map((v) => String(v).trim());
-  const kinds = fd.getAll("gallery_kind").map(String);
-  const rows = srcs
-    .map((src, i) => ({
-      src,
-      caption: (captions[i] ?? "").slice(0, 200),
-      kind: kinds[i] === "mobile" ? ("mobile" as const) : ("desktop" as const),
-    }))
-    .filter((r) => r.src);
-  if (rows.some((r) => !imagePath.safeParse(r.src).success)) {
-    return { error: "One of the gallery images has an invalid address — re-upload it." } as const;
-  }
-  if (rows.length > max) return { error: `Keep the gallery to ${max} images or fewer.` } as const;
-  return { rows } as const;
 }

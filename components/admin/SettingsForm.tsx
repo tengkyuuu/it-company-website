@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { saveSettings } from "@/app/admin/actions";
 import type { SiteSettingsRow } from "@/lib/supabase/types";
+import AutosaveStatus from "./AutosaveStatus";
+import ConflictBanner from "./ConflictBanner";
+import { useAutosave } from "./useAutosave";
 import {
   Banner,
   Card,
@@ -25,10 +28,16 @@ const MAX_SOCIALS = 12;
 type SocialDraft = { key: number; label: string; href: string };
 
 export default function SettingsForm({ settings }: { settings: SiteSettingsRow }) {
-  const [dirty, setDirty] = useState(false);
-  const { result, pending, formProps, fieldError } = useFormAction(saveSettings, {
-    onSuccess: () => setDirty(false),
+  // the action reaches `autosave` through a closure — it only runs on submit
+  const { result, pending, formProps } = useFormAction((fd) => autosave.wrapSave(saveSettings)(fd));
+  // the single row (id = 1) autosaves like any other: dirty fields only,
+  // version-checked, and the hook owns the leave-page prompt
+  const autosave = useAutosave(formProps.ref, {
+    entity: "site_settings",
+    id: settings.id ?? 1,
+    updatedAt: settings.updated_at,
   });
+  const fieldError = autosave.fieldError;
 
   const nextKey = useRef(0);
   const draft = (label = "", href = ""): SocialDraft => ({ key: nextKey.current++, label, href });
@@ -39,23 +48,14 @@ export default function SettingsForm({ settings }: { settings: SiteSettingsRow }
     ).map((s) => draft(s.label, s.href))
   );
 
+  // typing fires a native input event (named social_label / social_href), so
+  // autosave hears it; only structural changes need telling
   const update = (key: number, patch: Partial<SocialDraft>) => {
-    setDirty(true);
     setSocials((list) => list.map((s) => (s.key === key ? { ...s, ...patch } : s)));
   };
 
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
-
   return (
-    <form {...formProps} onChange={() => setDirty(true)} className="space-y-6">
+    <form {...formProps} className="space-y-6">
       <Card>
         <CardTitle hint="Used in the footer, the contact page and the site's metadata.">
           Brand
@@ -151,8 +151,8 @@ export default function SettingsForm({ settings }: { settings: SiteSettingsRow }
                   <button
                     type="button"
                     onClick={() => {
-                      setDirty(true);
                       setSocials((list) => list.filter((x) => x.key !== s.key));
+                      autosave.markDirty("social_label");
                     }}
                     className="rounded-xl border border-mist/70 px-3 py-2 text-xs transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
                     aria-label={`Remove social link ${i + 1}${s.label ? ` (${s.label})` : ""}`}
@@ -178,7 +178,7 @@ export default function SettingsForm({ settings }: { settings: SiteSettingsRow }
           type="button"
           disabled={socials.length >= MAX_SOCIALS}
           onClick={() => {
-            setDirty(true);
+            // a blank row changes nothing that would be saved — no markDirty
             setSocials((list) => [...list, draft()]);
           }}
           className="mt-4 rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 disabled:cursor-not-allowed disabled:opacity-50"
@@ -187,15 +187,14 @@ export default function SettingsForm({ settings }: { settings: SiteSettingsRow }
         </button>
       </Card>
 
+      <input {...autosave.tokenInputProps} />
+
       <div className="sticky bottom-0 z-10 -mx-1 space-y-3 rounded-2xl border border-mist/70 bg-paper/90 p-3 backdrop-blur-xl md:p-4">
-        <Banner result={result} />
+        <ConflictBanner autosave={autosave} />
+        <Banner result={autosave.conflict ? null : result} />
         <div className="flex flex-wrap items-center gap-3">
           <SubmitButton pending={pending}>Save settings</SubmitButton>
-          {dirty && !pending && (
-            <span className="font-mono text-[11px] uppercase tracking-widest text-slatey">
-              Unsaved changes
-            </span>
-          )}
+          <AutosaveStatus autosave={autosave} />
         </div>
       </div>
     </form>

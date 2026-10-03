@@ -7,6 +7,8 @@ import ProjectRowActions from "@/components/admin/ProjectRowActions";
 import ImportStaticButton from "@/components/admin/ImportStaticButton";
 import { describeDbError, isMissingTable } from "../_lib/server";
 import SetupNotice from "@/components/admin/SetupNotice";
+import RecentlyDeleted from "@/components/admin/RecentlyDeleted";
+import { loadRecentlyDeleted } from "../_lib/history";
 
 export const metadata = { title: "Projects", robots: { index: false } };
 
@@ -16,11 +18,14 @@ export default async function AdminProjectsPage() {
   if (!isSupabaseConfigured()) return <SetupNotice />;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("projects")
-    .select("*")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  const [{ data, error }, deleted] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    loadRecentlyDeleted("projects"),
+  ]);
 
   const projects = (data ?? []) as ProjectRow[];
   const published = projects.filter((p) => p.published).length;
@@ -139,6 +144,7 @@ export default async function AdminProjectsPage() {
         </ol>
       )}
 
+      {!error && <RecentlyDeleted items={deleted} noun="project" />}
     </div>
   );
 }

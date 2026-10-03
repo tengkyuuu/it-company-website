@@ -5,6 +5,8 @@ import { isJobClosed, manilaToday } from "@/lib/cms";
 import { Card, Notice, Pill } from "@/components/admin/ui";
 import CatalogRowActions from "@/components/admin/CatalogRowActions";
 import SetupNotice from "@/components/admin/SetupNotice";
+import RecentlyDeleted from "@/components/admin/RecentlyDeleted";
+import { loadRecentlyDeleted } from "../_lib/history";
 import { describeDbError, isMissingTable } from "../_lib/server";
 import { employmentLabel, formatDay, workplaceLabel } from "../_lib/catalog";
 
@@ -23,11 +25,14 @@ export default async function AdminCareersPage() {
   if (!isSupabaseConfigured()) return <SetupNotice />;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("jobs")
-    .select("id, slug, title, department, employment_type, workplace, closes_at, published, sort_order")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  const [{ data, error }, deleted] = await Promise.all([
+    supabase
+      .from("jobs")
+      .select("id, slug, title, department, employment_type, workplace, closes_at, published, sort_order")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    loadRecentlyDeleted("jobs"),
+  ]);
 
   const jobs = (data ?? []) as Pick<
     JobRow,
@@ -162,6 +167,8 @@ export default async function AdminCareersPage() {
           })}
         </ol>
       )}
+
+      {!error && <RecentlyDeleted items={deleted} noun="role" />}
     </div>
   );
 }

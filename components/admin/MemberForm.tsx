@@ -3,6 +3,9 @@
 import { useRef } from "react";
 import { saveMember, deleteMember } from "@/app/admin/content-actions";
 import type { TeamMemberRow } from "@/lib/supabase/types";
+import AutosaveStatus from "./AutosaveStatus";
+import ConflictBanner from "./ConflictBanner";
+import { useAutosave } from "./useAutosave";
 import { Banner, Field, Input, Label, SubmitButton, Toggle, useFormAction } from "./ui";
 
 /**
@@ -25,12 +28,19 @@ export default function MemberForm({
   const editing = mode === "edit" && member ? member : null;
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
-  const save = useFormAction(saveMember, {
+  // the action reaches `autosave` through a closure — it only runs on submit
+  const save = useFormAction((fd) => autosave.wrapSave(saveMember)(fd), {
     onSuccess: (_r, form) => {
       if (editing) return;
       form?.reset();
       if (detailsRef.current) detailsRef.current.open = false;
     },
+  });
+  // an existing member autosaves name / role / initials; order and visibility need Save
+  const autosave = useAutosave(save.formProps.ref, {
+    entity: "team_members",
+    id: editing?.id,
+    updatedAt: editing?.updated_at,
   });
   const del = useFormAction(deleteMember);
 
@@ -46,7 +56,7 @@ export default function MemberForm({
       <form {...save.formProps} className="mt-4 w-full space-y-4 md:w-[30rem]">
         {editing && <input type="hidden" name="id" value={editing.id} />}
 
-        <Field label="Name" error={save.fieldError("name")}>
+        <Field label="Name" error={autosave.fieldError("name")}>
           <Input
             name="name"
             required
@@ -57,7 +67,7 @@ export default function MemberForm({
           />
         </Field>
 
-        <Field label="Role" error={save.fieldError("role")}>
+        <Field label="Role" error={autosave.fieldError("role")}>
           <Input
             name="role"
             maxLength={160}
@@ -67,7 +77,7 @@ export default function MemberForm({
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Initials" hint="Blank = derived from the name." error={save.fieldError("initials")}>
+          <Field label="Initials" hint="Blank = derived from the name." error={autosave.fieldError("initials")}>
             <Input
               name="initials"
               maxLength={4}
@@ -77,7 +87,7 @@ export default function MemberForm({
               autoComplete="off"
             />
           </Field>
-          <Field label="Order" hint="Lower shows first." error={save.fieldError("sort_order")}>
+          <Field label="Order" hint="Lower shows first." error={autosave.fieldError("sort_order")}>
             <Input
               name="sort_order"
               type="number"
@@ -97,11 +107,16 @@ export default function MemberForm({
           </Toggle>
         </div>
 
-        <Banner result={save.result} />
+        {editing && <input {...autosave.tokenInputProps} />}
+        <ConflictBanner autosave={autosave} />
+        <Banner result={autosave.conflict ? null : save.result} />
 
-        <SubmitButton pending={save.pending} pendingLabel="Saving…">
-          {editing ? "Save changes" : "Add to roster"}
-        </SubmitButton>
+        <div className="flex flex-wrap items-center gap-3">
+          <SubmitButton pending={save.pending} pendingLabel="Saving…">
+            {editing ? "Save changes" : "Add to roster"}
+          </SubmitButton>
+          <AutosaveStatus autosave={autosave} />
+        </div>
       </form>
 
       {editing && (

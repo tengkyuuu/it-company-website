@@ -3,6 +3,9 @@
 import { useRef, useState } from "react";
 import { saveService, deleteService } from "@/app/admin/content-actions";
 import type { ServiceRow } from "@/lib/supabase/types";
+import AutosaveStatus from "./AutosaveStatus";
+import ConflictBanner from "./ConflictBanner";
+import { useAutosave } from "./useAutosave";
 import {
   Banner,
   Field,
@@ -59,7 +62,8 @@ export default function ServiceForm({
   const [slug, setSlug] = useState(service?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(editing));
 
-  const save = useFormAction(saveService, {
+  // the action reaches `autosave` through a closure — it only runs on submit
+  const save = useFormAction((fd) => autosave.wrapSave(saveService)(fd), {
     onSuccess: (_r, form) => {
       if (editing) return;
       // a fresh create form for the next one, folded away
@@ -68,6 +72,13 @@ export default function ServiceForm({
       setSlugTouched(false);
       if (detailsRef.current) detailsRef.current.open = false;
     },
+  });
+  // an existing service autosaves its text as you type; slug, order and
+  // visibility still need Save. A new one saves on Create.
+  const autosave = useAutosave(save.formProps.ref, {
+    entity: "services",
+    id: editing?.id,
+    updatedAt: editing?.updated_at,
   });
   const del = useFormAction(deleteService);
 
@@ -84,7 +95,7 @@ export default function ServiceForm({
         {editing && <input type="hidden" name="id" value={editing.id} />}
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Title" error={save.fieldError("title")}>
+          <Field label="Title" error={autosave.fieldError("title")}>
             <Input
               name="title"
               required
@@ -96,7 +107,7 @@ export default function ServiceForm({
               }}
             />
           </Field>
-          <Field label="Slug" hint="Lowercase, hyphens only." error={save.fieldError("slug")}>
+          <Field label="Slug" hint="Lowercase, hyphens only." error={autosave.fieldError("slug")}>
             <Input
               name="slug"
               required
@@ -114,7 +125,7 @@ export default function ServiceForm({
           </Field>
         </div>
 
-        <Field label="Blurb" hint="One line, used in compact places." error={save.fieldError("blurb")}>
+        <Field label="Blurb" hint="One line, used in compact places." error={autosave.fieldError("blurb")}>
           <Input
             name="blurb"
             maxLength={300}
@@ -123,7 +134,7 @@ export default function ServiceForm({
           />
         </Field>
 
-        <Field label="Detail" hint="The longer paragraph on /services." error={save.fieldError("detail")}>
+        <Field label="Detail" hint="The longer paragraph on /services." error={autosave.fieldError("detail")}>
           <Textarea
             name="detail"
             rows={4}
@@ -142,7 +153,7 @@ export default function ServiceForm({
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Icon" error={save.fieldError("icon")}>
+          <Field label="Icon" error={autosave.fieldError("icon")}>
             <Select name="icon" defaultValue={service?.icon ?? "web"}>
               {ICONS.map((i) => (
                 <option key={i.value} value={i.value}>
@@ -151,7 +162,7 @@ export default function ServiceForm({
               ))}
             </Select>
           </Field>
-          <Field label="Order" hint="Lower shows first." error={save.fieldError("sort_order")}>
+          <Field label="Order" hint="Lower shows first." error={autosave.fieldError("sort_order")}>
             <Input
               name="sort_order"
               type="number"
@@ -171,12 +182,15 @@ export default function ServiceForm({
           </Toggle>
         </div>
 
-        <Banner result={save.result} />
+        {editing && <input {...autosave.tokenInputProps} />}
+        <ConflictBanner autosave={autosave} />
+        <Banner result={autosave.conflict ? null : save.result} />
 
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <SubmitButton pending={save.pending} pendingLabel={editing ? "Saving…" : "Creating…"}>
             {editing ? "Save changes" : "Create service"}
           </SubmitButton>
+          <AutosaveStatus autosave={autosave} />
         </div>
       </form>
 

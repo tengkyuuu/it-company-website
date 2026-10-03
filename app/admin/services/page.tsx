@@ -6,6 +6,9 @@ import ServiceForm from "@/components/admin/ServiceForm";
 import ImportButton from "@/components/admin/ImportButton";
 import { describeDbError, isMissingTable } from "../_lib/server";
 import SetupNotice from "@/components/admin/SetupNotice";
+import HistoryPanel from "@/components/admin/HistoryPanel";
+import RecentlyDeleted from "@/components/admin/RecentlyDeleted";
+import { loadRecentlyDeleted } from "../_lib/history";
 
 export const metadata = { title: "Services", robots: { index: false } };
 
@@ -25,11 +28,14 @@ export default async function AdminServicesPage() {
   if (!isSupabaseConfigured()) return <SetupNotice />;
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("services")
-    .select("*")
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  const [{ data, error }, deleted] = await Promise.all([
+    supabase
+      .from("services")
+      .select("*")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+    loadRecentlyDeleted("services"),
+  ]);
 
   const rows = (data ?? []) as ServiceRow[];
   const live = rows.filter((s) => s.published).length;
@@ -118,11 +124,16 @@ export default async function AdminServicesPage() {
                   </div>
                   <ServiceForm mode="edit" service={s} />
                 </div>
+                <div className="mt-4 border-t border-mist/70 pt-4">
+                  <HistoryPanel entityType="services" entityId={s.id} noun="service" variant="inline" />
+                </div>
               </Card>
             </li>
           ))}
         </ul>
       )}
+
+      {!error && <RecentlyDeleted items={deleted} noun="service" />}
     </div>
   );
 }

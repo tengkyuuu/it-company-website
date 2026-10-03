@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { useFormStatus } from "react-dom";
+import type { ConflictInfo } from "@/app/admin/_lib/autosave";
 
 /**
  * Small building blocks for the panel. Everything uses the site's semantic
@@ -24,6 +25,10 @@ export type FormResult = {
   message: string;
   fieldErrors?: Record<string, string>;
   id?: string;
+  /** the row's new updated_at after a save (the next concurrency token) */
+  updatedAt?: string;
+  /** the save was refused: someone saved a newer version (see useAutosave) */
+  conflict?: ConflictInfo;
 };
 
 /**

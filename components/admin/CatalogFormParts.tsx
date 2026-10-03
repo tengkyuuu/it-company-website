@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import AutosaveStatus from "./AutosaveStatus";
+import ConflictBanner from "./ConflictBanner";
+import type { Autosave } from "./useAutosave";
 import { Banner, Field, Input, SubmitButton, type FormResult } from "./ui";
 
 /*
  * Pieces shared by the product, job and post forms — the same behaviour the
- * project form has (slug follows the title until edited, unsaved-changes
- * guard, sticky save bar), factored out once there were three more forms.
- * ProjectForm keeps its own copy; it predates these.
+ * project form has (slug follows the title until edited, sticky save bar with
+ * the autosave status), factored out once there were three more forms.
+ * ProjectForm keeps its own copy; it predates these. The unsaved-changes
+ * prompt now lives in useAutosave, which knows what's actually pending.
  */
 
 /** "Rally's Équities" -> "rallys-equities" */
@@ -42,19 +46,6 @@ export function useAutoSlug(saved: string | undefined) {
       setSlug(value.toLowerCase().replace(/\s+/g, "-"));
     },
   };
-}
-
-/** Closing the tab / reloading with unsaved edits asks first. */
-export function useUnsavedGuard(dirty: boolean) {
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
 }
 
 export function SlugField({
@@ -105,13 +96,14 @@ export function SlugField({
 
 /**
  * Sticky so the save button and its result are always in reach on a long
- * form — the banner sits right where the eye is after clicking.
+ * form — the banner sits right where the eye is after clicking. The autosave
+ * line sits next to the button; a conflict banner above everything else.
  */
 export function SaveBar({
   result,
   pending,
   uploading,
-  dirty,
+  autosave,
   isNew,
   noun,
   backHref,
@@ -121,7 +113,7 @@ export function SaveBar({
   pending: boolean;
   /** uploads in flight — saving now would store an empty image */
   uploading: number;
-  dirty: boolean;
+  autosave: Autosave;
   isNew: boolean;
   /** "product", "role", "post" */
   noun: string;
@@ -131,7 +123,8 @@ export function SaveBar({
 }) {
   return (
     <div className="sticky bottom-0 z-10 -mx-1 space-y-3 rounded-2xl border border-mist/70 bg-paper/90 p-3 backdrop-blur-xl md:p-4">
-      <Banner result={result} />
+      <ConflictBanner autosave={autosave} />
+      <Banner result={autosave.conflict ? null : result} />
       <div className="flex flex-wrap items-center gap-3">
         <SubmitButton
           pending={pending}
@@ -143,17 +136,13 @@ export function SaveBar({
         <Link
           href={backHref}
           onClick={(e) => {
-            if (dirty && !window.confirm("Discard your unsaved changes?")) e.preventDefault();
+            if (!autosave.confirmLeave()) e.preventDefault();
           }}
           className="rounded-full border border-mist/70 px-5 py-2.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
         >
           {isNew ? "Cancel" : "Back"}
         </Link>
-        {dirty && !pending && (
-          <span className="font-mono text-[11px] uppercase tracking-widest text-slatey">
-            Unsaved changes
-          </span>
-        )}
+        <AutosaveStatus autosave={autosave} />
         {viewHref && (
           <Link
             href={viewHref}

@@ -510,6 +510,50 @@ reflow. Two non-obvious rules, both learned the hard way here:
     gallery), posts (cover, and URLs in the markdown body) **and every `content_revisions`
     snapshot**, so a restore can never point at a deleted file. Deletes nothing if any source
     fails to read. Consequence: a replaced/deleted image survives until its revisions are pruned.
+    ⚠️ **Supabase silently caps a response at 1000 rows.** `content_revisions` passes that at
+    ~50 items × 20 revisions, and an image referenced only in the unread rows would have looked
+    unused and been deleted — reads now request an exact count and page when truncated. Any new
+    "is this referenced anywhere" check must do the same. The **unused-image sweep** (card on
+    `/admin/settings`) finds files only *pruned* revisions referenced; it skips uploads < 24 h old
+    and re-scans on the server before deleting.
+  - **Autosave** (Phase 3) — every editor saves ~1 s after typing stops, via the Route Handler
+    `app/api/admin/autosave/route.ts` (stable URL: a Server Action would break mid-edit on
+    deploy). Client hook `components/admin/useAutosave.ts`; pure logic `app/admin/_lib/autosave.ts`;
+    parsers shared with the explicit Save in `app/admin/_lib/schemas.ts` (so the two can't drift);
+    the version-checked write in `app/admin/_lib/content.ts` → `guardedUpdate()`.
+    - **Optimistic concurrency**: every write — autosave AND Save — is
+      `.eq("id").eq("updated_at", <exact string Postgres returned>)`. Never round-trip that value
+      through `new Date()` (JS drops the microseconds and nothing would ever match). 0 rows →
+      re-read: gone → "deleted in another tab"; newer → **conflict banner** ("Reload their
+      version" / "Keep mine"); a stale Save never overwrites.
+    - Only dirty fields are sent, as whole **save units** (gallery rows, CTA label+url… travel
+      together — `SAVE_UNITS`). A field stays dirty until a save that *included it* succeeds; failed
+      saves retry 2 s → 5 s → 15 s → 30 s and on `online`/focus (the reference cleared pending edits
+      before the response, so a blip lost them). Flushes with `keepalive` on hide/unload.
+    - **Never autosaved: `slug`, `published`, `sort_order`** (`NEVER_AUTOSAVE`) — a half-typed slug
+      on a live item would break its URL mid-typing; publishing is deliberate. The status says
+      "URL, visibility or order changes need Save"; typing a Save-only field back to its loaded
+      value clears that (baseline recorded by the hook — **not** `defaultValue`, which React keeps
+      in step with a controlled input on every keystroke).
+    - ⚠️ **Never set React state synchronously inside a native `input` listener** on a form with
+      controlled inputs. The browser runs a microtask checkpoint between listeners, so React
+      flushes that render *before* its own handler sees the event and re-renders the controlled
+      input with its old value — the first keystroke into an untouched slug box was silently
+      dropped. Keep refs synchronous; defer the state update (`syncFlagsSoon`).
+  - **History, restore, activity** (Phase 3) — `HistoryPanel` on every edit page (inline toggle on
+    services/roster cards): field-level before → after per revision, Preview, Restore. Loaded on
+    open through staff-only actions (`app/admin/history-actions.ts`). Restore
+    (`app/admin/_lib/history-restore.ts`, one sequence shared with the tests): snapshot filtered
+    to current columns, never writes `id`/`created_at`/`updated_at`; refuses a taken slug before
+    writing; takes a **pre-restore backup** with the service role (marked by a reserved
+    `__revision` key inside the snapshot — no schema column for it yet), deleted again if the
+    write fails; writes through the user's own session so the trigger records the real actor;
+    prunes to 20 and hands pruned images to cleanup; logs `content.restore`; then a **full
+    reload** (the forms are uncontrolled and carry a concurrency token — never `router.refresh()`).
+    "Recently deleted" on each list page re-inserts a DELETE snapshot with its original id
+    (capped at 25; deleted items' revisions are never pruned). `/admin/activity` + an overview
+    card render `activity_log` as sentences (Asia/Manila, formatted on the server), filterable by
+    section / person / kind, paged by id; chat/limiter noise is excluded by query.
   - Panel plumbing worth knowing: `app/admin/_lib/server.ts` maps Postgres errors to plain English
     (`23505` slug taken, RLS denial, missing table, paused project); **every write checks affected
     rows** — RLS-blocked updates "succeed" with 0 rows, which used to show "Saved."; forms submit
@@ -658,7 +702,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
   without `NEXT_PUBLIC_SUPABASE_URL`.
 
 ### Tests (`npm test` — Vitest + PGlite)
-`tests/` — **18 suites, 460 tests** (2026-10-02, after Phase 2). Philosophy (from the reference project): test
+`tests/` — **25 suites, 581 tests** (2026-10-03, after Phase 3). Philosophy (from the reference project): test
 derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
 - **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
   (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,
@@ -678,6 +722,8 @@ derived logic and data integrity, not rendering — the valuable tests catch a *
   directly POST-able regardless of middleware. (The reference's 12-function cap test and
   duplicated per-handler session block do **not** apply to Next.js — Vercel bundles Next routes
   into a few functions, and shared `lib/` imports are traced normally.)
+  `route-guards.test.ts` does the same for every Route Handler under `app/api/admin/**`
+  (must call `requireStaffForRoute`, which answers 401/403 JSON instead of redirecting).
 - Also: data integrity (every image path in `lib/work.ts` exists under `public/` — catches the
   OneDrive deletions; no `data:image/`; no `liveUrl`), the screenshot validator
   (`app/admin/_lib/validators.ts` — rejects `data:`, `javascript:`, `//host` **and `/\host`**,
@@ -808,9 +854,12 @@ no changelog, no press kit, no Spotify/resume/"Now"/Word-document visuals.
   Blog; nav links via `getPublishedSections()`; ⌘K search; live updates. Verified against a local
   PostgREST stand-in with sample data (both locales, 390/1440, nav fit, palette, an end-to-end
   application) — the live project had no catalog content yet.
-- ⏳ **Phase 3 — admin console**: autosave (debounced, dirty fields only, optimistic concurrency
-  on `updated_at` passed through *as a string*); history panel + restore (logged, pre-restore
-  backup; pruning should trigger upload cleanup); activity feed.
+- ✅ **Phase 3 — admin console**: autosave with conflict detection on all seven editors;
+  history panel + restore (pre-restore backup, pruning feeds upload cleanup); recently deleted;
+  activity feed; unused-image sweep. Verified in a browser against a local in-memory Supabase
+  stand-in with sign-in (two-tab conflict, offline recovery, restore, deleted-item restore).
+  Optional schema follow-ups suggested, not applied: a `content_revisions.kind` column to
+  replace the `__revision` marker, and a scheduled purge of revisions for long-deleted items.
 - ⏳ **Phase 4**: chat human takeover (`chat_sessions.mode`), real inbox replies via Resend,
   `/status` (GitHub Action → `STATUS_INGEST_TOKEN`, its own secret; label Lighthouse — CI has
   no GPU), live-URL embed probe at save time (SSRF-guarded), PWA (shell-only, RSC-aware, don't
