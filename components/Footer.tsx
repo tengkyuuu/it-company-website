@@ -115,8 +115,9 @@ export default async function Footer({ lang }: { lang: Locale }) {
           </FooterCol>
         </div>
 
-        {/* Giant wordmark — inks in with the gradient under the cursor */}
-        <div className="pt-6">
+        {/* Giant wordmark — inks in with the gradient under the cursor. The
+            bottom padding keeps the TECH line off the rule below it. */}
+        <div className="pb-7 pt-6">
           <FooterWordmark />
         </div>
 

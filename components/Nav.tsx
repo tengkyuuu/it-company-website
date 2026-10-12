@@ -88,12 +88,11 @@ export default function Nav({ sections }: { sections?: PublishedSections }) {
           aria-label={t("nav.homeLabel")}
           className="flex shrink-0 items-center gap-2.5"
         >
-          {/* The `logo.png` shield used to sit here. It is the OLD brand — a
-              gradient "KT" monogram — so it contradicted the R Ally's Tech
-              wordmark beside it. Dropped rather than shipped wrong; restore the
-              <Image> here once there's a shield for the new name.
-              The link above carries the accessible name, so this is decorative. */}
-          <Logo className="h-[26px]" />
+          {/* The full lockup — its R + spark is the mark, so nothing sits beside
+              it. 40px because the R is the full height and the name's caps are
+              under half of that. The link above carries the accessible name,
+              so this is decorative. */}
+          <Logo className="h-10" />
         </Link>
 
         <nav aria-label={t("nav.ariaLabel")} className={`${desktopOnly} items-center gap-1`}>

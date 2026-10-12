@@ -1,22 +1,24 @@
 /**
- * The R Ally's Tech wordmark.
+ * The R Ally's Tech logo.
  *
- * A ransom-note lockup: every glyph is a different typeface (Abril Fatface ·
- * Bebas Neue · Courier Prime · Playfair Display · Pacifico · Righteous ·
- * Archivo Black · Caveat · Zilla Slab · Lobster). Shipping eleven font families
- * to every visitor would be absurd, so scripts/build-wordmark.mjs converts each
- * glyph to OUTLINES once, at build time, into public/brand/wordmark.svg.
+ * The house lockup: an oversized serif R (Cinzel) with a hairline flick in its
+ * crook, a four-point spark, ALLY'S in tracked serif caps, and TECH (Geist)
+ * between two hairline rules beneath. The spark, the flick and the rules are
+ * drawn shapes, not glyphs, so scripts/build-wordmark.mjs composes the whole
+ * thing as OUTLINES once, at build time, into public/brand/wordmark.svg.
  *
  * It's painted as a CSS mask over `currentColor` rather than an <img>, so it
  * inherits the text colour and therefore follows light/dark and `.band` for
- * free. `variant="outline"` swaps in the stroked-paths asset, which sidesteps
+ * free. `variant="outline"` swaps in the ring asset, which sidesteps
  * drop-shadow (filters apply BEFORE masking, so a shadow would be clipped off).
  *
- * Sizing: the element carries the wordmark's aspect ratio, so set ONE axis —
- * `className="h-7"` or `className="w-full"` — and the other follows. Because
- * it's vector now, there is no maximum size before it goes soft.
+ * Sizing: the element carries the lockup's aspect ratio (~3:1), so set ONE
+ * axis — `className="h-10"` or `className="w-full"` — and the other follows.
+ * The R is the full height, so the name's caps are under half of it: below
+ * ~36px tall the TECH line stops being legible. It's vector, so there is no
+ * maximum size.
  *
- * To restyle the lockup, edit the LOCKUP map in scripts/build-wordmark.mjs and
+ * To restyle the lockup, edit the constants in scripts/build-wordmark.mjs and
  * re-run it; then update `aspect-ratio` in globals.css to the printed ratio.
  */
 export default function Logo({

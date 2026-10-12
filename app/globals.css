@@ -314,21 +314,22 @@ body {
 /* ----------------------------------------------------------------------------
    The R Ally's Tech wordmark (components/Logo.tsx).
 
-   Eleven typefaces in one lockup, so it can't be set in a web font — but it is
-   a real VECTOR, not a raster: scripts/build-wordmark.mjs converts each glyph
-   to outlines at build time. Painted as a CSS *mask* over `currentColor` rather
-   than an <img>, so it inherits the text colour and follows light/dark +
-   `.band` with no extra work.
-   `wordmark-outline.svg` is the same paths stroked instead of filled — a real
-   ring, which sidesteps CSS drop-shadow (filters are applied BEFORE masking, so
-   a shadow on a masked element gets clipped straight back off).
-   Being vector, there is no upscale limit — the old ~820px raster cap is gone.
+   The house lockup — an oversized serif R with a hairline flick, a four-point
+   spark, ALLY'S in tracked serif caps and TECH between two rules beneath. Part
+   type, part drawn shapes, so it can't be set in a web font — but it is a real
+   VECTOR, not a raster: scripts/build-wordmark.mjs outlines it at build time.
+   Painted as a CSS *mask* over `currentColor` rather than an <img>, so it
+   inherits the text colour and follows light/dark + `.band` with no extra work.
+   `wordmark-outline.svg` is the same silhouette as a ring just outside the
+   letters, which sidesteps CSS drop-shadow (filters are applied BEFORE masking,
+   so a shadow on a masked element gets clipped straight back off).
+   Being vector, there is no upscale limit.
 ---------------------------------------------------------------------------- */
 .wm,
 .wm-outline {
   display: block;
   /* intrinsic ratio of the trimmed asset — set one axis, the other follows */
-  aspect-ratio: 5452 / 1195;
+  aspect-ratio: 3636 / 1206;
   background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
@@ -365,7 +366,7 @@ body {
   --pl-w: min(74vw, 720px);
   position: relative;
   width: var(--pl-w);
-  aspect-ratio: 5452 / 1195;
+  aspect-ratio: 3636 / 1206;
 }
 .pl-layer {
   position: absolute;

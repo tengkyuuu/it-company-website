@@ -227,7 +227,11 @@ export default function Hero() {
                 R Ally's Tech · software · design · innovation ·
               </textPath>
             </text>
-            <circle cx="60" cy="60" r="5" fill="url(#hero-grad)" />
+            {/* the logo's four-point spark, in the accent */}
+            <path
+              d="M60 50Q60.8 59 68.5 60Q60.8 61 60 70Q59.2 61 51.5 60Q59.2 59 60 50Z"
+              fill="url(#hero-grad)"
+            />
           </svg>
         </div>
 

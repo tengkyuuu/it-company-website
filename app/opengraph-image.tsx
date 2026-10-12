@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { site } from "@/lib/site";
 
@@ -7,7 +9,19 @@ export const contentType = "image/png";
 
 const ACCENT = "linear-gradient(135deg,#9d5a8f,#b85c7a,#e0a23a)";
 
-export default function OpengraphImage() {
+// the lockup's own proportions (scripts/build-wordmark.mjs prints them)
+const MARK_W = 780;
+const MARK_H = Math.round((MARK_W * 1206) / 3636);
+
+export default async function OpengraphImage() {
+  // The real logo, not a typeset approximation: the generated silhouette,
+  // re-inked for the dark ground. Read from disk — this route is prerendered
+  // at build time, when there is no origin to fetch /brand/wordmark.svg from.
+  const svg = await readFile(join(process.cwd(), "public/brand/wordmark.svg"), "utf8");
+  const mark = `data:image/svg+xml;base64,${Buffer.from(
+    svg.replace('fill="#000"', 'fill="#f8fafc"')
+  ).toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -50,20 +64,9 @@ export default function OpengraphImage() {
           IT Studio · Dipolog City
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <div style={{ display: "flex", fontSize: 150, fontWeight: 800, letterSpacing: -4 }}>
-            <span style={{ color: "#f8fafc" }}>MY</span>
-            <span
-              style={{
-                backgroundImage: ACCENT,
-                backgroundClip: "text",
-                color: "transparent",
-              }}
-            >
-              K
-            </span>
-            <span style={{ color: "#f8fafc" }}>TECH</span>
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- satori, not the DOM */}
+          <img src={mark} width={MARK_W} height={MARK_H} alt="" />
           <div style={{ display: "flex", fontSize: 44, color: "#cbd5e1" }}>
             {site.tagline}
           </div>

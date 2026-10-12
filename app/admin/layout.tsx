@@ -74,7 +74,7 @@ async function AdminLayout({
             href="/admin"
             className="flex shrink-0 items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
           >
-            <Logo label="R Ally's Tech — admin home" className="h-[22px]" />
+            <Logo label="R Ally's Tech — admin home" className="h-9" />
             <span className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-slatey sm:inline">
               Admin
             </span>

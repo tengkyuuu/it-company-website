@@ -25,7 +25,7 @@ something is published (`getPublishedSections()`); see "Products / Careers / Blo
 data in `lib/work.ts`.
 **Team (real):** Jhade Banquiao (Project Lead), James Calunsag (Frontend), Haron Diniay
 (Backend), Ralph Andilab (Mobile), Sean Jacinto (AI Automation), Hasnain Fayyaz (Marketing).
-**Nav:** logo mark (`public/brand/logo.png`) + `R Ally's Tech` wordmark, top-left.
+**Nav:** the `R✦ALLY'S / TECH` lockup (`components/Logo.tsx`), top-left.
 
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
 **3D hero** (`Hero` — sticky 175vh stage; scroll scatters the constellation) →
@@ -52,32 +52,59 @@ client screenshots).
 ## Brand
 
 ### Logo — a generated vector lockup, used as a CSS mask
-The wordmark is **`R Ally's Tech`** set as a *ransom-note* lockup: every glyph in a different
-typeface. It is **generated, not artwork** — `scripts/build-wordmark.mjs` fetches each family
-from Google Fonts, converts the glyph to **outlines**, and composes one SVG:
+The logo is the **Rally's house lockup** (client artwork for the sister brand "Rally's Tours &
+Transfers", adapted 2026-10-12 with the descriptor swapped to TECH): an **oversized serif `R`**
+with a hairline flick in its crook, a **four-point spark**, **`ALLY’S`** in tracked serif caps
+sitting just above the R's baseline, and **`TECH`** in tracked sans caps between two hairline
+rules beneath. It is **generated, not artwork** — `scripts/build-wordmark.mjs` fetches the fonts
+from Google Fonts (`R` + `ALLY’S` = Cinzel 500, `TECH` = Geist 500), converts the glyphs to
+**outlines**, draws the spark / flick / rules as paths, and composes one SVG. (It replaced the
+earlier "ransom-note" lockup — eleven typefaces, one per glyph.)
 
-`R` Abril Fatface · `A` Bebas Neue · `l` Courier Prime · `l` Playfair Display ·
-`y` Pacifico · `'` Playfair Display · `s` Righteous · `T` Archivo Black ·
-`e` Caveat · `c` Zilla Slab · `h` Lobster
-
-- **To restyle**: edit the `LOCKUP` map in `scripts/build-wordmark.mjs`, re-run
-  `node scripts/build-wordmark.mjs`, then paste the printed ratio into `aspect-ratio` in
-  `globals.css` (it appears **twice** — `.wm/.wm-outline` and `.pl-stage`).
+- **To restyle**: edit the constants at the top of `scripts/build-wordmark.mjs` (everything is a
+  fraction of the R's cap height), re-run `node scripts/build-wordmark.mjs`, paste the printed
+  ratio into `aspect-ratio` in `globals.css` (it appears **twice** — `.wm/.wm-outline` and
+  `.pl-stage`; currently `3636 / 1206`, also hardcoded in `app/opengraph-image.tsx`), then run
+  `node scripts/build-icons.mjs` and re-paste the monogram path into `public/offline.html`.
   Needs `npm install --no-save opentype.js` (build-time only — deliberately not a dependency,
   same reasoning as Playwright in `scripts/verify.mjs`).
-- Glyphs are normalised by **cap height**, not font size, so wildly different faces sit
-  optically consistent on a shared baseline instead of one dwarfing the next.
-- **`components/Logo.tsx`** is the only way to render it. Two generated assets, both painted as
+- **Monochrome on purpose.** The source artwork is maroon; here the mark takes `currentColor`
+  like everything else (ink in light, near-white in dark), and the accent gradient appears only
+  on the monogram in the icons. A fixed maroon would not survive dark mode or the Preloader.
+- **TECH is centred between rules, not letterspaced across the width** like the sister brand's
+  long descriptor — four letters stretched that far stop reading as a word.
+- Three traps in the generator, all hit while building it:
+  - **Don't use opentype.js `toPathData()`.** Its rounding goes through a string, so a
+    float-error coordinate like `1.1e-13` (ink landing exactly on x = 0) is written as the
+    literal text `NaN` and the renderer silently stops drawing there — the R lost its stem and
+    every later glyph vanished. The script serialises commands itself (`toD`).
+  - **These fonts build glyphs from overlapping contours** (the R's stem and bowl are separate
+    pieces). Filling is fine; **stroking draws every internal seam**. So the outline asset is the
+    stroke with the filled silhouette **masked back out** — only the half outside the letters
+    survives. Hand-drawn shapes that overlap a glyph (the flick) must share the font's
+    **winding direction**, or nonzero fill cancels and punches a notch through the letter.
+  - The flick's coordinates are fractions of *Cinzel's* R — re-place it if the typeface changes.
+- **`components/Logo.tsx`** is the only way to render it. Generated assets, painted as
   a **CSS `mask` over `currentColor`** (not `<img>`), so the mark inherits the text colour and
   follows light/dark and `.band` for free:
   - `public/brand/wordmark.svg` — the filled silhouette
-  - `public/brand/wordmark-outline.svg` — the same paths **stroked** instead of filled, i.e. a
-    real ring. Use `variant="outline"`. This exists because CSS `drop-shadow` is applied
+  - `public/brand/wordmark-outline.svg` — a ring just **outside** the same silhouette. Use
+    `variant="outline"`. This exists because CSS `drop-shadow` is applied
     *before* masking, so a shadow-based outline on a masked element gets clipped straight off.
-  - Sizing: the element carries the wordmark's aspect ratio — set **one** axis (`h-7`, `w-full`).
-  - Used in `Nav` (h-26px, beside `logo.png`), `FooterWordmark`, `Preloader`, and the admin chrome.
+  - `public/brand/monogram.svg` — just the R + flick + spark, cropped tight. Not loaded by any
+    page: it is the source for `scripts/build-icons.mjs` (favicon `app/icon.png` + the PWA icons,
+    gradient on `#111a24`) and for the inline mark in `public/offline.html`.
+  - Sizing: the element carries the lockup's aspect ratio (~3:1) — set **one** axis (`h-10`,
+    `w-full`). The R is the full height and the name's caps are under half of it, so **below
+    ~36px tall the TECH line is no longer legible** (the old lockup sat at 26px).
+  - Used in `Nav` (`h-10`, alone — the R + spark is the mark), `FooterWordmark`, `Preloader`,
+    the admin chrome (`h-9`) and auth cards (`h-11`), and the social image
+    (`app/opengraph-image.tsx` reads the SVG from disk and re-inks it). The hero badge's centre
+    dot is the same spark.
 - ✅ **It's vector, so there is no upscale limit.** The old raster's ~820px blur cap is gone and
   `FooterWordmark` is full-bleed again.
+- Changing the mask files in place means returning visitors' service worker would serve the old
+  ones from its shell cache — **bump `VERSION` in `public/sw.js`** whenever the logo changes.
 - **The apostrophe is the thing that bites now** (the old name's `()` did). Three places:
   - **SQL**: must be doubled — `default 'R Ally''s Tech'` in `supabase/schema.sql`.
   - **dotenv**: use **double** quotes. `CONTACT_FROM_EMAIL='...R Ally's Tech...'` ends the value
@@ -87,9 +114,10 @@ from Google Fonts, converts the glyph to **outlines**, and composes one SVG:
 - ⚠️ Never place the wordmark inside an `uppercase` / `text-transform` context — bitten twice
   already under the old name (Hero badge, Preloader label). The mask can't be transformed,
   which is another reason to prefer `Logo` over set type.
-- ⚠️ **`public/brand/logo.png` is still the old "KT" shield** and is rendered in `Nav` beside
-  the wordmark. It contradicts the new brand — needs new artwork (or removal from `Nav`).
-  `public/brand/mykTech().png` is the old client artwork, now unreferenced; kept, not deleted.
+- `public/brand/logo.png` (the old "KT" shield), `mykTech().png`, `wordmark.png` and
+  `wordmark-outline.png` are **old-brand artwork, all unreferenced** — kept, not deleted. The
+  favicon and the social image were also still the old MYKT brand until 2026-10-12; both are
+  now generated from the lockup.
 - Technical identifiers keep the old spelling on purpose — `mykt-website`, `mykt.studio`,
   `mykt-theme`, `mykt-preloaded`, `mykt:ready`. Those are **not** the brand name; renaming them
   would break a storage key, the preloader event, and the domain. Leave them alone.
@@ -122,7 +150,7 @@ a single hero glow, link/active states. If a second thing on screen uses it, rem
 
 ### Typography
 - **Display/brand: Syne** (`--font-display`, via next/font) — free stand-in for the paid
-  "Inline" by Letters from Sweden. Used for the `R Ally's Tech` wordmark + big headings (Hero h1,
+  "Inline" by Letters from Sweden. Used for big headings (Hero h1,
   `SectionHeader` titles). Swap in real Inline `.woff2` via next/font/local if licensed.
 - **Geist** (Geist Sans for body/UI; Geist Mono only for tiny labels/code chips).
 - Big, confident display headings (tight tracking, weight 600–700). Generous body line-height.
@@ -633,7 +661,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
   `tests/security-headers.test.ts` scans the source for every absolute origin; a new external
   origin fails it until it's allowed or listed as never-fetched. zod 4 tries `new Function` in
   the browser, so `lib/contact-schema.ts` sets `z.config({ jitless: true })` client-side.
-- **PWA** (Phase 4): `app/manifest.ts`, icons in `public/icons/` (`scripts/build-icons.mjs`),
+- **PWA** (Phase 4): `app/manifest.ts`, icons in `public/icons/` (`scripts/build-icons.mjs`, from the logo monogram),
   `public/sw.js` registered from the public layout only, after `whenReady()` + idle, production
   only. Precaches `/offline.html` (self-contained, bilingual) + icons + wordmarks;
   `/_next/static/**` cache-first; navigations network-first → offline page; **never touches**
