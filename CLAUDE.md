@@ -723,8 +723,10 @@ reflow. Two non-obvious rules, both learned the hard way here:
   (`NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_PROJECT_PRODUCTION_URL`, provided by
   Vercel) → localhost. It used to fall back to `https://mykt.studio`, a domain nobody owns, so
   production canonicals, sitemap and OG URLs all pointed at a dead host. Live production
-  domain (2026-10-19): `it-company-website-jamescalunsag13-9119s-projects.vercel.app`
-  (`it-company-website.vercel.app` is somebody else's site). In-page `#anchors` now work with
+  domain (2026-10-19): **`https://rallys-tech.vercel.app`** — what Vercel reports, so it's
+  what canonicals now use (also reachable as
+  `it-company-website-jamescalunsag13-9119s-projects.vercel.app`;
+  `it-company-website.vercel.app` is somebody else's site). In-page `#anchors` now work with
   Lenis (`anchors` option + the route-change reset honours a fragment).
 - **To finalize (content)**: real email/phone/socials when they exist; a domain (then verify
   it in Resend and set `NEXT_PUBLIC_SITE_URL`).
