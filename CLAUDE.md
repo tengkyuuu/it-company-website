@@ -344,8 +344,13 @@ reflow. Two non-obvious rules, both learned the hard way here:
   consume the rate limit). **Rate limit**: 5 / 10 min per IP + 200 / day globally, durable (see
   `lib/security.ts` below), charged before any email or DB write; blocked → 429 in-band message.
   The lead is also recorded in `leads` (the inbox) with the IP **hashed**, never raw.
-  **Env** (`.env.example`): `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` —
-  set in `.env.local` and on Vercel. Until set, submit returns a graceful error banner.
+  **Delivery (2026-10-19): email and the inbox record run in parallel, and the visitor sees
+  success if EITHER worked** — the same rule as `/api/apply`. With no domain, Resend's sandbox
+  sender reaches only the Resend account's owner, and the CMS may be off, so neither alone may
+  decide. If both fail the form says the message **wasn't sent** (never a fake success).
+  **Env** (`.env.example`): `RESEND_API_KEY`, `CONTACT_TO_EMAIL` (must be the Resend account
+  owner's address until a domain is verified; server-only, never shown on the site),
+  `CONTACT_FROM_EMAIL` — set in `.env.local` and on Vercel.
 - **`lib/security.ts`** (server-only) — the one place for: `clientIp()` (first XFF hop),
   `hashIp()` (HMAC-SHA256 with `IP_HASH_SECRET`, 32 hex — deterministic, so inbox threading
   still works), `hashKey()` for limiter keys, `consumeLimit()`, `sha256Hex()`, `randomToken()`.
@@ -396,8 +401,10 @@ reflow. Two non-obvious rules, both learned the hard way here:
   - Rate limiting is **durable**: 15 / 10 min per IP + 300 / day globally via `consumeLimit()`
     (`lib/security.ts`), charged before Gemini runs or anything is stored. (It used to be an
     in-memory Map per warm instance, which reset on every cold start.)
-  - **Env**: `GEMINI_API_KEY` (server-only, never `NEXT_PUBLIC_`). Unset ⇒ 503 + "chat isn't
-    configured yet" in the widget; the rest of the site is unaffected. `GEMINI_MODEL` overrides
+  - **Env**: `GEMINI_API_KEY` (server-only, never `NEXT_PUBLIC_`). Unset ⇒ **no launcher at all**
+    (the `[lang]` layout passes `chat` to `SiteChrome`; read at build, so adding the key needs a
+    redeploy) and `/api/chat` answers 503. "Talk to a person" shows only when chats are being
+    stored (`storeOk`) — with the CMS off there is no console for a teammate to answer from. `GEMINI_MODEL` overrides
     the model (`lib/chat-config.ts`, the one place it's read; default `gemini-3.6-flash`).
     `GOOGLE_GEMINI_BASE_URL` is honoured by the SDK — handy for pointing it at a local stub.
   - **Sessions & human takeover** (Phase 4). The widget makes a session id **and a separate
@@ -420,6 +427,19 @@ reflow. Two non-obvious rules, both learned the hard way here:
 - **Admin panel / CMS** (`/admin`, Supabase) — **entirely optional**. With the env vars unset
   the marketing site builds and renders exactly as before and `/admin` shows setup steps
   (`components/admin/SetupNotice`); nothing hard-depends on a database.
+  - ⚠️ **Currently OFF (since 2026-10-19).** The Supabase project (`tniduyhmuwtflzqenvtr`) was
+    **deleted** — its host is NXDOMAIN — while its URL stayed in the Vercel settings, which sit
+    in James's Vercel account (`jamescalunsag13`) and couldn't be edited from here. The client
+    chose to run without the CMS for now. So the CMS is now **opt-in**: `lib/supabase/env.mjs`
+    (`cmsEnabled()` / `supabaseUrl()`, plain .mjs so next.config, Edge middleware, server and
+    client share it) treats Supabase as configured only with **`NEXT_PUBLIC_CMS_ENABLED=true`
+    AND** the keys. `isSupabaseConfigured()` goes through it, and `tests/cms-switch.test.ts`
+    fails if any file reads `process.env.NEXT_PUBLIC_SUPABASE_URL` around it (allow-list: the
+    client factories, admin storage, SetupNotice). Off ⇒ no Supabase request from any page, no
+    Supabase origin in the CSP, `/status` 404s (and leaves footer/sitemap/search), `/admin`
+    shows setup steps. Vitest sets the switch on (`vitest.config.ts` `env`).
+    **To turn it back on:** new project → run `supabase/schema.sql` → set the three Supabase
+    vars + `NEXT_PUBLIC_CMS_ENABLED=true` + `OWNER_EMAIL` on Vercel → redeploy.
   - **Schema**: `supabase/schema.sql` — paste into the Supabase SQL editor, **idempotent and
     re-runnable on the live DB** (the PGlite tests apply it twice, and also upgrade the previous
     committed version, `tests/fixtures/schema-v0.sql`). Roles are **owner > admin** only — the
@@ -689,8 +709,25 @@ reflow. Two non-obvious rules, both learned the hard way here:
   one-time token; it's a client wrapper only because `beforeSend` is a function a server layout
   can't pass) + `@vercel/speed-insights` in layout (the `/_vercel/*/script.js` 404s seen under
   local `next start` are expected — they resolve on Vercel).
-- **To finalize (content)**: real social URLs + verified email/phone in `lib/site.ts`;
-  verify the Resend sending domain.
+- **Contact details are deliberately empty (2026-10-19, client decision).** No domain ⇒ no
+  company mailbox, so `site.email` is `""`; the scaffold's phone and street address were
+  placeholders, so `site.phone` is `""` and the address is just "Dipolog City, Zamboanga del
+  Norte, Philippines"; `socials` is `[]` (they pointed at linkedin.com etc., not profiles).
+  Every renderer treats them as optional: footer (shows "Send us a message" →
+  `/location#contact`), `/location` (the giant typographic moment becomes the city with a ↓ to
+  the form), JSON-LD (fields omitted, not emitted empty), the chat prompt (says outright there
+  is no public email — otherwise the model guesses one), and every error string has a
+  `…NoEmail` variant. Fill them in `lib/site.ts` (or Site settings, once the CMS is on) when
+  real ones exist; nothing else needs to change.
+- **Canonical origin** (`site.url`): `NEXT_PUBLIC_SITE_URL` → the Vercel production domain
+  (`NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_PROJECT_PRODUCTION_URL`, provided by
+  Vercel) → localhost. It used to fall back to `https://mykt.studio`, a domain nobody owns, so
+  production canonicals, sitemap and OG URLs all pointed at a dead host. Live production
+  domain (2026-10-19): `it-company-website-jamescalunsag13-9119s-projects.vercel.app`
+  (`it-company-website.vercel.app` is somebody else's site). In-page `#anchors` now work with
+  Lenis (`anchors` option + the route-change reset honours a fragment).
+- **To finalize (content)**: real email/phone/socials when they exist; a domain (then verify
+  it in Resend and set `NEXT_PUBLIC_SITE_URL`).
 - ⚠️ **The project URLs are placeholders.** Checked 2026-08-03: `famecrm.app`,
   `physiopano.com`, `rallys-equities.com` and `coffee.shop` are all **NXDOMAIN**, and `shm.app`
   is a GoDaddy *domain-for-sale* parking page. So `liveUrl` is deliberately unset on every
@@ -773,6 +810,8 @@ reflow. Two non-obvious rules, both learned the hard way here:
   render time in Asia/Manila, so pages must refresh hourly even without an admin edit.
 
 ### /status (Phase 4)
+- **Exists only while the CMS is on** (it's stored there) — otherwise 404, and out of the
+  footer, sitemap and ⌘K.
 - Public `app/[lang]/status` (both locales, ISR 1 h + on-demand): latest test run and Lighthouse
   scores per page × mobile/desktop, labelled **"CI runner, no GPU — performance is a lower
   bound"** (the WebGL hero renders in software there; see the SwiftShader trap). Never invents
@@ -786,7 +825,9 @@ reflow. Two non-obvious rules, both learned the hard way here:
   failing suite is still reported); Lighthouse on a successful **Production** `deployment_status`,
   weekly, and manually. Needs repo secret `STATUS_INGEST_TOKEN` (same value in Vercel) and repo
   variable `SITE_URL` — a public origin that doesn't redirect: **Vercel Deployment Protection
-  on Production would block both the audits and the POST.**
+  on Production would block both the audits and the POST.** The Lighthouse job is **skipped**
+  (not failed) while `SITE_URL` is unset — leave it unset while the CMS is off, since there is
+  nowhere to store a report.
 
 ### Search (⌘K) & live updates
 - **Palette**: always-loaded part is only `components/search/SearchLauncher.tsx` (key + event
@@ -811,7 +852,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
   without `NEXT_PUBLIC_SUPABASE_URL`.
 
 ### Tests (`npm test` — Vitest + PGlite)
-`tests/` — **37 suites, 878 tests** (2026-10-03, after Phase 4). Philosophy (from the reference project): test
+`tests/` — **38 suites, 886 tests** (2026-10-19). Philosophy (from the reference project): test
 derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
 - **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
   (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,
@@ -975,8 +1016,8 @@ no changelog, no press kit, no Spotify/resume/"Now"/Word-document visuals.
   navigation, the probe refusing 127.0.0.1). Also fixed two older bugs this testing surfaced:
   `dynamicParams = false` 404ing pages after revalidation (was live on main), and nested links
   in the `/projects` index breaking hydration once a project has a `liveUrl`.
-  **Needs `supabase/schema.sql` re-run** (chat session columns, `lead_replies`, probe-aware
-  triggers) — until then chat behaves as before and `/admin/chats` says "schema out of date".
+  ~~Needs `supabase/schema.sql` re-run~~ — moot: that project was deleted (see "Currently OFF"
+  under Admin panel). A new project gets the full schema in one run.
 
 ## Open questions / notes
 - MCP tooling requested ("ui ux pro max", "design thinking", "glif-mcp") is **not yet

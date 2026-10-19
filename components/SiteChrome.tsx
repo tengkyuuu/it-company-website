@@ -47,6 +47,7 @@ export default function SiteChrome({
   messages,
   sections,
   searchIndex,
+  chat,
 }: {
   children: React.ReactNode;
   footer: React.ReactNode;
@@ -54,6 +55,8 @@ export default function SiteChrome({
   messages: ClientMessages;
   sections: PublishedSections;
   searchIndex: SearchEntry[];
+  /** whether the chat assistant is configured (GEMINI_API_KEY) — no launcher otherwise */
+  chat: boolean;
 }) {
   return (
     <I18nProvider lang={lang} messages={messages}>
@@ -71,7 +74,7 @@ export default function SiteChrome({
           wrapper instead of the viewport and they would scroll away. Both stay
           hidden until the opening sequence is done (whenReady). The palette's
           own code loads on first open; only its key listener is here. */}
-      <ChatWidget />
+      {chat && <ChatWidget />}
       <SearchLauncher index={searchIndex} />
       <LiveUpdates />
     </I18nProvider>

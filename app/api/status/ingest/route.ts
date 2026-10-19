@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { supabaseUrl } from "@/lib/supabase/env.mjs";
 import { consumeLimit, hashKey } from "@/lib/security";
 import { ingestSchema, MAX_INGEST_BYTES, toStoredPayload } from "@/lib/status-schema";
 import { checkIngestToken, readCappedText } from "./request";
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
   if (auth !== "ok") return reply(401, { ok: false });
 
   // 2. somewhere to write
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!supabaseUrl() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return reply(503, { ok: false, error: "store" });
   }
 

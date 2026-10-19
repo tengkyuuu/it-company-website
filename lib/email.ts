@@ -24,7 +24,11 @@ export async function sendContactEmail(data: ContactInput) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) throw new Error("RESEND_API_KEY is not set");
 
+  // No public address to fall back on (lib/site.ts ships none), so the inbox
+  // must be configured. Thrown, so the route records the lead and reports
+  // honestly instead of handing Resend an empty recipient.
   const to = process.env.CONTACT_TO_EMAIL || site.email;
+  if (!to) throw new Error("CONTACT_TO_EMAIL is not set");
   // Unquoted is correct here. The old mykTech() name HAD to be quoted, because
   // "()" are RFC 5322 comment delimiters. "R Ally's Tech" has no parens, and an
   // apostrophe is valid atext, so each word is a legal atom — quoting it would
@@ -68,7 +72,7 @@ export async function sendContactEmail(data: ContactInput) {
         <p>Hi ${name},</p>
         <p>Thanks for getting in touch with <strong>${site.name}</strong> — we've got your message and a real human will reply within one business day.</p>
         <p style="color:#94a3b8;font-size:13px;margin-top:24px">— The ${site.name} studio · ${esc(
-          site.address.line2
+          site.address.line1
         )}</p>
       </div>`,
     });
@@ -100,6 +104,7 @@ export async function sendApplicationEmail(data: {
   if (!apiKey) return false;
 
   const to = process.env.CONTACT_TO_EMAIL || site.email;
+  if (!to) return false;
   // Unquoted on purpose — see sendContactEmail.
   const from =
     process.env.CONTACT_FROM_EMAIL || `R Ally's Tech <onboarding@resend.dev>`;

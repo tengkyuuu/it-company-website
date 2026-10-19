@@ -61,7 +61,8 @@ export default function SetupNotice() {
                 </code>{" "}
                 (and Vercel):
                 <pre className="mt-3 overflow-x-auto rounded-xl border border-mist/70 bg-paper p-4 font-mono text-xs leading-relaxed">
-                  {`NEXT_PUBLIC_SUPABASE_URL=
+                  {`NEXT_PUBLIC_CMS_ENABLED=true
+NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=`}
                 </pre>

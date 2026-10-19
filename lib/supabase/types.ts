@@ -1,5 +1,7 @@
 /** Shapes mirroring supabase/schema.sql. Hand-written (no codegen step). */
 
+import { supabaseUrl } from "./env.mjs";
+
 /**
  * Panel roles. `owner` manages the team; `admin` edits all content. The old
  * `editor` role is retired — schema.sql migrates any remaining editors to admin.
@@ -383,10 +385,8 @@ export type SecurityLimitRow = {
   window_ends_at: string;
 };
 
-/** True when the Supabase env vars are present, i.e. the CMS is wired up. */
+/** True when the CMS is switched on and the Supabase env vars are present —
+ *  see lib/supabase/env.mjs for why the switch is opt-in. */
 export function isSupabaseConfigured() {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  return Boolean(supabaseUrl() && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }

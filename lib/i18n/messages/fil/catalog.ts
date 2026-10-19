@@ -146,6 +146,10 @@ const catalog: DeepPartial<typeof en> = {
     errServer:
       "Nagkaproblema sa amin at hindi naipadala ang aplikasyon mo. Paki-email na lang ito sa {email}.",
     errNetwork: "Hindi maabot ang server. Mag-email na lang sa {email}.",
+    errBusyNoEmail: "Napakaraming aplikasyon ang dumarating ngayon. Subukan ulit mamaya.",
+    errServerNoEmail:
+      "Nagkaproblema sa amin at hindi naipadala ang aplikasyon mo. Subukan ulit pagkalipas ng ilang sandali.",
+    errNetworkNoEmail: "Hindi maabot ang server. Suriin ang koneksyon mo at subukan ulit.",
   },
 
   /* ------------------------------------------------------------------ blog */

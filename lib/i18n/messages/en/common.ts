@@ -101,6 +101,8 @@ const common = {
       "Thanks for reaching out — a real human from the studio will reply within one business day.",
     sendAnother: "Send another",
     networkError: "Couldn’t reach the server. Please email us directly at {email}.",
+    // when the studio has no public email (lib/site.ts)
+    networkErrorNoEmail: "Couldn’t reach the server. Check your connection and try again.",
   },
   chat: {
     open: "Chat with us",

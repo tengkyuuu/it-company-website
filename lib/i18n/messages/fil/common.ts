@@ -100,6 +100,7 @@ const common: DeepPartial<typeof en> = {
       "Salamat sa pakikipag-ugnayan — isang totoong tao mula sa studio ang sasagot sa loob ng isang araw ng trabaho.",
     sendAnother: "Magpadala ulit",
     networkError: "Hindi maabot ang server. Mag-email na lang sa amin sa {email}.",
+    networkErrorNoEmail: "Hindi maabot ang server. Suriin ang koneksyon mo at subukan ulit.",
   },
   chat: {
     open: "Makipag-chat sa amin",

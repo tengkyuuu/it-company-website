@@ -235,7 +235,7 @@ describe("buildSearchIndex", () => {
       "/projects",
       "/about",
       "/location",
-      "/status",
+      // no /status: its reports live in the CMS database
     ]);
     expect(byType("project").length).toBe(5);
     expect(byType("service").length).toBe(6);
@@ -304,7 +304,7 @@ describe("buildSearchIndex", () => {
     const fil = await buildSearchIndex("fil");
     const ids = fil.map((x) => x.id);
     expect(ids).toEqual(
-      expect.arrayContaining(["page-products", "page-careers", "page-blog", "product-ledger", "job-frontend-dev", "post-hello"])
+      expect.arrayContaining(["page-products", "page-careers", "page-blog", "page-status", "product-ledger", "job-frontend-dev", "post-hello"])
     );
     expect(ids).not.toContain("job-old-role");
     expect(fil.find((x) => x.id === "product-ledger")!.href).toBe("/fil/products/ledger");

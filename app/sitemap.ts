@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { nav } from "@/lib/site";
 import { getJobs, getPosts, getProducts, getProjects } from "@/lib/cms";
+import { isSupabaseConfigured } from "@/lib/supabase/types";
 import { locales } from "@/lib/i18n/config";
 import { absoluteUrl, languageUrls } from "@/lib/i18n/metadata";
 
@@ -68,8 +69,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ]
     : [];
 
-  // /status: footer-only (not in `nav`), always rendered, refreshed by every CI report
-  const statusPages = entries("/status", 0.3, undefined, "daily");
+  // /status: footer-only (not in `nav`), refreshed by every CI report — and
+  // only while the CMS is on, because that's where the reports are stored
+  const statusPages = isSupabaseConfigured() ? entries("/status", 0.3, undefined, "daily") : [];
 
   return [...pages, ...projectPages, ...productPages, ...jobPages, ...postPages, ...statusPages];
 }

@@ -352,6 +352,6 @@ export async function sendLeadReplyEmail(args: {
     subject: args.subject,
     text: args.text,
     html: args.html,
-    replyTo: process.env.CONTACT_TO_EMAIL || site.email,
+    replyTo: process.env.CONTACT_TO_EMAIL || site.email || undefined,
   });
 }

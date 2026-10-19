@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 import { whenReady } from "@/components/fx/ready";
 import { createLiveController, FETCH_TIMEOUT_MS, parseRev } from "@/lib/live-updates";
+import { supabaseUrl } from "@/lib/supabase/env.mjs";
 
 /**
  * Brings a published edit to pages that are already open, within seconds,
@@ -27,13 +28,13 @@ import { createLiveController, FETCH_TIMEOUT_MS, parseRev } from "@/lib/live-upd
  *     up for this page view and polling carries on alone.
  *
  * Costs nothing per frame: no rAF, no timers while hidden, nothing at all during
- * the opening sequence, and nothing whatsoever when NEXT_PUBLIC_SUPABASE_URL is
- * unset (static-content mode).
+ * the opening sequence, and nothing whatsoever when the CMS is switched off or
+ * unconfigured (static-content mode — lib/supabase/env.mjs).
  *
  * Mounted from SiteChrome; renders nothing.
  */
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_URL = supabaseUrl() || undefined;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 function timeoutSignal(ms: number): AbortSignal | undefined {

@@ -35,6 +35,7 @@ const site: DeepPartial<typeof en> = {
     backToTop: "Bumalik sa itaas",
     opensInNewTab: "(magbubukas sa bagong tab)",
     statusLink: "Status",
+    contactForm: "Magpadala ng mensahe",
   },
   home: {
     stackEyebrow: "Ang mga teknolohiyang gamit namin",

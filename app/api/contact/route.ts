@@ -20,6 +20,11 @@ export const runtime = "nodejs"; // lib/security uses node:crypto
 const PER_IP = { limit: 5, windowSeconds: 10 * 60 };
 const GLOBAL = { limit: 200, windowSeconds: 24 * 60 * 60 };
 
+/** " … or email us at x" — only when the studio has a public email (lib/site.ts
+ *  ships none until there's a domain). */
+const orEmail = (lead: string) =>
+  site.email ? `${lead}, or email us directly at ${site.email}.` : `${lead}.`;
+
 // Stable endpoint (no per-build hashed IDs → immune to deployment-skew errors).
 export async function POST(req: Request) {
   let body: unknown;
@@ -67,7 +72,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         status: "error",
-        message: `You’ve sent a few messages in a short time. Please wait a few minutes and try again, or email us directly at ${site.email}.`,
+        message: `You’ve sent a few messages in a short time. ${orEmail("Please wait a few minutes and try again")}`,
       },
       { status: 429, headers: { "Retry-After": String(PER_IP.windowSeconds) } }
     );
@@ -76,33 +81,44 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         status: "error",
-        message: `We’re receiving an unusual number of messages right now. Please email us directly at ${site.email}.`,
+        message: `We’re receiving an unusual number of messages right now. ${orEmail("Please try again later")}`,
       },
       { status: 429 }
     );
   }
 
-  try {
-    await sendContactEmail(data);
-    // File it in the inbox too, so /admin/inbox is a record rather than the
-    // studio's mailbox being the only copy. Deliberately AFTER the email and
-    // deliberately not awaited into the response: saveContactLead never throws
-    // and returns false when there's no DB, so a paused Supabase project can't
-    // turn a delivered enquiry into an error banner for the visitor.
-    // The IP is hashed inside lib/leads.ts — it is never stored raw.
-    void saveContactLead({
+  // Two independent deliveries, in parallel: the studio's email and the inbox
+  // record (/admin/inbox). The enquiry has arrived if EITHER worked — the same
+  // rule as /api/apply. Until there's a domain, email can only reach the Resend
+  // account's owner, and the CMS may be switched off, so neither one alone can
+  // be the thing a visitor's success depends on. saveContactLead never throws
+  // (false = no DB / write failed); the IP is hashed inside lib/leads.ts.
+  const [mailed, filed] = await Promise.all([
+    sendContactEmail(data).then(
+      () => true,
+      (err) => {
+        console.error("[contact] email failed:", err);
+        return false;
+      }
+    ),
+    saveContactLead({
       name: data.name,
       email: data.email,
       service: data.service,
       message: data.message,
       ip,
-    }).catch(() => {});
-    return NextResponse.json({ status: "success" });
-  } catch (err) {
-    console.error("[contact] send failed:", err);
-    return NextResponse.json({
-      status: "error",
-      message: `Something went wrong on our end. Please email us directly at ${site.email}.`,
-    });
-  }
+    }).catch(() => false),
+  ]);
+
+  if (mailed || filed) return NextResponse.json({ status: "success" });
+
+  // Neither: say so plainly. The enquiry is lost, and a success banner here
+  // would be a lie the visitor only discovers when nobody replies.
+  console.error("[contact] enquiry not delivered: email and inbox both unavailable");
+  return NextResponse.json({
+    status: "error",
+    message: `Something went wrong on our end and your message wasn’t sent. ${orEmail(
+      "Please try again in a little while"
+    )}`,
+  });
 }

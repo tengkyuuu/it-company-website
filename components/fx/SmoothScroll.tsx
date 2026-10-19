@@ -8,6 +8,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 let lenis: Lenis | null = null;
 
+/** Clearance for the fixed nav pill when scrolling to an #anchor (px). */
+const ANCHOR_OFFSET = 112;
+
 /** Smooth-scroll back to the top (footer control); falls back to native. */
 export function scrollToTop() {
   if (lenis) lenis.scrollTo(0, { duration: 1.4 });
@@ -50,7 +53,14 @@ export default function SmoothScroll({
     // sooner, so it reads as responsive rather than floaty.
     // `autoRaf` stays off (the default) — the GSAP ticker below is the ONLY
     // loop driving Lenis, so there's never a second rAF running alongside it.
-    lenis = new Lenis({ lerp: 0.12, smoothWheel: true, autoRaf: false });
+    // `anchors`: same-page #links glide instead of jumping, landing below the
+    // fixed nav (scroll-margin doesn't apply to Lenis' own scrollTo).
+    lenis = new Lenis({
+      lerp: 0.12,
+      smoothWheel: true,
+      autoRaf: false,
+      anchors: { offset: -ANCHOR_OFFSET },
+    });
     lenis.on("scroll", ScrollTrigger.update);
 
     const onTick = (time: number) => lenis?.raf(time * 1000);
@@ -64,10 +74,19 @@ export default function SmoothScroll({
     };
   }, []);
 
-  // Reset scroll + recalc triggers on client-side navigation.
+  // Reset scroll + recalc triggers on client-side navigation — to the top, or
+  // to the #fragment when the link carried one (the footer's
+  // "/location#contact"), which a plain reset would otherwise throw away.
   useEffect(() => {
-    lenis?.scrollTo(0, { immediate: true });
-    window.scrollTo(0, 0);
+    const hash = window.location.hash.slice(1);
+    const target = hash ? document.getElementById(decodeURIComponent(hash)) : null;
+    if (target) {
+      if (lenis) lenis.scrollTo(target, { offset: -ANCHOR_OFFSET, immediate: true, force: true });
+      else window.scrollTo(0, target.getBoundingClientRect().top + window.scrollY - ANCHOR_OFFSET);
+    } else {
+      lenis?.scrollTo(0, { immediate: true });
+      window.scrollTo(0, 0);
+    }
     const id = window.setTimeout(() => ScrollTrigger.refresh(), 80);
     return () => window.clearTimeout(id);
   }, [pathname]);

@@ -8,6 +8,7 @@ import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { Reveal } from "./Reveal";
 import { visibleNav } from "@/lib/site";
 import { getPublishedSections, getServices, getSiteContent } from "@/lib/cms";
+import { isSupabaseConfigured } from "@/lib/supabase/types";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { navLabel } from "@/lib/i18n/nav";
@@ -90,8 +91,11 @@ export default async function Footer({ lang }: { lang: Locale }) {
                 {navLabel(t, n)}
               </FooterLink>
             ))}
-            {/* footer-only on purpose: not a destination for visitors, so not in `nav` */}
-            <FooterLink href={localizePath(lang, "/status")}>{t("footer.statusLink")}</FooterLink>
+            {/* footer-only on purpose: not a destination for visitors, so not in
+                `nav`. Its reports live in the CMS database: no CMS, no page. */}
+            {isSupabaseConfigured() && (
+              <FooterLink href={localizePath(lang, "/status")}>{t("footer.statusLink")}</FooterLink>
+            )}
           </FooterCol>
 
           <FooterCol title={t("footer.colServices")}>
@@ -103,10 +107,18 @@ export default async function Footer({ lang }: { lang: Locale }) {
           </FooterCol>
 
           <FooterCol title={t("footer.colContact")}>
-            <FooterLink href={`mailto:${site.email}`}>{site.email}</FooterLink>
-            <FooterLink href={`tel:${site.phone.replace(/\s/g, "")}`}>
-              {site.phone}
-            </FooterLink>
+            {/* both optional — lib/site.ts ships neither (no domain yet), so the
+                contact form stands in for them */}
+            {site.email ? (
+              <FooterLink href={`mailto:${site.email}`}>{site.email}</FooterLink>
+            ) : (
+              <FooterLink href={`${localizePath(lang, "/location")}#contact`}>
+                {t("footer.contactForm")}
+              </FooterLink>
+            )}
+            {site.phone && (
+              <FooterLink href={`tel:${site.phone.replace(/\s/g, "")}`}>{site.phone}</FooterLink>
+            )}
             <p className="text-sm leading-relaxed text-paper/60">
               {site.address.line1}
               <br />

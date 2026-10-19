@@ -3,6 +3,7 @@ import "server-only";
 import type { ChatMode, SessionCredentials, WireMessage } from "@/lib/chat-protocol";
 import { firstName, hashVisitorKey, visitorKeyMatches, type StoredTurn } from "@/lib/chat-session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { supabaseUrl } from "@/lib/supabase/env.mjs";
 import type { ChatMessageRole } from "@/lib/supabase/types";
 
 /**
@@ -31,7 +32,7 @@ let downUntil = 0;
 let lastWarn = 0;
 
 export const chatStoreConfigured = () =>
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  Boolean(supabaseUrl() && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 function failed(where: string, detail: unknown) {
   const now = Date.now();

@@ -26,9 +26,10 @@ export default async function LocationPage({ params }: LangParams) {
   const lang = await pageLocale(params);
   const { t } = getDictionary(lang);
 
+  // phone and email are optional — lib/site.ts ships neither (no domain yet)
   const details = [
-    { label: t("location.studio"), lines: [site.address.line1, site.address.line2, site.address.region] },
-    { label: t("location.phone"), lines: [site.phone] },
+    { label: t("location.studio"), lines: [site.address.line1, site.address.line2] },
+    ...(site.phone ? [{ label: t("location.phone"), lines: [site.phone] }] : []),
     { label: t("location.hours"), lines: [site.hours] },
   ];
 
@@ -50,7 +51,7 @@ export default async function LocationPage({ params }: LangParams) {
               <span className="text-accent">{t("location.titleAccent")}</span>
             </>
           }
-          intro="Tell us a little about your project and we’ll get back within one business day. Or just drop by the studio — coffee’s on us."
+          intro="Tell us a little about your project and we’ll get back within one business day."
         />
 
         {/* the typographic moment: one giant address */}
@@ -60,24 +61,44 @@ export default async function LocationPage({ params }: LangParams) {
             tint="plum"
             className="absolute right-2 top-1/2 hidden -translate-y-1/2 lg:block"
           />
-          <a
-            href={`mailto:${site.email}`}
-            className="group inline-flex max-w-full flex-wrap items-baseline gap-3"
-          >
-            <span className="relative min-w-0 break-all font-display text-[clamp(1.9rem,5.8vw,4.75rem)] font-bold leading-none tracking-tight">
-              {site.email}
-              <span
-                className="absolute -bottom-2 left-0 h-[3px] w-0 bg-accent transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-full"
-                aria-hidden
-              />
-            </span>
-            <span
-              className="text-2xl text-ink/40 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-ink md:text-4xl"
-              aria-hidden
+          {site.email ? (
+            <a
+              href={`mailto:${site.email}`}
+              className="group inline-flex max-w-full flex-wrap items-baseline gap-3"
             >
-              ↗
-            </span>
-          </a>
+              <span className="relative min-w-0 break-all font-display text-[clamp(1.9rem,5.8vw,4.75rem)] font-bold leading-none tracking-tight">
+                {site.email}
+                <span
+                  className="absolute -bottom-2 left-0 h-[3px] w-0 bg-accent transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-full"
+                  aria-hidden
+                />
+              </span>
+              <span
+                className="text-2xl text-ink/40 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-ink md:text-4xl"
+                aria-hidden
+              >
+                ↗
+              </span>
+            </a>
+          ) : (
+            // No public mailbox yet, so the moment is the city itself — and the
+            // arrow points down to the form, which is how enquiries arrive.
+            <a href="#contact" className="group inline-flex max-w-full flex-wrap items-baseline gap-3">
+              <span className="relative min-w-0 font-display text-[clamp(1.9rem,5.8vw,4.75rem)] font-bold leading-none tracking-tight">
+                {site.address.line1}
+                <span
+                  className="absolute -bottom-2 left-0 h-[3px] w-0 bg-accent transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-full"
+                  aria-hidden
+                />
+              </span>
+              <span
+                className="text-2xl text-ink/40 transition-transform duration-300 group-hover:translate-y-1 group-hover:text-ink md:text-4xl"
+                aria-hidden
+              >
+                ↓
+              </span>
+            </a>
+          )}
           <p className="mt-4 font-mono text-xs uppercase tracking-[0.25em] text-slatey">
             {t("location.localTime")} · <LocalTime />
           </p>
@@ -116,6 +137,7 @@ export default async function LocationPage({ params }: LangParams) {
             />
           </div>
 
+          {socials.length > 0 && (
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <span className="font-mono text-xs uppercase tracking-widest text-slatey">
               {t("location.follow")}
@@ -136,12 +158,16 @@ export default async function LocationPage({ params }: LangParams) {
               </a>
             ))}
           </div>
+          )}
         </Reveal>
 
-        {/* Form */}
-        <Reveal delay={0.1}>
-          <ContactForm />
-        </Reveal>
+        {/* Form — the #contact target for the footer link and the arrow above;
+            scroll-mt clears the fixed nav */}
+        <div id="contact" className="scroll-mt-28">
+          <Reveal delay={0.1}>
+            <ContactForm />
+          </Reveal>
+        </div>
       </Section>
     </>
   );

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHmac, createHash, randomBytes } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { supabaseUrl } from "@/lib/supabase/env.mjs";
 
 /**
  * Request-security primitives shared by the public endpoints (contact, chat)
@@ -178,7 +179,7 @@ export async function consumeLimit(
   const fallback = () =>
     opts.failClosed ? false : memoryConsume(key, limit, windowSeconds);
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!supabaseUrl() || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return fallback();
   }
   if (Date.now() < rpcDownUntil) return fallback();

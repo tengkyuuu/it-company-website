@@ -219,11 +219,12 @@ async function applyStrings({ t }: Dictionary, job: Job): Promise<ApplyStrings> 
     codes: {
       request: t("apply.errRequest"),
       rate: t("apply.errRate"),
-      busy: t("apply.errBusy", { email }),
+      // the studio may have no public email (lib/site.ts) — then don't offer one
+      busy: email ? t("apply.errBusy", { email }) : t("apply.errBusyNoEmail"),
       closed: t("apply.errClosed"),
-      server: t("apply.errServer", { email }),
+      server: email ? t("apply.errServer", { email }) : t("apply.errServerNoEmail"),
     },
-    network: t("apply.errNetwork", { email }),
+    network: email ? t("apply.errNetwork", { email }) : t("apply.errNetworkNoEmail"),
   };
 }
 

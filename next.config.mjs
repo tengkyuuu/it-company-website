@@ -1,4 +1,9 @@
 import { securityHeaders } from "./lib/security-headers.mjs";
+import { supabaseUrl } from "./lib/supabase/env.mjs";
+
+// "" while the CMS is switched off (lib/supabase/env.mjs), so neither the CSP
+// nor next/image allow-lists a Supabase host the site isn't using
+const SUPABASE_URL = supabaseUrl();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -14,7 +19,7 @@ const nextConfig = {
       // HSTS + upgrade-insecure-requests only where TLS is guaranteed. A local
       // `next start` is production but plain http://localhost.
       https: process.env.VERCEL === "1",
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseUrl: SUPABASE_URL,
       // Vercel injects its toolbar (vercel.live) into PREVIEW deployments only
       vercelPreview: process.env.VERCEL_ENV === "preview",
     });
@@ -25,11 +30,11 @@ const nextConfig = {
     qualities: [90],
     // Screenshots uploaded through the admin panel are served from Supabase
     // Storage. Only the configured project's host is allowed.
-    remotePatterns: process.env.NEXT_PUBLIC_SUPABASE_URL
+    remotePatterns: SUPABASE_URL
       ? [
           {
             protocol: "https",
-            hostname: new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname,
+            hostname: new URL(SUPABASE_URL).hostname,
             pathname: "/storage/v1/object/public/**",
           },
         ]

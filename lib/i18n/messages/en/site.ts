@@ -38,6 +38,7 @@ const site = {
     backToTop: "Back to top",
     opensInNewTab: "(opens in a new tab)",
     statusLink: "Status",
+    contactForm: "Send us a message",
   },
   home: {
     stackEyebrow: "The stack we build on",

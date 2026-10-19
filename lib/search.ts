@@ -14,6 +14,7 @@ import { defaultLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { localizePath } from "@/lib/i18n/paths";
 import { clip, joinKeywords, type SearchEntry, type SearchType } from "@/lib/search-score";
+import { isSupabaseConfigured } from "@/lib/supabase/types";
 
 /**
  * The Cmd+K search index, built on the server per locale from the SAME sources
@@ -136,19 +137,23 @@ async function build(lang: Locale): Promise<SearchEntry[]> {
       [
         en.t("nav.location"),
         "contact email phone map address directions hours Dipolog Zamboanga",
-        content.email,
-        content.phone,
+        ...[content.email, content.phone].filter(Boolean),
       ],
       "/location"
     ),
-    entry(
-      "page",
-      "status",
-      t("footer.statusLink"),
-      t("status.title"),
-      [en.t("footer.statusLink"), "uptime health tests lighthouse performance CI"],
-      "/status"
-    )
+    // /status is stored in the CMS database, so it exists only while that's on
+    ...(isSupabaseConfigured()
+      ? [
+          entry(
+            "page",
+            "status",
+            t("footer.statusLink"),
+            t("status.title"),
+            [en.t("footer.statusLink"), "uptime health tests lighthouse performance CI"],
+            "/status"
+          ),
+        ]
+      : [])
   );
 
   // CMS sections get a page entry only when something is published behind

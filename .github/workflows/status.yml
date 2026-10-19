@@ -89,13 +89,18 @@ jobs:
 
   lighthouse:
     name: Lighthouse → /status
+    # Skipped (not failed) until the repo variable SITE_URL exists. /status is
+    # stored in the CMS database, so while the CMS is switched off
+    # (NEXT_PUBLIC_CMS_ENABLED) there is nowhere to post — leave SITE_URL unset
+    # then, and the weekly run stops reporting a red X for a feature that's off.
     if: >-
+      vars.SITE_URL != '' && (
       (github.event_name == 'deployment_status' &&
         github.event.deployment_status.state == 'success' &&
         github.event.deployment.environment == 'Production') ||
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && inputs.report != 'tests' &&
-        github.ref == 'refs/heads/main')
+        github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     timeout-minutes: 45
     concurrency:

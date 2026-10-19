@@ -3,7 +3,9 @@ import Section from "@/components/Section";
 import TestsPanel from "@/components/status/TestsPanel";
 import LighthousePanel from "@/components/status/LighthousePanel";
 import { HealthMark } from "@/components/status/parts";
+import { notFound } from "next/navigation";
 import { getStatusSnapshot } from "@/lib/status";
+import { isSupabaseConfigured } from "@/lib/supabase/types";
 import { overallHealth } from "@/lib/status-schema";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { localeMetadata } from "@/lib/i18n/metadata";
@@ -36,6 +38,10 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
  */
 export default async function StatusPage({ params }: LangParams) {
   const lang = await pageLocale(params);
+  // The reports live in the CMS database; with the CMS switched off there is
+  // nothing to show and nowhere for CI to post, so the page doesn't exist
+  // (it's also dropped from the footer, sitemap and search).
+  if (!isSupabaseConfigured()) notFound();
   const { t } = getDictionary(lang);
   const snapshot = await getStatusSnapshot();
   const now = Date.now();

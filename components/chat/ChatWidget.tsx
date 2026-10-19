@@ -606,8 +606,10 @@ export default function ChatWidget() {
                 </div>
               )}
 
-              {/* "Talk to a person": after the first exchange, while the AI is answering */}
-              {hasVisitorTurn && !human && !wantsHuman && !pending && (
+              {/* "Talk to a person": after the first exchange, while the AI is
+                  answering — and only when conversations are being stored, since
+                  that's the only way a teammate (/admin/chats) can pick one up */}
+              {storeOk && hasVisitorTurn && !human && !wantsHuman && !pending && (
                 <div className="pt-1">
                   <button
                     type="button"

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { resolveLocaleRoute } from "@/lib/i18n/route";
+import { supabaseUrl } from "@/lib/supabase/env.mjs";
 
 /**
  * Two unrelated jobs, split by path:
@@ -57,7 +58,7 @@ export async function middleware(request: NextRequest) {
 async function adminMiddleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = supabaseUrl();
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) return NextResponse.next();
 

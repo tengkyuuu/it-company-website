@@ -152,6 +152,11 @@ const catalog = {
     errServer:
       "Something went wrong on our end and your application wasn’t sent. Please email it to us at {email}.",
     errNetwork: "Couldn’t reach the server. Please email us directly at {email}.",
+    // the same three for when the studio has no public email (lib/site.ts)
+    errBusyNoEmail: "We’re receiving an unusual number of applications right now. Please try again later.",
+    errServerNoEmail:
+      "Something went wrong on our end and your application wasn’t sent. Please try again in a little while.",
+    errNetworkNoEmail: "Couldn’t reach the server. Check your connection and try again.",
   },
 
   /* ------------------------------------------------------------------ blog */

@@ -36,7 +36,9 @@ export default function ContactForm() {
     } catch {
       setState({
         status: "error",
-        message: t("contact.networkError", { email: site.email }),
+        message: site.email
+          ? t("contact.networkError", { email: site.email })
+          : t("contact.networkErrorNoEmail"),
       });
     } finally {
       setPending(false);

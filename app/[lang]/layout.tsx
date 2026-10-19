@@ -64,14 +64,15 @@ const jsonLd = {
   "@type": "ProfessionalService",
   name: site.name,
   url: site.url,
-  email: site.email,
-  telephone: site.phone,
+  // optional details are omitted, not emitted empty (lib/site.ts ships no
+  // email, phone, street or socials yet — there's no domain)
+  ...(site.email ? { email: site.email } : {}),
+  ...(site.phone ? { telephone: site.phone } : {}),
   image: `${site.url}/opengraph-image`,
   logo: `${site.url}/icon.png`,
   description,
   address: {
     "@type": "PostalAddress",
-    streetAddress: site.address.line1,
     addressLocality: "Dipolog City",
     addressRegion: "Zamboanga del Norte",
     postalCode: "7100",
@@ -84,7 +85,7 @@ const jsonLd = {
   },
   openingHours: "Mo-Fr 09:00-18:00",
   areaServed: "Philippines",
-  sameAs: socials.map((s) => s.href),
+  ...(socials.length ? { sameAs: socials.map((s) => s.href) } : {}),
 };
 
 export default async function LangLayout({ children, params }: Props) {
@@ -125,6 +126,11 @@ export default async function LangLayout({ children, params }: Props) {
         footer={<Footer lang={lang} />}
         sections={sections}
         searchIndex={searchIndex}
+        // No key, no launcher: a chat bubble that can only say "not configured"
+        // is a dead end. Read at build (this layout is static), so adding
+        // GEMINI_API_KEY on Vercel takes a redeploy — which env changes need
+        // anyway.
+        chat={Boolean(process.env.GEMINI_API_KEY)}
       >
         {children}
       </SiteChrome>

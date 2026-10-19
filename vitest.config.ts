@@ -24,6 +24,10 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    // The suites exercise the CMS paths, so the switch is on here; a test that
+    // wants static-content mode unsets the Supabase vars (or this) itself.
+    // See lib/supabase/env.mjs.
+    env: { NEXT_PUBLIC_CMS_ENABLED: "true" },
     include: ["tests/**/*.test.ts"],
     restoreMocks: true,
     // every DB suite holds a ~400 MB WASM Postgres; unbounded parallelism
