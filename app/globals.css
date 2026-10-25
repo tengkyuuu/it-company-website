@@ -221,11 +221,17 @@ body {
    Hover only flares the under-cap glow; the actual press (cap travels home
    onto the housing) is reserved for :active, so the click has its own payoff.
 ---------------------------------------------------------------------------- */
-.keyswitch {
-  position: relative;
-  display: inline-block;
-  line-height: 0;
-  cursor: pointer;
+/* In @layer components, NOT unlayered: unlayered CSS beats every Tailwind
+   utility, and placements pass `hidden sm:block` / `absolute …` on this very
+   element. Unlayered, this rule silently overrode them — ten keyswitches meant
+   to hide on phones showed anyway, and /location's never left the text flow. */
+@layer components {
+  .keyswitch {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+    cursor: pointer;
+  }
 }
 .keyswitch .ks-base {
   position: absolute;
@@ -325,18 +331,22 @@ body {
    so a shadow on a masked element gets clipped straight back off).
    Being vector, there is no upscale limit.
 ---------------------------------------------------------------------------- */
-.wm,
-.wm-outline {
-  display: block;
-  /* intrinsic ratio of the trimmed asset — set one axis, the other follows */
-  aspect-ratio: 3636 / 1206;
-  background-color: currentColor;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
+/* Layered for the same reason as .keyswitch: Logo puts this class on its root
+   next to the caller's className, so utilities (hidden, md:block …) must win. */
+@layer components {
+  .wm,
+  .wm-outline {
+    display: block;
+    /* intrinsic ratio of the trimmed asset — set one axis, the other follows */
+    aspect-ratio: 3636 / 1206;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
 }
 .wm {
   -webkit-mask-image: url("/brand/wordmark.svg");
