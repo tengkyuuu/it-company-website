@@ -70,7 +70,8 @@ Built: `scripts/build-hero-shots.mjs` (0.21 MB for all 11), `lib/hero-shots.ts`,
 
 ## Phase 3: Landing sections
 
-- [ ] `ServicesGalaxy`: replace `GlyphScene` (goo) with **one large keycap per service**
+- [x] **Done 2026-11-04** — a 3×2 macropad of six keys (legend on the cap's front face; active key `.is-pressed`, gold glow; keys scroll to their row), mobile = a small key per row, Services header = one self-pressing key cycling legends. `GlyphScene` deleted, **three / r3f / drei uninstalled**, `lib/webgl.ts` reduced to `observeVisible`.
+- [x] (original note) `ServicesGalaxy`: replace `GlyphScene` (goo) with **one large keycap per service**
       (DESIGN.md §5). The service `Icon` is the cap legend; the active row's key gets
       `.is-pressed` + a gold glow, and the previous one releases. Reuse the existing
       IntersectionObserver that already marks the active row. Mobile: a small key per stacked

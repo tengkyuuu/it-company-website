@@ -16,8 +16,6 @@
   "dependencies": {
     "@google/genai": "^2.19.0",
     "@gsap/react": "^2.1.2",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.6.1",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.0",
     "@vercel/analytics": "^2.0.1",
@@ -31,7 +29,6 @@
     "react-dom": "^19.0.0",
     "resend": "^6.16.0",
     "simple-icons": "^16.23.0",
-    "three": "^0.184.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

@@ -159,13 +159,6 @@ body {
   background: none;
 }
 
-/* The no-WebGL stand-in for a 3D scene (Hero, ServicesGlyph): a magenta→gold
-   bloom built from gradients rather than `filter: blur()` on a solid disc.
-   Both blobs fade out within the inscribed circle, so a `rounded-full` host
-   never clips them into a hard-edged disc. */
-.accent-glow {
-  background: none; /* v2: goo is gone; the hero fallback is replaced in Phase 2 */
-}
 
 /* Fine grain/noise overlay for a printed, designed feel */
 .grain::before {
@@ -221,7 +214,8 @@ body {
   transition: transform 0.34s var(--ease-soft);
 }
 /* hover deliberately does NOT move the cap — see .ks-glow below */
-.keyswitch:active .ks-capwrap {
+.keyswitch:active .ks-capwrap,
+.keyswitch.is-pressed .ks-capwrap {
   /* the press: cap travels home onto the housing, overshoot reads as the "clack" */
   transform: translate(-2%, 10%);
   transition: transform 0.13s cubic-bezier(0.2, 0.9, 0.3, 1.35);
@@ -240,7 +234,8 @@ body {
   transition: filter 0.13s ease-out;
 }
 /* pressed home, the cap is closer to the housing — so its shadow tightens */
-.keyswitch:active .ks-capimg {
+.keyswitch:active .ks-capimg,
+.keyswitch.is-pressed .ks-capimg {
   filter: var(--ks-tint, brightness(1)) drop-shadow(0 2px 4px rgba(12, 10, 9, 0.45)) brightness(1.12)
     saturate(1.1);
 }
@@ -270,18 +265,54 @@ body {
 }
 /* the press blooms it once more so the click lands. Sets opacity too, not just
    scale: on touch there is no :hover, so the tap has to raise the glow itself. */
-.keyswitch:active .ks-glow {
+.keyswitch:active .ks-glow,
+.keyswitch.is-pressed .ks-glow {
   opacity: 1;
   transform: scale(1.26);
 }
+/* Legend — a service icon "shining through" the cap's big front face (the top
+   face already carries the cap's own squiggle). Dim ink at rest, gold + a small
+   halo when the key is pressed. Skewed to sit on the face's slope. */
+.keyswitch .ks-legend {
+  position: absolute;
+  left: 53%;
+  top: 64%;
+  width: 34%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%) skewX(-4deg) scaleY(0.92);
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  transition: color 0.34s var(--ease-soft), filter 0.34s var(--ease-soft);
+}
+.keyswitch.ks-ivory .ks-legend,
+.keyswitch.ks-gold .ks-legend {
+  color: rgba(12, 10, 9, 0.55);
+}
+.keyswitch:active .ks-legend,
+.keyswitch.is-pressed .ks-legend {
+  color: var(--color-gold);
+  filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.85));
+  transition-duration: 0.13s;
+}
+.keyswitch.ks-gold:active .ks-legend,
+.keyswitch.ks-gold.is-pressed .ks-legend {
+  color: #0c0a09;
+  filter: none;
+}
 @media (prefers-reduced-motion: reduce) {
+  .keyswitch .ks-legend {
+    transition: none;
+  }
   .keyswitch .ks-capwrap,
   .keyswitch .ks-capimg,
   .keyswitch .ks-glow {
     transition: none;
   }
   /* no travel — the glow alone carries hover + press */
-  .keyswitch:active .ks-capwrap {
+  .keyswitch:active .ks-capwrap,
+.keyswitch.is-pressed .ks-capwrap {
     transform: none;
   }
 }

@@ -1,40 +1,51 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
-import { observeVisible, wants3D } from "@/lib/webgl";
-
-const GlyphScene = dynamic(() => import("@/components/three/GlyphScene"), {
-  ssr: false,
-});
+import Icon from "@/components/Icon";
+import KeySwitch from "@/components/fx/KeySwitch";
+import type { IconName } from "@/lib/services";
+import { observeVisible } from "@/lib/webgl";
 
 /**
- * Floating 3D ornament for the Services header — cycles through all glyphs.
- * Renders only while the header is on screen; scrolled past, the canvas idles.
+ * Services header ornament: one big keycap that presses itself and cycles its
+ * legend through the six service icons. Runs only while on screen and not under
+ * reduced motion (then it rests on the first legend).
  */
-export default function ServicesGlyph() {
+export default function ServicesGlyph({ icons }: { icons: IconName[] }) {
   const box = useRef<HTMLDivElement>(null);
-  const [show3d, setShow3d] = useState(false);
-  const [inView, setInView] = useState(true);
+  const [i, setI] = useState(0);
+  const [down, setDown] = useState(false);
 
   useEffect(() => {
-    setShow3d(wants3D());
-  }, []);
+    const el = box.current;
+    if (!el || icons.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    let release: ReturnType<typeof setTimeout> | undefined;
+    const tick = () => {
+      setDown(true);
+      setI((n) => (n + 1) % icons.length);
+      release = setTimeout(() => setDown(false), 650);
+    };
+    const stop = observeVisible(el, (v) => {
+      clearInterval(timer);
+      if (v) timer = setInterval(tick, 2600);
+    });
+    return () => {
+      stop();
+      clearInterval(timer);
+      clearTimeout(release);
+    };
+  }, [icons.length]);
 
-  useEffect(() => {
-    if (!show3d || !box.current) return;
-    return observeVisible(box.current, setInView);
-  }, [show3d]);
-
-  if (!show3d) {
-    // gradient bloom, not `filter: blur()` on a solid disc
-    return (
-      <div className="accent-glow h-full w-full rounded-full opacity-50" aria-hidden />
-    );
-  }
   return (
-    <div ref={box} className="h-full w-full">
-      <GlyphScene active={-1} paused={!inView} />
+    <div ref={box} className="flex h-full w-full items-center justify-center">
+      <KeySwitch
+        size={250}
+        tint="onyx"
+        pressed={down}
+        legend={<Icon name={icons[i]} className="h-full w-full" />}
+      />
     </div>
   );
 }

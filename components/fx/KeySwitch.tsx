@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 /**
  * The R Ally's Tech keyswitch — two layered renders (public/brand/keycap.avif +
@@ -30,15 +30,21 @@ export type KeyTint = keyof typeof TINTS;
 export default function KeySwitch({
   size = 56,
   tint = "onyx",
+  legend,
+  pressed = false,
   className = "",
 }: {
   size?: number;
   tint?: KeyTint;
+  /** an icon printed on the cap's front face (e.g. a service `Icon`) */
+  legend?: ReactNode;
+  /** hold the key down with the gold glow lit — same look as :active */
+  pressed?: boolean;
   className?: string;
 }) {
   return (
     <span
-      className={`keyswitch ${className}`}
+      className={`keyswitch ks-${tint} ${pressed ? "is-pressed" : ""} ${className}`}
       style={{ width: size, height: Math.round(size * 1.18) }}
       aria-hidden="true"
     >
@@ -65,6 +71,7 @@ export default function KeySwitch({
           sizes="96px"
           className="ks-capimg"
         />
+        {legend ? <span className="ks-legend">{legend}</span> : null}
       </span>
     </span>
   );

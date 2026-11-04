@@ -1,22 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "@/components/Icon";
 import KeySwitch from "@/components/fx/KeySwitch";
 import { useI18n } from "@/components/i18n/I18nProvider";
 import type { Service } from "@/lib/services";
-import { observeVisible, wants3D } from "@/lib/webgl";
-
-const GlyphScene = dynamic(() => import("@/components/three/GlyphScene"), {
-  ssr: false,
-});
 
 /**
- * Desktop: a sticky panel holds a WebGL glyph that morphs as the visitor
- * scrolls the service index on the right; each service has its own 3D form.
- * Mobile: the index stacks, each row carrying its animated icon.
+ * Desktop: a sticky panel holds a macropad — one keycap per service, its icon
+ * printed on the cap. As the visitor scrolls the index on the right, the row
+ * crossing mid-viewport "presses" its key (cap travels home, gold glow lights)
+ * and the previous one releases. Keys are buttons that jump to their row.
+ * Mobile: the index stacks, each row carrying its own small key.
+ * All CSS — no WebGL on the landing page any more.
  *
  * Follows the theme rather than using `.band` — it sits on `bg-surface`, which
  * is white in light mode and an elevated slate in dark, so the section still
@@ -27,42 +24,6 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
   const { t } = useI18n();
   const root = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
-  const [show3d, setShow3d] = useState(false);
-
-  // `wants3D()` says the device COULD run it; `near` says it's worth doing yet.
-  // Both are required before GlyphScene mounts. This section sits well below the
-  // fold, and booting a second WebGL context + compiling its shaders during the
-  // initial hydration burst was pure contention for work nobody could see.
-  const [near, setNear] = useState(false);
-  // …and once mounted, it only RENDERS while the section is actually visible.
-  // `near` latches (the context and compiled shaders are kept for the return
-  // trip); `inView` toggles. Mounted-but-offscreen costs nothing.
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    setShow3d(wants3D());
-  }, []);
-
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    // one viewport of runway, so the scene is warm before it's on screen
-    const stopNear = observeVisible(
-      el,
-      (v) => {
-        if (v) {
-          setNear(true);
-          stopNear();
-        }
-      },
-      "100% 0px"
-    );
-    const stopView = observeVisible(el, setInView);
-    return () => {
-      stopNear();
-      stopView();
-    };
-  }, []);
 
   // the row crossing the vertical middle of the viewport is "active"
   useEffect(() => {
@@ -100,20 +61,33 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
                 {t("galaxy.eyebrow")}
               </span>
 
-              <div className="relative mt-4 h-[44vh]">
-                {show3d && near ? (
-                  <GlyphScene active={active} paused={!inView} />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <div className="flex h-32 w-32 items-center justify-center rounded-[2rem] border border-mist text-ink">
-                      <Icon name={current.icon} className="h-14 w-14" />
-                    </div>
-                  </div>
-                )}
+              {/* the macropad: six keys, the active one held down */}
+              <div className="mt-6 grid grid-cols-3 justify-items-center gap-x-2 gap-y-4 px-4">
+                {services.map((s, i) => (
+                  <button
+                    key={s.slug}
+                    type="button"
+                    aria-label={s.title}
+                    aria-current={i === active}
+                    onClick={() =>
+                      root.current
+                        ?.querySelector(`[data-service-row="${i}"]`)
+                        ?.scrollIntoView({ behavior: "smooth", block: "center" })
+                    }
+                    className="rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold-ink)]"
+                  >
+                    <KeySwitch
+                      size={132}
+                      tint="onyx"
+                      pressed={i === active}
+                      legend={<Icon name={s.icon} className="h-full w-full" />}
+                    />
+                  </button>
+                ))}
               </div>
 
               {/* crossfading label */}
-              <div className="mt-2 min-h-28">
+              <div className="mt-6 min-h-28">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={current.slug}
@@ -142,7 +116,6 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
                     }`}
                   />
                 ))}
-                <KeySwitch size={44} tint="onyx" className="ml-auto" />
               </div>
             </div>
           </div>
@@ -176,9 +149,14 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
                   <span className="font-mono text-sm text-accent">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  {/* icon shows where the glyph can't (mobile / no WebGL) */}
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-mist md:hidden">
-                    <Icon name={s.icon} />
+                  {/* the macropad is hidden on mobile: each row carries its own key */}
+                  <span className="md:hidden">
+                    <KeySwitch
+                      size={64}
+                      tint="onyx"
+                      pressed={i === active}
+                      legend={<Icon name={s.icon} className="h-full w-full" />}
+                    />
                   </span>
                 </div>
                 <h3 className="mt-4 font-display text-3xl font-semibold tracking-tight md:text-4xl">
