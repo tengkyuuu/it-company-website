@@ -122,10 +122,10 @@ export function tokenLink(origin: string, rawToken: string) {
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 
 /**
- * Table-based, inline-styled, light palette only (#F8FAFC paper, #1E293B ink,
- * #94A3B8 secondary) — mail clients ignore <style> and dark-mode hints too
- * unevenly to rely on. The button carries the one gradient accent, over a solid
- * mauve fallback for clients (Outlook) that drop background-image.
+ * Table-based, inline-styled, light palette only (#FAFAF9 paper, #0C0A09 ink,
+ * #78716C secondary) — mail clients ignore <style> and dark-mode hints too
+ * unevenly to rely on. The button is solid ink, like the site primary button (gold stays
+ * reserved for the site itself).
  */
 function layout({
   preheader,
@@ -152,36 +152,36 @@ function layout({
 <meta name="supported-color-schemes" content="light">
 <title>${esc(heading)}</title>
 </head>
-<body style="margin:0;padding:0;background:#F8FAFC;-webkit-text-size-adjust:100%">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#F8FAFC">${esc(preheader)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F8FAFC">
+<body style="margin:0;padding:0;background:#FAFAF9;-webkit-text-size-adjust:100%">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#FAFAF9">${esc(preheader)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAF9">
   <tr>
     <td align="center" style="padding:40px 16px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
         <tr>
-          <td style="padding:0 4px 18px;font:700 15px/1.2 ${FONT};color:#1E293B">
-            ${esc(site.name)}<span style="font-weight:400;color:#94A3B8">&nbsp;&nbsp;·&nbsp;&nbsp;Admin panel</span>
+          <td style="padding:0 4px 18px;font:700 15px/1.2 ${FONT};color:#0C0A09">
+            ${esc(site.name)}<span style="font-weight:400;color:#78716C">&nbsp;&nbsp;·&nbsp;&nbsp;Admin panel</span>
           </td>
         </tr>
         <tr>
-          <td style="background:#FFFFFF;border:1px solid #CBD5E1;border-radius:20px;padding:36px 32px">
-            <h1 style="margin:0 0 14px;font:700 24px/1.3 ${FONT};letter-spacing:-0.01em;color:#1E293B">${esc(heading)}</h1>
+          <td style="background:#FFFFFF;border:1px solid #E7E5E4;border-radius:20px;padding:36px 32px">
+            <h1 style="margin:0 0 14px;font:700 24px/1.3 ${FONT};letter-spacing:-0.01em;color:#0C0A09">${esc(heading)}</h1>
             ${bodyHtml}
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 8px">
               <tr>
-                <td bgcolor="#B85C7A" style="border-radius:999px;background:#B85C7A;background-image:linear-gradient(135deg,#9D5A8F,#B85C7A,#E0A23A)">
+                <td bgcolor="#0C0A09" style="border-radius:999px;background:#0C0A09">
                   <a href="${href}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 28px;border-radius:999px;font:600 15px/1 ${FONT};color:#FFFFFF;text-decoration:none">${esc(cta)}</a>
                 </td>
               </tr>
             </table>
-            <p style="margin:20px 0 0;font:13px/1.6 ${FONT};color:#94A3B8">
+            <p style="margin:20px 0 0;font:13px/1.6 ${FONT};color:#78716C">
               Button not working? Paste this link into your browser:<br>
-              <a href="${href}" target="_blank" rel="noopener" style="color:#1E293B;word-break:break-all">${href}</a>
+              <a href="${href}" target="_blank" rel="noopener" style="color:#0C0A09;word-break:break-all">${href}</a>
             </p>
           </td>
         </tr>
         <tr>
-          <td style="padding:20px 4px 0;font:12px/1.6 ${FONT};color:#94A3B8">${footnote}</td>
+          <td style="padding:20px 4px 0;font:12px/1.6 ${FONT};color:#78716C">${footnote}</td>
         </tr>
       </table>
     </td>
@@ -192,7 +192,7 @@ function layout({
 }
 
 const p = (html: string) =>
-  `<p style="margin:0 0 14px;font:15px/1.65 ${FONT};color:#1E293B">${html}</p>`;
+  `<p style="margin:0 0 14px;font:15px/1.65 ${FONT};color:#0C0A09">${html}</p>`;
 
 async function send(message: {
   to: string;

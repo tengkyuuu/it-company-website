@@ -52,10 +52,6 @@ export default async function AboutPage({ params }: LangParams) {
     <>
       {/* Header */}
       <Section className="relative overflow-hidden pt-36 md:pt-44">
-        <div
-          className="pointer-events-none absolute -right-10 -top-2 h-72 w-72 opacity-40 aurora"
-          aria-hidden
-        />
         <div className="grid items-end gap-12 md:grid-cols-2">
           <SectionHeader
             as="h1"

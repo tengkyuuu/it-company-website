@@ -37,10 +37,6 @@ export default async function ServicesPage({ params }: LangParams) {
     <>
       {/* Header — display type + cycling 3D glyph */}
       <Section className="relative overflow-hidden pt-36 md:pt-44">
-        <div
-          className="pointer-events-none absolute -right-10 -top-2 h-72 w-72 opacity-40 aurora"
-          aria-hidden
-        />
         <div className="grid items-center gap-10 md:grid-cols-[1fr_auto]">
           <SectionHeader
             as="h1"

@@ -27,7 +27,7 @@
  */
 "use strict";
 
-var VERSION = "2026-11-04.1";
+var VERSION = "2026-11-04.2";
 var PREFIX = "rat-";
 var SHELL_CACHE = PREFIX + "shell-" + VERSION;
 var STATIC_CACHE = PREFIX + "static-" + VERSION;

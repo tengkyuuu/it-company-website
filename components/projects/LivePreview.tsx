@@ -48,7 +48,7 @@ export default function LivePreview({
   still?: boolean;
 }) {
   const { t } = useI18n();
-  const { liveUrl, url, img, name, dots } = project;
+  const { liveUrl, url, img, name } = project;
   // known to refuse framing (or unreachable at the last check): link out instead
   const refused = Boolean(liveUrl) && project.embeddable === false;
   const frameUrl = refused || still ? undefined : liveUrl;
@@ -97,16 +97,15 @@ export default function LivePreview({
 
   return (
     <figure
-      className={`overflow-hidden rounded-2xl border border-white/10 bg-ink-900 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.65)] ${className}`}
+      className={`band overflow-hidden rounded-2xl border border-white/10 bg-ink-900 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.65)] ${className}`}
     >
       {/* browser chrome */}
       <figcaption className="flex items-center gap-2 border-b border-white/10 bg-white/[0.04] px-3.5 py-2.5">
         <span className="flex items-center gap-1.5" aria-hidden>
-          {dots.map((c, i) => (
+          {[0, 1, 2].map((i) => (
             <span
               key={i}
-              style={{ background: c }}
-              className="h-2 w-2 rounded-full ring-1 ring-white/20"
+              className="h-2 w-2 rounded-full bg-white/25"
             />
           ))}
         </span>

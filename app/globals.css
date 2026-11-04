@@ -148,17 +148,6 @@ body {
   background: var(--color-gold);
 }
 
-/* Soft accent glow (page-header corners, footer, belief band, last process card).
-   Static and filter-free on purpose: it used to be `filter: blur(40px)` plus an
-   infinite drift, i.e. a blurred layer re-composited every frame for a motion
-   nobody could see. The extra, eased stops stand in for the blur's softness.
-   Each ellipse fades out INSIDE the box — the blur used to hide the box edge,
-   so without it a gradient running past the edge would be cut off hard. */
-.aurora {
-  /* v2: no glow clouds (no-op so call sites still compile; remove them in Phase 3/4) */
-  background: none;
-}
-
 
 /* Fine grain/noise overlay for a printed, designed feel */
 .grain::before {

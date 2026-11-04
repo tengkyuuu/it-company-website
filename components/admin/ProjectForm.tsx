@@ -543,7 +543,7 @@ export default function ProjectForm({
       </Card>
 
       <Card>
-        <CardTitle hint="Three colors lifted from the project itself. They tint its plate on the landing gallery and colour the browser dots.">
+        <CardTitle hint="Three colors lifted from the project itself. Stored for reference; the current site design shows neutral browser chrome instead.">
           Signature colors
         </CardTitle>
         <div className="grid gap-5 sm:grid-cols-3">

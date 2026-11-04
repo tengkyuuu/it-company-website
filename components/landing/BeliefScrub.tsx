@@ -49,10 +49,6 @@ export default function BeliefScrub() {
       ref={root}
       className="band relative overflow-hidden rounded-[2rem] bg-ink px-8 py-16 text-paper grain md:px-16 md:py-24"
     >
-      <div
-        className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 opacity-50 aurora"
-        aria-hidden
-      />
       <div className="relative">
         <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-slatey">
           <span className="h-px w-6 bg-accent" />

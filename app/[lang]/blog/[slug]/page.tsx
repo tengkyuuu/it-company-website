@@ -72,10 +72,6 @@ export default async function PostPage({ params }: Params) {
     <>
       <article>
         <Section className="relative overflow-hidden pt-36 md:pt-44">
-          <div
-            className="pointer-events-none absolute -right-10 -top-4 h-72 w-72 opacity-40 aurora"
-            aria-hidden
-          />
           <Reveal className="mx-auto max-w-3xl">
             <BackLink href={localizePath(lang, "/blog")}>{t("post.back")}</BackLink>
             {post.tags.length > 0 && (

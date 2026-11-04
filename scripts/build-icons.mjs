@@ -3,9 +3,8 @@
 //   node scripts/build-icons.mjs
 //
 // The mark is the logo's own R + spark (public/brand/monogram.svg, outlined by
-// scripts/build-wordmark.mjs — so no font is needed here) in the accent
-// gradient on the opening sequence's #111a24, i.e. "the logo's letter" — the
-// one place CLAUDE.md reserves the gradient for. The full lockup is ~3:1 and
+// scripts/build-wordmark.mjs — so no font is needed here) in flat brand
+// gold (DESIGN.md v2) on the near-black #0c0a09 of the opening sequence. The full lockup is ~3:1 and
 // unreadable at launcher sizes; the monogram isn't.
 //
 //   app/icon.png (512)           the favicon, and the JSON-LD `logo`: rounded tile

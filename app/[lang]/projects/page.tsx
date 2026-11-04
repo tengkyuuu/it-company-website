@@ -29,10 +29,6 @@ export default async function ProjectsPage({ params }: LangParams) {
   return (
     <>
       <Section className="relative overflow-hidden pt-36 md:pt-44">
-        <div
-          className="pointer-events-none absolute -right-10 -top-4 h-72 w-72 opacity-40 aurora"
-          aria-hidden
-        />
         <SectionHeader
           as="h1"
           eyebrow={t("projects.eyebrow")}
@@ -49,7 +45,7 @@ export default async function ProjectsPage({ params }: LangParams) {
             {t("projects.count", { count: String(projects.length).padStart(2, "0") })}
           </span>
           <span className="h-px flex-1 bg-mist/70" aria-hidden />
-          <KeySwitch size={44} tint="gold" />
+          <KeySwitch size={44} tint="onyx" />
         </Reveal>
       </Section>
 
@@ -87,16 +83,7 @@ export default async function ProjectsPage({ params }: LangParams) {
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <p className="mt-5 flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-slatey">
-                    <span className="flex items-center gap-1" aria-hidden>
-                      {p.dots.map((c, j) => (
-                        <span
-                          key={j}
-                          style={{ background: c }}
-                          className="h-2 w-2 rounded-full ring-1 ring-ink/10"
-                        />
-                      ))}
-                    </span>
+                  <p className="mt-5 font-mono text-[11px] uppercase tracking-widest text-slatey">
                     {p.category} · {p.year}
                   </p>
                   <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight md:text-4xl">

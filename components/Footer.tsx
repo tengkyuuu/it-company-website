@@ -35,9 +35,6 @@ export default async function Footer({ lang }: { lang: Locale }) {
 
   return (
     <footer className="band relative mt-24 overflow-hidden bg-ink text-paper grain">
-      {/* soft accent glow */}
-      <div className="pointer-events-none absolute -top-32 right-0 h-80 w-80 rounded-full opacity-40 aurora" />
-
       <div className="relative mx-auto max-w-6xl px-6 pt-20">
         {/* CTA band */}
         <Reveal className="flex flex-col items-start justify-between gap-8 border-b border-white/10 pb-14 md:flex-row md:items-end">

@@ -66,10 +66,6 @@ export default async function ProductPage({ params }: Params) {
     <>
       {/* Header */}
       <Section className="relative overflow-hidden pt-36 md:pt-44">
-        <div
-          className="pointer-events-none absolute -right-10 -top-4 h-72 w-72 opacity-40 aurora"
-          aria-hidden
-        />
         <Reveal>
           <BackLink href={localizePath(lang, "/products")}>{t("product.back")}</BackLink>
         </Reveal>

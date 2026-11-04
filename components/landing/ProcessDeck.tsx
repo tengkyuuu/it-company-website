@@ -87,13 +87,6 @@ export default function ProcessDeck() {
                   : "border-mist/70 bg-surface will-change-transform"
               }`}
             >
-              {last && (
-                <div
-                  className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 opacity-40 aurora"
-                  aria-hidden
-                />
-              )}
-
               <div className="relative flex items-start justify-between">
                 <span
                   className={`rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] ${

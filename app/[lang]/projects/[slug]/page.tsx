@@ -70,10 +70,6 @@ export default async function ProjectPage({ params }: Params) {
     <>
       {/* Header */}
       <Section className="relative overflow-hidden pt-36 md:pt-44">
-        <div
-          className="pointer-events-none absolute -right-10 -top-4 h-72 w-72 opacity-40 aurora"
-          aria-hidden
-        />
         <Reveal>
           <Link
             href={localizePath(lang, "/projects")}
@@ -91,16 +87,7 @@ export default async function ProjectPage({ params }: Params) {
 
         <div className="mt-8 grid gap-10 md:grid-cols-12 md:gap-14">
           <Reveal className="md:col-span-7">
-            <p className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-slatey">
-              <span className="flex items-center gap-1" aria-hidden>
-                {p.dots.map((c, j) => (
-                  <span
-                    key={j}
-                    style={{ background: c }}
-                    className="h-2 w-2 rounded-full ring-1 ring-ink/10"
-                  />
-                ))}
-              </span>
+            <p className="font-mono text-[11px] uppercase tracking-widest text-slatey">
               {p.category} · {p.year}
             </p>
             <h1 className="mt-3 text-balance font-display text-4xl font-semibold tracking-tight md:text-6xl">

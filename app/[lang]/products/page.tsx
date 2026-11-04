@@ -48,10 +48,6 @@ export default async function ProductsPage({ params }: LangParams) {
   return (
     <>
       <Section className="relative overflow-hidden pt-36 md:pt-44">
-        <div
-          className="pointer-events-none absolute -right-10 -top-4 h-72 w-72 opacity-40 aurora"
-          aria-hidden
-        />
         <SectionHeader
           as="h1"
           eyebrow={t("products.eyebrow")}
