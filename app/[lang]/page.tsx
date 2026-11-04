@@ -4,7 +4,6 @@ import { heroShots } from "@/lib/hero-shots";
 import Section, { SectionHeader, Eyebrow } from "@/components/Section";
 import TechMarquee from "@/components/landing/TechMarquee";
 import ServicesGalaxy from "@/components/landing/ServicesGalaxy";
-import WorkGallery from "@/components/landing/WorkGallery";
 import ProcessDeck from "@/components/landing/ProcessDeck";
 import BeliefScrub from "@/components/landing/BeliefScrub";
 import { Reveal } from "@/components/Reveal";
@@ -41,13 +40,8 @@ export default async function Home({ params }: LangParams) {
         <TechMarquee />
       </div>
 
-      {/* Services — dark band, sticky morphing 3D glyph + scrolling index */}
+      {/* Services — keycap macropad + one line per service (detail lives on /services) */}
       <ServicesGalaxy services={services} />
-
-      {/* Selected Work — pinned horizontal gallery with parallax plates */}
-      <div className="pt-24 md:pt-32">
-        <WorkGallery projects={projects} />
-      </div>
 
       {/* Process — sticky card deck */}
       <Section className="pt-24 md:pt-32">

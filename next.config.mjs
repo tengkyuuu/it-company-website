@@ -11,6 +11,15 @@ const nextConfig = {
   // Built in lib/security-headers.mjs (unit-tested); read its header comment
   // for why the CSP has no nonce. Evaluated at build time, so the Supabase
   // origin comes from the build's env — the same value the client bundle has.
+  // Location was renamed Contact (2026-11-04). Config redirects run before
+  // middleware, so these fire ahead of the locale rewrite.
+  async redirects() {
+    return [
+      { source: "/location", destination: "/contact", permanent: true },
+      { source: "/fil/location", destination: "/fil/contact", permanent: true },
+    ];
+  },
+
   async headers() {
     return securityHeaders({
       // Next sets NODE_ENV before loading this file: development under

@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
  * every layer. So a component class that sets `display` or `position`
  * unlayered silently overrides any `hidden` / `sm:block` / `absolute` a caller
  * passes in className — no warning, it just doesn't apply. That shipped: ten
- * KeySwitches meant to hide on phones showed anyway, and /location's never
+ * KeySwitches meant to hide on phones showed anyway, and /contact's never
  * left the text flow (found 2026-10-25).
  *
  * The rule: a class a component puts on its ROOT next to the caller's

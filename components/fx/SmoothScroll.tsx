@@ -76,7 +76,7 @@ export default function SmoothScroll({
 
   // Reset scroll + recalc triggers on client-side navigation — to the top, or
   // to the #fragment when the link carried one (the footer's
-  // "/location#contact"), which a plain reset would otherwise throw away.
+  // "/contact#contact"), which a plain reset would otherwise throw away.
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     const target = hash ? document.getElementById(decodeURIComponent(hash)) : null;

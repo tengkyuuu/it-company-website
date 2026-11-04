@@ -19,7 +19,7 @@ const site = {
     about: "About",
     services: "Services",
     projects: "Projects",
-    location: "Location & Contact",
+    location: "Contact",
     projectNotFound: "Project not found",
   },
   footer: {
@@ -109,10 +109,10 @@ const site = {
     next: "Next →",
   },
   location: {
-    eyebrow: "Location & Contact",
-    titleLine1: "Let’s talk about",
-    titleLine2: "what you’re",
-    titleAccent: "building.",
+    eyebrow: "Contact",
+    titleLine1: "Start a",
+    titleLine2: "project",
+    titleAccent: "with us.",
     localTime: "Studio time now",
     studio: "Studio",
     phone: "Phone",

@@ -10,7 +10,7 @@ export const navKeys: Record<string, ClientMessageKey> = {
   "/services": "nav.services",
   "/projects": "nav.projects",
   "/about": "nav.about",
-  "/location": "nav.location",
+  "/contact": "nav.contact",
   "/products": "nav.products",
   "/careers": "nav.careers",
   "/blog": "nav.blog",

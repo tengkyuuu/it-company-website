@@ -47,8 +47,15 @@ export default async function Footer({ lang }: { lang: Locale }) {
             {t("footer.ctaLine2")} <span className="text-accent">{t("footer.ctaAccent")}</span>
           </h2>
           <div className="flex shrink-0 items-center gap-6">
-            <KeySwitch size={54} tint="ivory" className="hidden sm:block" />
-            <Button href={localizePath(lang, "/location")} arrow>
+            {/* the key does the same job as the button beside it */}
+            <Link
+              href={localizePath(lang, "/contact")}
+              aria-label={t("footer.cta")}
+              className="ks-trigger hidden rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)] sm:block"
+            >
+              <KeySwitch size={54} tint="ivory" />
+            </Link>
+            <Button href={localizePath(lang, "/contact")} arrow>
               {t("footer.cta")}
             </Button>
           </div>
@@ -110,7 +117,7 @@ export default async function Footer({ lang }: { lang: Locale }) {
             {site.email ? (
               <FooterLink href={`mailto:${site.email}`}>{site.email}</FooterLink>
             ) : (
-              <FooterLink href={`${localizePath(lang, "/location")}#contact`}>
+              <FooterLink href={`${localizePath(lang, "/contact")}#contact`}>
                 {t("footer.contactForm")}
               </FooterLink>
             )}
@@ -162,10 +169,6 @@ export default async function Footer({ lang }: { lang: Locale }) {
               <BackToTop label={t("footer.backToTop")} />
             </div>
           </div>
-          <p className="mt-8 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-paper/35">
-            {t("footer.developedBy")} <span className="text-paper/70">R Ally's Tech</span> ·{" "}
-            {t("footer.developedFor")} <span className="text-paper/70">R Ally's Tech</span>
-          </p>
         </div>
       </div>
     </footer>

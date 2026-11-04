@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { serviceOptions, type ContactState } from "@/lib/contact-schema";
 import { site } from "@/lib/site";
 import { useI18n } from "@/components/i18n/I18nProvider";
+import KeySwitch from "@/components/fx/KeySwitch";
 
 const fieldCls =
   "w-full rounded-xl border border-mist bg-paper px-4 py-3 text-ink placeholder:text-slatey transition-colors duration-200 focus:border-ink/40 focus:outline-none focus:ring-4 focus:ring-ink/5 aria-[invalid=true]:border-red-400 aria-[invalid=true]:ring-red-500/10";
@@ -171,18 +172,26 @@ export default function ContactForm() {
                 </p>
               )}
 
-              <motion.button
+              {/* Send is a keycap: pressing the button presses the gold key, and
+                  the key stays held down while the message is sending */}
+              <button
                 type="submit"
                 disabled={pending}
-                whileHover={pending ? undefined : { y: -2 }}
-                whileTap={pending ? undefined : { scale: 0.98 }}
-                className="group relative mt-2 inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-ink px-6 py-3.5 text-sm font-medium text-paper disabled:cursor-not-allowed disabled:opacity-70"
+                className="ks-trigger group mt-2 flex items-center gap-5 self-start rounded-2xl pr-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold-ink)] disabled:cursor-progress"
               >
-                <span className="absolute inset-0 bg-accent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <span className="relative z-10">
-                  {pending ? t("contact.sending") : t("contact.submit")}
+                <KeySwitch size={68} tint="gold" pressed={pending} />
+                <span className="flex flex-col">
+                  <span className="text-lg font-medium text-ink">
+                    {pending ? t("contact.sending") : t("contact.submit")}
+                  </span>
+                  <span
+                    aria-hidden
+                    className="font-mono text-[11px] uppercase tracking-[0.2em] text-slatey transition-colors group-hover:text-ink"
+                  >
+                    ↵ {t("contact.sendHint")}
+                  </span>
                 </span>
-              </motion.button>
+              </button>
 
               <p className="text-center text-xs text-slatey">
                 {t("contact.privacy")}

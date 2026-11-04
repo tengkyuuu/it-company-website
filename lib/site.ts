@@ -23,7 +23,7 @@ export const site = {
   name: "R Ally's Tech",
   tagline: "Software, designed with intent.",
   url: siteUrl(),
-  // Public contact details. Empty = not shown anywhere (footer, /location,
+  // Public contact details. Empty = not shown anywhere (footer, /contact,
   // JSON-LD, the chat assistant): there is no domain, so no company mailbox,
   // and the scaffold's phone number and street address were placeholders.
   // Enquiries arrive through the contact form (CONTACT_TO_EMAIL, server-only).
@@ -56,12 +56,12 @@ export type NavItem = {
 export const nav: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
-  { label: "Projects", href: "/projects" },
+  { label: "Work", href: "/projects" },
   { label: "Products", href: "/products", section: "products" },
   { label: "About", href: "/about" },
   { label: "Blog", href: "/blog", section: "blog" },
   { label: "Careers", href: "/careers", section: "careers" },
-  { label: "Location", href: "/location" },
+  { label: "Contact", href: "/contact" },
 ];
 
 /**

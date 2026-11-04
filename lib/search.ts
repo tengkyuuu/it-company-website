@@ -131,15 +131,15 @@ async function build(lang: Locale): Promise<SearchEntry[]> {
     ),
     entry(
       "page",
-      "location",
-      t("nav.location"),
+      "contact",
+      t("nav.contact"),
       `${content.address.line1}, ${content.address.line2}`,
       [
-        en.t("nav.location"),
-        "contact email phone map address directions hours Dipolog Zamboanga",
+        en.t("nav.contact"),
+        "contact location start project enquiry email phone map address directions hours Dipolog Zamboanga",
         ...[content.email, content.phone].filter(Boolean),
       ],
-      "/location"
+      "/contact"
     ),
     // /status is stored in the CMS database, so it exists only while that's on
     ...(isSupabaseConfigured()

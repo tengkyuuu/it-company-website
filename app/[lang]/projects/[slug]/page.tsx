@@ -115,7 +115,7 @@ export default async function ProjectPage({ params }: Params) {
                   {t("project.openLive")}
                 </Button>
               ) : (
-                <Button href={localizePath(lang, "/location")} arrow>
+                <Button href={localizePath(lang, "/contact")} arrow>
                   {t("project.ask")}
                 </Button>
               )}

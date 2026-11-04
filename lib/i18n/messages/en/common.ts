@@ -18,9 +18,9 @@ const common = {
   nav: {
     home: "Home",
     services: "Services",
-    projects: "Projects",
+    projects: "Work",
     about: "About",
-    location: "Location",
+    contact: "Contact",
     // shown only while something is published (getPublishedSections)
     products: "Products",
     careers: "Careers",
@@ -42,8 +42,8 @@ const common = {
   },
   hero: {
     eyebrow: "IT Studio · Dipolog City",
-    primaryCta: "Explore our work",
-    secondaryCta: "Meet the studio",
+    primaryCta: "See our work",
+    secondaryCta: "Start a project",
     scroll: "Scroll",
   },
   work: {
@@ -59,6 +59,7 @@ const common = {
     sectionLabel: "Services",
     eyebrow: "What we do",
     title: "One studio, the whole product journey.",
+    allServices: "All services",
   },
   process: {
     phase: "Phase {no} — {total}",
@@ -94,6 +95,7 @@ const common = {
     message: "Tell us a little more",
     messagePlaceholder: "A sentence or two about what you’re building…",
     submit: "Send message →",
+    sendHint: "Press to send",
     sending: "Sending…",
     privacy: "We’ll only use your details to reply — never shared.",
     successTitle: "Message on its way.",

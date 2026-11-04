@@ -79,7 +79,7 @@ export default async function CareersPage({ params }: LangParams) {
             title={t("careers.emptyTitle")}
             body={t("careers.emptyBody")}
             cta={t("careers.emptyCta")}
-            href={localizePath(lang, "/location")}
+            href={localizePath(lang, "/contact")}
             tint="gold"
           />
         </Section>
@@ -159,7 +159,7 @@ export default async function CareersPage({ params }: LangParams) {
                 </p>
               </div>
               <div className="md:col-span-4 md:justify-self-end">
-                <Button href={localizePath(lang, "/location")} arrow>
+                <Button href={localizePath(lang, "/contact")} arrow>
                   {t("careers.speculativeCta")}
                 </Button>
               </div>

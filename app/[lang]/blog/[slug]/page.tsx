@@ -184,7 +184,7 @@ export default async function PostPage({ params }: Params) {
           </h2>
           <div className="flex shrink-0 items-center gap-5">
             <KeySwitch size={50} tint="onyx" className="hidden sm:block" />
-            <Button href={localizePath(lang, "/location")} arrow>
+            <Button href={localizePath(lang, "/contact")} arrow>
               {t("post.closingCta")}
             </Button>
           </div>

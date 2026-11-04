@@ -19,9 +19,9 @@ const common: DeepPartial<typeof en> = {
   nav: {
     home: "Home",
     services: "Serbisyo",
-    projects: "Proyekto",
+    projects: "Mga Gawa",
     about: "Tungkol",
-    location: "Lokasyon",
+    contact: "Kontak",
     products: "Produkto",
     careers: "Trabaho",
     blog: "Blog",
@@ -43,7 +43,7 @@ const common: DeepPartial<typeof en> = {
   hero: {
     eyebrow: "IT Studio sa Dipolog City",
     primaryCta: "Tingnan ang aming gawa",
-    secondaryCta: "Kilalanin ang studio",
+    secondaryCta: "Magsimula ng proyekto",
     scroll: "Mag-scroll",
   },
   work: {
@@ -59,6 +59,7 @@ const common: DeepPartial<typeof en> = {
     sectionLabel: "Mga serbisyo",
     eyebrow: "Ang aming ginagawa",
     title: "Iisang studio, buong proseso ng produkto.",
+    allServices: "Lahat ng serbisyo",
   },
   process: {
     phase: "Yugto {no} — {total}",
@@ -93,6 +94,7 @@ const common: DeepPartial<typeof en> = {
     message: "Ikuwento pa nang kaunti",
     messagePlaceholder: "Isa o dalawang pangungusap tungkol sa binubuo mo…",
     submit: "Ipadala ang mensahe →",
+    sendHint: "Pindutin para ipadala",
     sending: "Ipinapadala…",
     privacy: "Gagamitin lang namin ang detalye mo para sumagot — hindi namin ito ibabahagi.",
     successTitle: "Papunta na ang mensahe mo.",

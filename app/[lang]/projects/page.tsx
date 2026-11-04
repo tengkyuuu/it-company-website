@@ -147,25 +147,6 @@ export default async function ProjectsPage({ params }: LangParams) {
           );
         })}
       </div>
-
-      <Section className="pt-32 md:pt-40">
-        <Reveal className="flex flex-col items-start justify-between gap-8 border-t border-mist/70 pt-14 md:flex-row md:items-center">
-          <div>
-            <h2 className="max-w-xl text-balance font-display text-3xl font-semibold tracking-tight md:text-4xl">
-              {t("projects.closingTitle")}
-            </h2>
-            <p className="mt-3 max-w-md text-pretty leading-relaxed text-ink/60">
-              Tell us what you’re building and we’ll tell you how we’d ship it.
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-5">
-            <KeySwitch size={50} tint="onyx" className="hidden sm:block" />
-            <Button href={localizePath(lang, "/location")} arrow>
-              {t("projects.closingCta")}
-            </Button>
-          </div>
-        </Reveal>
-      </Section>
     </>
   );
 }

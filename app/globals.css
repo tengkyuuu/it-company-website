@@ -215,7 +215,8 @@ body {
 }
 /* hover deliberately does NOT move the cap — see .ks-glow below */
 .keyswitch:active .ks-capwrap,
-.keyswitch.is-pressed .ks-capwrap {
+.keyswitch.is-pressed .ks-capwrap,
+.ks-trigger:active .keyswitch .ks-capwrap {
   /* the press: cap travels home onto the housing, overshoot reads as the "clack" */
   transform: translate(-2%, 10%);
   transition: transform 0.13s cubic-bezier(0.2, 0.9, 0.3, 1.35);
@@ -235,7 +236,8 @@ body {
 }
 /* pressed home, the cap is closer to the housing — so its shadow tightens */
 .keyswitch:active .ks-capimg,
-.keyswitch.is-pressed .ks-capimg {
+.keyswitch.is-pressed .ks-capimg,
+.ks-trigger:active .keyswitch .ks-capimg {
   filter: var(--ks-tint, brightness(1)) drop-shadow(0 2px 4px rgba(12, 10, 9, 0.45)) brightness(1.12)
     saturate(1.1);
 }
@@ -266,7 +268,8 @@ body {
 /* the press blooms it once more so the click lands. Sets opacity too, not just
    scale: on touch there is no :hover, so the tap has to raise the glow itself. */
 .keyswitch:active .ks-glow,
-.keyswitch.is-pressed .ks-glow {
+.keyswitch.is-pressed .ks-glow,
+.ks-trigger:active .keyswitch .ks-glow {
   opacity: 1;
   transform: scale(1.26);
 }
@@ -309,13 +312,15 @@ body {
   color: rgba(12, 10, 9, 0.55);
 }
 .keyswitch:active .ks-legend,
-.keyswitch.is-pressed .ks-legend {
+.keyswitch.is-pressed .ks-legend,
+.ks-trigger:active .keyswitch .ks-legend {
   color: var(--color-gold);
   filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.85));
   transition-duration: 0.13s;
 }
 .keyswitch.ks-gold:active .ks-legend,
-.keyswitch.ks-gold.is-pressed .ks-legend {
+.keyswitch.ks-gold.is-pressed .ks-legend,
+.ks-trigger:active .keyswitch.ks-gold .ks-legend {
   color: #0c0a09;
   filter: none;
 }
@@ -330,7 +335,8 @@ body {
   }
   /* no travel — the glow alone carries hover + press */
   .keyswitch:active .ks-capwrap,
-.keyswitch.is-pressed .ks-capwrap {
+.keyswitch.is-pressed .ks-capwrap,
+.ks-trigger:active .keyswitch .ks-capwrap {
     transform: none;
   }
 }

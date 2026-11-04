@@ -16,7 +16,7 @@ const site: DeepPartial<typeof en> = {
     about: "Tungkol sa Amin",
     services: "Mga Serbisyo",
     projects: "Mga Proyekto",
-    location: "Lokasyon at Contact",
+    location: "Kontak",
     projectNotFound: "Hindi mahanap ang proyekto",
   },
   footer: {
@@ -106,7 +106,7 @@ const site: DeepPartial<typeof en> = {
     next: "Susunod →",
   },
   location: {
-    eyebrow: "Lokasyon at Contact",
+    eyebrow: "Kontak",
     titleLine1: "Pag-usapan natin",
     titleLine2: "ang iyong",
     titleAccent: "binubuo.",

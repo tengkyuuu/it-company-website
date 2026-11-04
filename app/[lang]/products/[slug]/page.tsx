@@ -98,7 +98,7 @@ export default async function ProductPage({ params }: Params) {
             ))}
             <div className="mt-9 flex flex-wrap items-center gap-4">
               {p.cta && <ProductCta cta={p.cta} lang={lang} newTabLabel={t("footer.opensInNewTab")} />}
-              <Button href={localizePath(lang, "/location")} variant={p.cta ? "outline" : "solid"} arrow>
+              <Button href={localizePath(lang, "/contact")} variant={p.cta ? "outline" : "solid"} arrow>
                 {askLabel}
               </Button>
               <KeySwitch size={46} tint="onyx" className="hidden sm:block" />

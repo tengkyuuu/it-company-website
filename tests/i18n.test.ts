@@ -241,7 +241,7 @@ describe("localizePath", () => {
     ["fil", "/", "/fil"],
     ["fil", "/projects", "/fil/projects"],
     ["fil", "/projects/famecrm", "/fil/projects/famecrm"],
-    ["fil", "/location#contact", "/fil/location#contact"],
+    ["fil", "/contact#contact", "/fil/contact#contact"],
     ["fil", "/?ref=x", "/fil?ref=x"],
     // idempotent
     ["fil", "/fil", "/fil"],

@@ -234,7 +234,7 @@ describe("buildSearchIndex", () => {
       "/services",
       "/projects",
       "/about",
-      "/location",
+      "/contact",
       // no /status: its reports live in the CMS database
     ]);
     expect(byType("project").length).toBe(5);
@@ -270,7 +270,7 @@ describe("buildSearchIndex", () => {
   it("finds real content by the obvious words", async () => {
     const idx = await buildSearchIndex("en");
     expect(search(idx, "famecrm")[0]?.id).toBe("project-famecrm");
-    expect(search(idx, "contact")[0]?.id).toBe("page-location");
+    expect(search(idx, "contact")[0]?.id).toBe("page-contact");
     expect(search(idx, "mobile").length).toBeGreaterThan(0);
   });
 

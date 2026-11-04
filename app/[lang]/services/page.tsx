@@ -93,13 +93,6 @@ export default async function ServicesPage({ params }: LangParams) {
             </RevealItem>
           ))}
         </RevealGroup>
-
-        <Reveal delay={0.1} className="mt-12 flex items-center justify-center gap-5">
-          <Button href={localizePath(lang, "/location")} arrow>
-            {t("services.cta")}
-          </Button>
-          <KeySwitch size={50} tint="onyx" className="hidden sm:block" />
-        </Reveal>
       </Section>
     </>
   );

@@ -252,7 +252,7 @@ function ClosedPanel({
           <Button href={localizePath(lang, "/careers")} arrow>
             {t("job.closedCta")}
           </Button>
-          <Button href={localizePath(lang, "/location")} variant="outline">
+          <Button href={localizePath(lang, "/contact")} variant="outline">
             {t("job.closedContact")}
           </Button>
         </div>

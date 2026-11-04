@@ -26,7 +26,7 @@ import { stripLocale } from "@/lib/i18n/paths";
  *   - any of them published (6+ links) → the inline row starts at `xl`
  *     instead of `lg`, with tighter link padding;
  *   - two or more (7+ links) → the "Get in touch" button leaves the desktop
- *     bar — it goes to /location, which is already a link in the row — and
+ *     bar — it goes to /contact, which is already a link in the row — and
  *     stays in the mobile sheet. (The bar is capped at max-w-6xl, so a wider
  *     screen doesn't buy more room; something has to give.)
  * Class strings below are spelled out in full so Tailwind can see them.
@@ -121,7 +121,7 @@ export default function Nav({ sections }: { sections?: PublishedSections }) {
           <SearchButton label={t("nav.search")} showShortcut={!compact || crowded} />
           <ThemeToggle labels={themeLabels} />
           {!crowded && (
-            <Button href={href("/location")} arrow>
+            <Button href={href("/contact")} arrow>
               {t("nav.cta")}
             </Button>
           )}
@@ -191,7 +191,7 @@ export default function Nav({ sections }: { sections?: PublishedSections }) {
               );
             })}
             <div className="px-2 pt-2">
-              <Button href={href("/location")} arrow className="w-full">
+              <Button href={href("/contact")} arrow className="w-full">
                 {t("nav.cta")}
               </Button>
             </div>

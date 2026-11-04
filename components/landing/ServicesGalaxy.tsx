@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import Icon from "@/components/Icon";
 import KeySwitch from "@/components/fx/KeySwitch";
@@ -21,7 +22,7 @@ import type { Service } from "@/lib/services";
  * alphas inside: everything goes through the neutral ramp.
  */
 export default function ServicesGalaxy({ services }: { services: Service[] }) {
-  const { t } = useI18n();
+  const { t, href } = useI18n();
   const root = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
 
@@ -141,7 +142,7 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
               <article
                 key={s.slug}
                 data-service-row={i}
-                className={`flex flex-col justify-center border-t border-mist py-12 transition-opacity duration-500 md:min-h-[62vh] md:py-0 ${
+                className={`flex flex-col justify-center border-t border-mist py-12 transition-opacity duration-500 md:min-h-[46vh] md:py-0 ${
                   i === active ? "md:opacity-100" : "md:opacity-35"
                 }`}
               >
@@ -162,23 +163,24 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
                 <h3 className="mt-4 font-display text-3xl font-semibold tracking-tight md:text-4xl">
                   {s.title}
                 </h3>
-                <p className="mt-3 max-w-md text-pretty leading-relaxed text-slatey">
-                  {s.detail}
+                <p className="mt-3 max-w-md text-pretty text-lg leading-relaxed text-slatey">
+                  {s.blurb}
                 </p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {s.deliverables.map((d) => (
-                    <span
-                      key={d}
-                      className="rounded-full border border-mist px-3 py-1 text-xs text-slatey"
-                    >
-                      {d}
-                    </span>
-                  ))}
-                </div>
               </article>
             ))}
 
-            <div className="pb-8 md:pb-[12vh]" />
+            {/* the full detail, deliverables and engagement models live on /services */}
+            <div className="border-t border-mist pb-8 pt-10 md:pb-[14vh]">
+              <Link
+                href={href("/services")}
+                className="group inline-flex items-center gap-2 text-lg font-medium text-ink"
+              >
+                <span className="underline decoration-mist underline-offset-[6px] transition-colors group-hover:decoration-ink">
+                  {t("galaxy.allServices")}
+                </span>
+                <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
  * status), name + tagline + CTAs beside a numbered feature list, and the
  * screenshot on its own paper plate at the foot, at native aspect.
  * Deliberately unlike the Projects index (open, alternating rows), the
- * landing WorkGallery (pinned horizontal) and ProcessDeck (sticky stack).
+ * landing ProcessDeck (sticky stack).
  */
 export default async function ProductsPage({ params }: LangParams) {
   const lang = await pageLocale(params);
@@ -82,7 +82,7 @@ export default async function ProductsPage({ params }: LangParams) {
             title={t("products.emptyTitle")}
             body={t("products.emptyBody")}
             cta={t("products.emptyCta")}
-            href={localizePath(lang, "/location")}
+            href={localizePath(lang, "/contact")}
             tint="onyx"
           />
         </Section>
@@ -106,7 +106,7 @@ export default async function ProductsPage({ params }: LangParams) {
                   {t("products.closingBody")}
                 </p>
               </div>
-              <Button href={localizePath(lang, "/location")} arrow>
+              <Button href={localizePath(lang, "/contact")} arrow>
                 {t("products.closingCta")}
               </Button>
             </Reveal>

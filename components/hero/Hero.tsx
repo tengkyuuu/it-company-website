@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { gsap } from "gsap";
 import Button from "@/components/Button";
 import { Eyebrow } from "@/components/Section";
@@ -134,12 +135,19 @@ export default function Hero({ shots }: { shots: HeroShot[] }) {
               </Button>
             </span>
             <span className="hero-cta inline-block">
-              <Button href={href("/about")} variant="outline">
+              <Button href={href("/contact")} variant="outline">
                 {t("hero.secondaryCta")}
               </Button>
             </span>
+            {/* the gold key has a job: press it to start a project */}
             <span className="hero-cta hidden sm:inline-block">
-              <KeySwitch size={58} tint="gold" className="align-middle" />
+              <Link
+                href={href("/contact")}
+                aria-label={t("hero.secondaryCta")}
+                className="ks-trigger inline-block rounded-2xl align-middle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold-ink)]"
+              >
+                <KeySwitch size={58} tint="gold" />
+              </Link>
             </span>
           </div>
         </div>

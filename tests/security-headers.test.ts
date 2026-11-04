@@ -205,7 +205,7 @@ describe("header rules", () => {
 
 /** Origins the BROWSER loads, and the directive that must allow each. */
 const BROWSER: Record<string, { directive: string; dev?: true; preview?: true; why: string }> = {
-  "https://maps.google.com": { directive: "frame-src", why: "the map embed on /location" },
+  "https://maps.google.com": { directive: "frame-src", why: "the map embed on /contact" },
   "https://va.vercel-scripts.com": {
     directive: "script-src",
     dev: true,

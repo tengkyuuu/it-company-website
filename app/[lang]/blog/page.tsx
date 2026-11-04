@@ -74,7 +74,7 @@ export default async function BlogPage({ params }: LangParams) {
             title={t("blog.emptyTitle")}
             body={t("blog.emptyBody")}
             cta={t("blog.emptyCta")}
-            href={localizePath(lang, "/location")}
+            href={localizePath(lang, "/contact")}
             tint="onyx"
           />
         </Section>
