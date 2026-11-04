@@ -153,7 +153,7 @@ services to one line each. Rename Location → Contact with a redirect and put t
 Rename Projects → Work in the nav. Change the hero's second button. Give the keycaps their
 jobs (§5).
 
-**B. Copy I draft, the team approves:** Who we build for · the "Good for…" lines on the
+**B. Copy I draft, the team approves — ✅ DONE 2026-11-04** (see `part-b-copy.md`): Who we build for · the "Good for…" lines on the
 engagement models · Based in Dipolog · What happens next.
 
 **C. Waits on the team's material ⏳:** the case studies (feeds Work rows, case study pages,

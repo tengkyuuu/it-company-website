@@ -60,6 +60,26 @@ export default async function ContactPage({ params }: LangParams) {
           <p className="mt-8 font-mono text-xs uppercase tracking-[0.25em] text-slatey">
             {t("location.localTime")} · <LocalTime />
           </p>
+
+          {/* What happens next — read before sending (confirmed 2026-11-04) */}
+          <div className="mt-12 border-t border-mist pt-8">
+            <Eyebrow>{t("location.nextEyebrow")}</Eyebrow>
+            <ol className="mt-6 space-y-6">
+              {[
+                { title: t("location.nextRead"), body: "A person on the team reads every message and replies within one business day." },
+                { title: t("location.nextCall"), body: "We ask about your users, your deadline and what “done” looks like. No preparation needed." },
+                { title: t("location.nextProposal"), body: "Scope and timeline in plain language. We agree the price once the scope is settled, so the quote matches the work." },
+              ].map((step, i) => (
+                <li key={i} className="grid grid-cols-[2.25rem_1fr] gap-3">
+                  <span className="font-mono text-sm text-slatey">{String(i + 1).padStart(2, "0")}</span>
+                  <div>
+                    <p className="font-medium text-ink">{step.title}</p>
+                    <p className="mt-1 text-pretty leading-relaxed text-ink/65">{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
 
         <div id="contact" className="scroll-mt-28">

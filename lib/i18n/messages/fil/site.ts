@@ -41,6 +41,12 @@ const site: DeepPartial<typeof en> = {
     stackEyebrow: "Ang mga teknolohiyang gamit namin",
     processEyebrow: "Paano kami magtrabaho",
     processTitle: "Kalmado at maaasahang paraan ng paglulunsad.",
+    audienceEyebrow: "Para kanino kami gumagawa",
+    audienceTitle: "Tatlong uri ng team. Iisang paraan ng pagtatrabaho.",
+    audienceLocal: "Mga lokal na negosyo",
+    audienceAbroad: "Mga team sa ibang bansa",
+    audienceFounders: "Mga founder na may ideya",
+    startsAs: "Kadalasang nagsisimula bilang",
   },
   about: {
     eyebrow: "Tungkol sa R Ally's Tech",
@@ -52,6 +58,9 @@ const site: DeepPartial<typeof en> = {
     valuesTitle: "Apat na prinsipyong hindi namin isinasantabi.",
     teamEyebrow: "Ang mga tao",
     teamTitle: "Totoong mukha, hindi stock photo.",
+    whereEyebrow: "Saan kami nagtatrabaho",
+    whereTitle: "Nasa Dipolog. Kasama ang mga team saanman.",
+    languages: "Wika",
     cta: "Makipagtulungan sa amin",
   },
   services: {
@@ -64,6 +73,7 @@ const site: DeepPartial<typeof en> = {
     engagementProject: "Proyekto",
     engagementRetainer: "Retainer",
     engagementSprint: "Sprint",
+    goodFor: "Akma para sa",
     cta: "Ikuwento ang iyong proyekto",
   },
   projects: {
@@ -116,6 +126,10 @@ const site: DeepPartial<typeof en> = {
     hours: "Oras",
     mapTitle: "Lokasyon ng studio ng R Ally's Tech — Dipolog City",
     follow: "Sundan kami",
+    nextEyebrow: "Ano ang susunod",
+    nextRead: "Babasahin namin.",
+    nextCall: "Isang maikling tawag.",
+    nextProposal: "Isang nakasulat na proposal.",
   },
   // ⚠️ DRAFT — the technical terms (test suite, commit, run, Lighthouse
   // category names, LCP/CLS/TBT) stay English on purpose: they're what the

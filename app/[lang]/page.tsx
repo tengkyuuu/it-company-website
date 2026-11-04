@@ -4,6 +4,7 @@ import { heroShots } from "@/lib/hero-shots";
 import Section, { SectionHeader, Eyebrow } from "@/components/Section";
 import TechMarquee from "@/components/landing/TechMarquee";
 import ServicesGalaxy from "@/components/landing/ServicesGalaxy";
+import Audiences from "@/components/landing/Audiences";
 import ProcessDeck from "@/components/landing/ProcessDeck";
 import BeliefScrub from "@/components/landing/BeliefScrub";
 import { Reveal } from "@/components/Reveal";
@@ -39,6 +40,9 @@ export default async function Home({ params }: LangParams) {
         </Reveal>
         <TechMarquee />
       </div>
+
+      {/* Who we build for — the three audiences, each pointed at an engagement model */}
+      <Audiences lang={lang} />
 
       {/* Services — keycap macropad + one line per service (detail lives on /services) */}
       <ServicesGalaxy services={services} />

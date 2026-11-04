@@ -44,6 +44,12 @@ const site = {
     stackEyebrow: "The stack we build on",
     processEyebrow: "How we work",
     processTitle: "A calm, predictable way to ship.",
+    audienceEyebrow: "Who we build for",
+    audienceTitle: "Three kinds of teams. One way of working.",
+    audienceLocal: "Local businesses",
+    audienceAbroad: "Teams abroad",
+    audienceFounders: "Founders with an idea",
+    startsAs: "Usually starts as",
   },
   about: {
     eyebrow: "About R Ally's Tech",
@@ -55,6 +61,9 @@ const site = {
     valuesTitle: "Four things we won’t compromise on.",
     teamEyebrow: "The people",
     teamTitle: "Faces, not stock photos.",
+    whereEyebrow: "Where we work",
+    whereTitle: "Based in Dipolog. Working with teams anywhere.",
+    languages: "Languages",
     cta: "Work with us",
   },
   services: {
@@ -67,6 +76,7 @@ const site = {
     engagementProject: "Project",
     engagementRetainer: "Retainer",
     engagementSprint: "Sprint",
+    goodFor: "Good for",
     cta: "Tell us about your project",
   },
   projects: {
@@ -119,6 +129,10 @@ const site = {
     hours: "Hours",
     mapTitle: "R Ally's Tech studio location — Dipolog City",
     follow: "Follow along",
+    nextEyebrow: "What happens next",
+    nextRead: "We read it.",
+    nextCall: "A short call.",
+    nextProposal: "A written proposal.",
   },
   // /status — what CI last reported. Numbers come from the payload; these are
   // only the labels around them.

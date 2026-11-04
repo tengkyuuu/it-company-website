@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import Section, { SectionHeader } from "@/components/Section";
+import Section, { SectionHeader, Eyebrow } from "@/components/Section";
+import LocalTime from "@/components/fx/LocalTime";
+import { site } from "@/lib/site";
 import TeamRoster from "@/components/about/TeamRoster";
 import { getTeam } from "@/lib/cms";
 import { Reveal, RevealGroup, RevealItem } from "@/components/Reveal";
@@ -114,6 +116,39 @@ export default async function AboutPage({ params }: LangParams) {
           intro="The same team that scopes your project is the one that builds it. Run your cursor down the roster."
         />
         <TeamRoster team={team} />
+      </Section>
+
+      {/* Where we work — the location story lives here; the map lives on Contact */}
+      <Section className="pt-24 md:pt-32">
+        <div className="grid gap-12 border-t border-ink pt-12 md:grid-cols-12 md:gap-10">
+          <Reveal className="md:col-span-7">
+            <Eyebrow>{t("about.whereEyebrow")}</Eyebrow>
+            <h2 className="mt-5 text-balance font-display text-4xl font-medium tracking-[-0.035em] md:text-5xl">
+              {t("about.whereTitle")}
+            </h2>
+            <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-ink/70">
+              We work from Dipolog City, Zamboanga del Norte, on Philippine time —
+              with clients here and abroad. Clients nearby can meet us in person by
+              arrangement. Clients further away get the same thing through a screen:
+              a weekly check-in, a build you can open any day, and plain-language
+              updates on where things stand.
+            </p>
+          </Reveal>
+          <Reveal delay={0.1} className="md:col-span-4 md:col-start-9">
+            <dl className="border-y border-mist">
+              {[
+                { k: t("location.studio"), v: <>{site.address.line1}<br />{site.address.line2}</> },
+                { k: t("location.hours"), v: <>{site.hours}<br /><span className="font-mono text-xs uppercase tracking-[0.2em] text-slatey"><LocalTime /> PHT · UTC+8</span></> },
+                { k: t("about.languages"), v: "English · Filipino · Bisaya (Cebuano)" },
+              ].map((row, i) => (
+                <div key={i} className={`py-5 ${i > 0 ? "border-t border-mist" : ""}`}>
+                  <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-slatey">{row.k}</dt>
+                  <dd className="mt-2 leading-relaxed text-ink/80">{row.v}</dd>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
+        </div>
       </Section>
     </>
   );

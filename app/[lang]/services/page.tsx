@@ -29,9 +29,9 @@ export default async function ServicesPage({ params }: LangParams) {
   // The card labels are translated; the descriptions are marketing copy and
   // stay English in both locales by design.
   const engagements = [
-    { no: "01", title: t("services.engagementProject"), body: "Fixed scope, fixed timeline. Best for launches and rebuilds." },
-    { no: "02", title: t("services.engagementRetainer"), body: "A dedicated slice of the studio, month to month." },
-    { no: "03", title: t("services.engagementSprint"), body: "A focused 2-week burst to validate, prototype, or unblock." },
+    { no: "01", title: t("services.engagementProject"), body: "Fixed scope, fixed timeline. Best for launches and rebuilds.", good: "a business replacing a spreadsheet or an old system, or a founder shipping a first version." },
+    { no: "02", title: t("services.engagementRetainer"), body: "A dedicated slice of the studio, month to month.", good: "teams with a live product that need steady design and engineering every month, including teams abroad." },
+    { no: "03", title: t("services.engagementSprint"), body: "A focused 2-week burst to validate, prototype, or unblock.", good: "testing an idea before committing a full budget, or getting a stuck project moving again." },
   ];
   return (
     <>
@@ -67,8 +67,8 @@ export default async function ServicesPage({ params }: LangParams) {
         </Reveal>
       </Section>
 
-      {/* Engagement models */}
-      <Section className="pt-24 md:pt-32">
+      {/* Engagement models — #engagements is the target of Home's "Usually starts as" links */}
+      <Section id="engagements" className="scroll-mt-28 pt-24 md:pt-32">
         <SectionHeader
           eyebrow={t("services.engagementsEyebrow")}
           title={t("services.engagementsTitle")}
@@ -90,6 +90,12 @@ export default async function ServicesPage({ params }: LangParams) {
                 </span>
               </div>
               <p className="mt-6 text-lg leading-relaxed text-ink/70">{e.body}</p>
+              <p className="mt-6 border-t border-mist pt-5 text-sm leading-relaxed text-ink/60">
+                <span className="mr-2 font-mono text-[11px] uppercase tracking-[0.18em] text-slatey">
+                  {t("services.goodFor")}
+                </span>
+                {e.good}
+              </p>
             </RevealItem>
           ))}
         </RevealGroup>
