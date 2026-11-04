@@ -270,21 +270,39 @@ body {
   opacity: 1;
   transform: scale(1.26);
 }
-/* Legend — a service icon "shining through" the cap's big front face (the top
-   face already carries the cap's own squiggle). Dim ink at rest, gold + a small
-   halo when the key is pressed. Skewed to sit on the face's slope. */
+/* Legend — a service icon printed on the cap's TOP face, laid into the face's
+   perspective (tilt + skew + foreshortening, measured against keycap.avif). A
+   soft patch in the face's own colour sits under it to hide the cap's embossed
+   squiggle; dim ink at rest, gold + a small halo when the key is pressed. */
 .keyswitch .ks-legend {
+  --ks-face: #1a1918;
   position: absolute;
-  left: 53%;
-  top: 64%;
+  left: 56.5%;
+  top: 24%;
   width: 34%;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  transform: translate(-50%, -50%) skewX(-4deg) scaleY(0.92);
-  color: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%) rotate(6deg) skewX(-20deg) scaleY(0.58);
+  color: rgba(255, 255, 255, 0.82);
   pointer-events: none;
   transition: color 0.34s var(--ease-soft), filter 0.34s var(--ease-soft);
+}
+.keyswitch .ks-legend::before {
+  content: "";
+  position: absolute;
+  inset: -42%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--ks-face) 66%, transparent);
+}
+.keyswitch .ks-legend > * {
+  position: relative;
+}
+.keyswitch.ks-ivory .ks-legend {
+  --ks-face: #c9c9c8;
+}
+.keyswitch.ks-gold .ks-legend {
+  --ks-face: #c79a2c;
 }
 .keyswitch.ks-ivory .ks-legend,
 .keyswitch.ks-gold .ks-legend {

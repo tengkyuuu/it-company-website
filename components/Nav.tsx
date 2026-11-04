@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import Logo from "./Logo";
 import Button from "./Button";
 import ThemeToggle from "./theme/ThemeToggle";
-import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { useI18n } from "./i18n/I18nProvider";
 import { openSearch } from "./search/open";
 import { visibleNav } from "@/lib/site";
@@ -120,7 +119,6 @@ export default function Nav({ sections }: { sections?: PublishedSections }) {
 
         <div className={`${desktopOnly} items-center gap-3`}>
           <SearchButton label={t("nav.search")} showShortcut={!compact || crowded} />
-          <LanguageSwitcher />
           <ThemeToggle labels={themeLabels} />
           {!crowded && (
             <Button href={href("/location")} arrow>
@@ -192,12 +190,6 @@ export default function Nav({ sections }: { sections?: PublishedSections }) {
                 </Link>
               );
             })}
-            <div className="flex items-center justify-between gap-4 px-4 py-3">
-              <span className="font-mono text-xs uppercase tracking-widest text-slatey">
-                {t("lang.label")}
-              </span>
-              <LanguageSwitcher />
-            </div>
             <div className="px-2 pt-2">
               <Button href={href("/location")} arrow className="w-full">
                 {t("nav.cta")}

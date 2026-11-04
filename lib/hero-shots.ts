@@ -2,6 +2,9 @@ import type { Project } from "@/lib/work";
 
 export type HeroShot = { src: string; alt: string };
 
+/** Captures whose shape is not the 2.07 browser window — stretched into a tile they distort. */
+const SKIP = new Set(["/work/physiopano-app.webp"]);
+
 /**
  * A full-size work screenshot maps to its hero-sized derivative (see
  * scripts/build-hero-shots.mjs). Anything else — a CMS upload on another host —
@@ -21,7 +24,7 @@ export function heroShots(
 ): HeroShot[] {
   const per = projects.map((p) =>
     [p.img, p.img2]
-      .filter((s): s is string => !!s)
+      .filter((s): s is string => !!s && !SKIP.has(s))
       .map((s) => ({ src: heroSrc(s), alt: p.name }))
   );
   const out: HeroShot[] = [];

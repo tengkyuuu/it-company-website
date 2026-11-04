@@ -3,7 +3,6 @@ import Hero from "@/components/hero/Hero";
 import { heroShots } from "@/lib/hero-shots";
 import Section, { SectionHeader, Eyebrow } from "@/components/Section";
 import TechMarquee from "@/components/landing/TechMarquee";
-import VideoReveal from "@/components/landing/VideoReveal";
 import ServicesGalaxy from "@/components/landing/ServicesGalaxy";
 import WorkGallery from "@/components/landing/WorkGallery";
 import ProcessDeck from "@/components/landing/ProcessDeck";
@@ -41,9 +40,6 @@ export default async function Home({ params }: LangParams) {
         </Reveal>
         <TechMarquee />
       </div>
-
-      {/* Showreel — scroll-driven expand + scrub */}
-      <VideoReveal />
 
       {/* Services — dark band, sticky morphing 3D glyph + scrolling index */}
       <ServicesGalaxy services={services} />

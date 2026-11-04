@@ -60,9 +60,9 @@ export default function CurvedReel({
   aspectRatio = 2.067 / (1 + BAR),
   speed = 4.5,
   tileHeight = 25,
-  gap = 7,
+  gap = 5,
   axis = 60,
-  curve = 62,
+  curve = 45,
   fade = 12,
   className = "",
 }: {

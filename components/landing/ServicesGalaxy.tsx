@@ -77,7 +77,7 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
                     className="rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold-ink)]"
                   >
                     <KeySwitch
-                      size={132}
+                      size={140}
                       tint="onyx"
                       pressed={i === active}
                       legend={<Icon name={s.icon} className="h-full w-full" />}

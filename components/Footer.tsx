@@ -4,7 +4,6 @@ import KeySwitch from "./fx/KeySwitch";
 import LocalTime from "./fx/LocalTime";
 import BackToTop from "./fx/BackToTop";
 import FooterWordmark from "./FooterWordmark";
-import LanguageSwitcher from "./i18n/LanguageSwitcher";
 import { Reveal } from "./Reveal";
 import { visibleNav } from "@/lib/site";
 import { getPublishedSections, getServices, getSiteContent } from "@/lib/cms";
@@ -82,7 +81,6 @@ export default async function Footer({ lang }: { lang: Locale }) {
             <p className="mt-3 font-mono text-xs uppercase tracking-widest text-paper/40">
               {site.hours} · <LocalTime />
             </p>
-            <LanguageSwitcher tone="band" className="mt-6" />
           </div>
 
           <FooterCol title={t("footer.colSitemap")}>
