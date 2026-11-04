@@ -1,25 +1,30 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------------------
-   R Ally's Tech design tokens — slate neutrals + one magenta→gold accent gradient.
+   R Ally's Tech design tokens (v2) — warm black/white neutrals + one flat gold. See DESIGN.md.
    Tailwind v4 reads @theme to generate utilities (bg-paper, text-ink, …).
 ---------------------------------------------------------------------------- */
 @theme {
-  --color-paper: #f8fafc; /* Neutral  — page background        */
+  --color-paper: #fafaf9; /* page background                    */
   --color-surface: #ffffff; /* raised cards on top of paper     */
-  --color-mist: #cbd5e1; /* Primary  — borders, muted fills    */
-  --color-slatey: #94a3b8; /* Tertiary — secondary text          */
-  --color-ink: #1e293b; /* Secondary— headings, dark sections */
-  --color-ink-700: #334155;
-  --color-ink-900: #0f172a;
+  --color-mist: #e7e5e4; /* borders, hairlines                  */
+  --color-slatey: #78716c; /* secondary text (4.6:1 on paper)   */
+  --color-ink: #0c0a09; /* headings, body, black bands          */
+  --color-ink-700: #292524;
+  --color-ink-900: #0c0a09;
 
-  --color-accent-from: #9d5a8f; /* magenta-purple */
-  --color-accent-mid: #b85c7a; /* mauve-rose     */
-  --color-accent-to: #e0a23a; /* gold           */
+  /* gold — flat. v1's from/mid/to names are kept so existing call sites keep
+     compiling; all three are the same gold now (no gradient anywhere). */
+  --color-gold: #d4af37; /* marks, fills, gold ON black */
+  --color-gold-ink: #8c6d1f; /* gold TEXT on white (4.9:1)  */
+  --color-gold-press: #b8962e;
+  --color-accent-from: var(--color-gold);
+  --color-accent-mid: var(--color-gold);
+  --color-accent-to: var(--color-gold);
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-display: var(--font-syne), var(--font-geist-sans), sans-serif;
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
@@ -33,20 +38,15 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
-  --accent: linear-gradient(
-    115deg,
-    var(--color-accent-from) 0%,
-    var(--color-accent-mid) 45%,
-    var(--color-accent-to) 100%
-  );
+  --accent: var(--color-gold); /* flat; was a gradient in v1 */
 
   /* ambient graphic (see .ambient-* below) — tuned per theme */
-  --amb-1: #cbd5e1;
-  --amb-2: #94a3b8;
-  --amb-3: #b8c4d4;
+  --amb-1: #e7e5e4;
+  --amb-2: #d6d3d1;
+  --amb-3: #e7e5e4;
   --amb-opacity: 1;
   --amb-veil-top: rgba(255, 255, 255, 0.5);
-  --amb-veil-bottom: rgba(30, 41, 59, 0.05);
+  --amb-veil-bottom: rgba(12, 10, 9, 0.04);
 
   color-scheme: light;
 }
@@ -59,24 +59,20 @@
    `data-theme` is stamped on <html> by components/theme/ThemeScript.
 ---------------------------------------------------------------------------- */
 [data-theme="dark"] {
-  --color-paper: #0b1220; /* page background — deep slate, never pure black */
-  --color-surface: #131d30; /* raised cards                                */
-  --color-mist: #2a3647; /* borders, dividers                             */
-  --color-slatey: #8496b0; /* secondary text (6.4:1 on paper)             */
-  --color-ink: #e6edf7; /* body + headings                                */
-  --color-ink-700: #c3cedd;
-  --color-ink-900: #f4f8fc;
+  --color-paper: #0c0a09; /* page background — warm black */
+  --color-surface: #1c1917; /* raised cards                 */
+  --color-mist: #292524; /* borders, dividers               */
+  --color-slatey: #a8a29e; /* secondary text (7.7:1)        */
+  --color-ink: #f5f5f4; /* body + headings                  */
+  --color-ink-700: #d6d3d1;
+  --color-ink-900: #fafaf9;
+  --color-gold-ink: #d4af37; /* gold text is legible on black */
 
-  /* the gradient reads muddy at full saturation on a dark ground */
-  --color-accent-from: #c173b0;
-  --color-accent-mid: #d97e9c;
-  --color-accent-to: #f0b650;
-
-  --amb-1: #1b2740;
-  --amb-2: #24344f;
-  --amb-3: #172033;
-  --amb-opacity: 0.75;
-  --amb-veil-top: rgba(148, 176, 214, 0.05);
+  --amb-1: #1c1917;
+  --amb-2: #292524;
+  --amb-3: #1c1917;
+  --amb-opacity: 0.6;
+  --amb-veil-top: rgba(255, 255, 255, 0.03);
   --amb-veil-bottom: rgba(0, 0, 0, 0.35);
 
   color-scheme: dark;
@@ -91,22 +87,24 @@
    background, so it reads as an elevated surface rather than a hole.
 ---------------------------------------------------------------------------- */
 .band {
-  --color-paper: #f8fafc;
+  --color-paper: #fafaf9;
   --color-surface: #ffffff;
-  --color-mist: #cbd5e1;
-  --color-slatey: #94a3b8;
-  --color-ink: #1e293b;
-  --color-ink-700: #334155;
-  --color-ink-900: #0f172a;
+  --color-mist: #d6d3d1;
+  --color-slatey: #a8a29e;
+  --color-ink: #0c0a09;
+  --color-ink-700: #292524;
+  --color-ink-900: #0c0a09;
+  --color-gold-ink: #d4af37; /* a band is black: gold text is fine */
 }
 [data-theme="dark"] .band {
-  --color-paper: #e9eef7;
-  --color-surface: #f8fafc;
-  --color-mist: #33415a;
-  --color-slatey: #8fa0ba;
-  --color-ink: #141f33;
-  --color-ink-700: #22304a;
-  --color-ink-900: #0b1220;
+  --color-paper: #f5f5f4;
+  --color-surface: #fafaf9;
+  --color-mist: #44403c;
+  --color-slatey: #a8a29e;
+  --color-ink: #1c1917;
+  --color-ink-700: #292524;
+  --color-ink-900: #0c0a09;
+  --color-gold-ink: #d4af37;
 }
 
 * {
@@ -130,9 +128,9 @@ body {
    transitions (those would stagger across thousands of nodes). */
 
 ::selection {
-  background: var(--color-accent-to);
+  background: var(--color-gold);
   /* the ground is always gold here, so keep the text fixed-dark */
-  color: #10192b;
+  color: #0c0a09;
 }
 
 /* ----------------------------------------------------------------------------
@@ -142,14 +140,12 @@ body {
 /* Gradient text — the signature R Ally's Tech move. Use on ONE word per view.
    Declared as @utility (not plain classes) so hover:/group-hover: variants work. */
 @utility text-accent {
-  background: var(--accent);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  /* v2: flat gold TEXT — the darker gold on white, bright gold on black */
+  color: var(--color-gold-ink);
 }
 
 @utility bg-accent {
-  background: var(--accent);
+  background: var(--color-gold);
 }
 
 /* Soft accent glow (page-header corners, footer, belief band, last process card).
@@ -159,24 +155,8 @@ body {
    Each ellipse fades out INSIDE the box — the blur used to hide the box edge,
    so without it a gradient running past the edge would be cut off hard. */
 .aurora {
-  background: radial-gradient(
-      30% 32% at 32% 34%,
-      color-mix(in oklab, var(--color-accent-from) 55%, transparent) 0%,
-      color-mix(in oklab, var(--color-accent-from) 22%, transparent) 45%,
-      transparent 100%
-    ),
-    radial-gradient(
-      30% 30% at 68% 32%,
-      color-mix(in oklab, var(--color-accent-to) 50%, transparent) 0%,
-      color-mix(in oklab, var(--color-accent-to) 20%, transparent) 45%,
-      transparent 100%
-    ),
-    radial-gradient(
-      34% 30% at 52% 68%,
-      color-mix(in oklab, var(--color-accent-mid) 45%, transparent) 0%,
-      color-mix(in oklab, var(--color-accent-mid) 18%, transparent) 45%,
-      transparent 100%
-    );
+  /* v2: no glow clouds (no-op so call sites still compile; remove them in Phase 3/4) */
+  background: none;
 }
 
 /* The no-WebGL stand-in for a 3D scene (Hero, ServicesGlyph): a magenta→gold
@@ -184,18 +164,7 @@ body {
    Both blobs fade out within the inscribed circle, so a `rounded-full` host
    never clips them into a hard-edged disc. */
 .accent-glow {
-  background: radial-gradient(
-      36% 36% at 41% 42%,
-      color-mix(in oklab, var(--color-accent-from) 85%, transparent) 0%,
-      color-mix(in oklab, var(--color-accent-from) 35%, transparent) 50%,
-      transparent 100%
-    ),
-    radial-gradient(
-      36% 36% at 59% 58%,
-      color-mix(in oklab, var(--color-accent-to) 85%, transparent) 0%,
-      color-mix(in oklab, var(--color-accent-to) 35%, transparent) 50%,
-      transparent 100%
-    );
+  background: none; /* v2: goo is gone; the hero fallback is replaced in Phase 2 */
 }
 
 /* Fine grain/noise overlay for a printed, designed feel */
@@ -246,7 +215,6 @@ body {
   left: 21.5%;
   top: 15%;
   width: 78%;
-  filter: var(--ks-tint, none);
   /* the slower spring-back travel. No permanent will-change: the transition
      promotes the cap for the press on its own, and a resting filtered layer per
      keyswitch was GPU memory spent on nothing. */
@@ -262,21 +230,22 @@ body {
   position: relative;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 8px 9px rgba(15, 23, 42, 0.35));
+  filter: var(--ks-tint, brightness(1)) drop-shadow(0 8px 9px rgba(12, 10, 9, 0.35));
   transition: filter 0.34s var(--ease-soft);
 }
 /* hover lifts the resin only; the shadow holds since the cap hasn't moved */
 .keyswitch:hover .ks-capimg {
-  filter: drop-shadow(0 8px 9px rgba(15, 23, 42, 0.35)) brightness(1.1)
+  filter: var(--ks-tint, brightness(1)) drop-shadow(0 8px 9px rgba(12, 10, 9, 0.35)) brightness(1.1)
     saturate(1.08);
   transition: filter 0.13s ease-out;
 }
 /* pressed home, the cap is closer to the housing — so its shadow tightens */
 .keyswitch:active .ks-capimg {
-  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.45)) brightness(1.12)
+  filter: var(--ks-tint, brightness(1)) drop-shadow(0 2px 4px rgba(12, 10, 9, 0.45)) brightness(1.12)
     saturate(1.1);
 }
-/* under-cap glow; hue-rotates with the cap since it shares .ks-capwrap */
+/* under-cap glow — ALWAYS gold (v2): the tint filter sits on the cap image only,
+   so an onyx or ivory cap still lights the brand colour when pressed */
 .keyswitch .ks-glow {
   position: absolute;
   inset: -20%;
@@ -285,10 +254,10 @@ body {
      and a filter would have to be re-applied on every frame of that */
   background: radial-gradient(
     closest-side,
-    rgba(255, 92, 31, 0.7),
-    rgba(255, 92, 31, 0.32) 42%,
-    rgba(255, 92, 31, 0.08) 68%,
-    rgba(255, 92, 31, 0) 82%
+    rgba(212, 175, 55, 0.7),
+    rgba(212, 175, 55, 0.32) 42%,
+    rgba(212, 175, 55, 0.08) 68%,
+    rgba(212, 175, 55, 0) 82%
   );
   opacity: 0.2;
   transition: opacity 0.34s var(--ease-soft), transform 0.34s var(--ease-soft);
@@ -360,7 +329,7 @@ body {
 /* ----------------------------------------------------------------------------
    Preloader — plays on every full load (components/fx/Preloader.tsx).
    Gray mark → a raked band of white light sweeps left→right, leaving the mark
-   white behind it → resolves to black with a thin white outline. On #111a24.
+   white behind it → resolves to black with a thin white outline. On #0c0a09.
 ---------------------------------------------------------------------------- */
 .pl {
   position: fixed;
@@ -370,7 +339,7 @@ body {
   place-items: center;
   padding: 1.5rem;
   /* a fixed brand colour in both themes — this is a splash, not a surface */
-  background: #111a24;
+  background: #0c0a09;
 }
 .pl-stage {
   --pl-w: min(74vw, 720px);
@@ -385,7 +354,7 @@ body {
   height: 100%;
 }
 .pl-gray {
-  color: #5b6a80;
+  color: #78716c;
 }
 .pl-white,
 .pl-ring {

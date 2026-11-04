@@ -98,7 +98,7 @@ export default async function ServicesPage({ params }: LangParams) {
           <Button href={localizePath(lang, "/location")} arrow>
             {t("services.cta")}
           </Button>
-          <KeySwitch size={50} tint="rose" className="hidden sm:block" />
+          <KeySwitch size={50} tint="onyx" className="hidden sm:block" />
         </Reveal>
       </Section>
     </>

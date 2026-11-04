@@ -142,7 +142,7 @@ export default function ServicesGalaxy({ services }: { services: Service[] }) {
                     }`}
                   />
                 ))}
-                <KeySwitch size={44} tint="plum" className="ml-auto" />
+                <KeySwitch size={44} tint="onyx" className="ml-auto" />
               </div>
             </div>
           </div>

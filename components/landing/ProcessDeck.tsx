@@ -128,7 +128,7 @@ export default function ProcessDeck() {
               {last && (
                 <KeySwitch
                   size={60}
-                  tint="rose"
+                  tint="ivory"
                   className="absolute bottom-10 right-10 hidden md:block"
                 />
               )}

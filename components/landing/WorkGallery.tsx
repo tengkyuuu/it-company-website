@@ -121,7 +121,7 @@ export default function WorkGallery({ projects }: { projects: Project[] }) {
           <span className="mt-10 hidden items-center gap-3 font-mono text-xs uppercase tracking-widest text-ink/40 md:inline-flex">
             {t("work.scrollHint")}
             <span aria-hidden>→</span>
-            <KeySwitch size={40} tint="sky" />
+            <KeySwitch size={40} tint="onyx" />
           </span>
         </div>
 

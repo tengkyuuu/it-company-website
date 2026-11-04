@@ -71,7 +71,7 @@ export default async function ProductsPage({ params }: LangParams) {
                 : t("products.countMany", { count: pad2(n) })}
             </span>
             <span className="h-px flex-1 bg-mist/70" aria-hidden />
-            <KeySwitch size={44} tint="mint" />
+            <KeySwitch size={44} tint="onyx" />
           </Reveal>
         )}
       </Section>
@@ -83,7 +83,7 @@ export default async function ProductsPage({ params }: LangParams) {
             body={t("products.emptyBody")}
             cta={t("products.emptyCta")}
             href={localizePath(lang, "/location")}
-            tint="mint"
+            tint="onyx"
           />
         </Section>
       ) : (

@@ -183,7 +183,7 @@ export default async function PostPage({ params }: Params) {
             {t("post.closingTitle")}
           </h2>
           <div className="flex shrink-0 items-center gap-5">
-            <KeySwitch size={50} tint="sky" className="hidden sm:block" />
+            <KeySwitch size={50} tint="onyx" className="hidden sm:block" />
             <Button href={localizePath(lang, "/location")} arrow>
               {t("post.closingCta")}
             </Button>

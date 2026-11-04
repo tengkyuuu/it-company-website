@@ -119,7 +119,7 @@ export default async function ProjectPage({ params }: Params) {
                   {t("project.ask")}
                 </Button>
               )}
-              <KeySwitch size={46} tint="sky" className="hidden sm:block" />
+              <KeySwitch size={46} tint="onyx" className="hidden sm:block" />
             </div>
           </Reveal>
 

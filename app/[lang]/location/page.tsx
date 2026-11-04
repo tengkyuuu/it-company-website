@@ -58,7 +58,7 @@ export default async function LocationPage({ params }: LangParams) {
         <Reveal delay={0.1} className="relative mt-14 border-y border-mist/60 py-8 md:py-10">
           <KeySwitch
             size={68}
-            tint="plum"
+            tint="onyx"
             className="absolute right-2 top-1/2 hidden -translate-y-1/2 lg:block"
           />
           {site.email ? (

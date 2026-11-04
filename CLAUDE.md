@@ -51,6 +51,9 @@ client screenshots).
 
 ## Brand
 
+> ⚠️ **Visual redesign planned (2026-11-04)** — black/white/gold "v2" in `DESIGN.md`, build
+> order in `docs/redesign-plan.md`. Until Phase 1 ships, this section describes what's **live**.
+
 ### Logo — a generated vector lockup, used as a CSS mask
 The logo is the **Rally's house lockup** (client artwork for the sister brand "Rally's Tours &
 Transfers", adapted 2026-10-12 with the descriptor swapped to TECH): an **oversized serif `R`**

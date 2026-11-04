@@ -27,8 +27,8 @@ import sharp from "sharp";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(root, "public", "icons");
 
-const BG = "#111a24"; // the Preloader's splash colour
-const ACCENT = ["#9D5A8F", "#B85C7A", "#E0A23A"]; // --accent-from / -mid / -to
+const BG = "#0c0a09"; // the Preloader's splash colour
+const ACCENT = ["#D4AF37", "#D4AF37", "#D4AF37"]; // --accent-from / -mid / -to
 
 // The monogram is one <path> in a viewBox cropped to its ink (plus a hair of
 // padding), so the viewBox IS the bounding box to centre by.

@@ -162,7 +162,7 @@ export default async function AboutPage({ params }: LangParams) {
           <Button href={localizePath(lang, "/location")} arrow>
             {t("about.cta")}
           </Button>
-          <KeySwitch size={50} tint="sky" className="hidden translate-x-6 sm:block" />
+          <KeySwitch size={50} tint="onyx" className="hidden translate-x-6 sm:block" />
         </Reveal>
       </Section>
     </>

@@ -48,7 +48,7 @@ export default async function Footer({ lang }: { lang: Locale }) {
             {t("footer.ctaLine2")} <span className="text-accent">{t("footer.ctaAccent")}</span>
           </h2>
           <div className="flex shrink-0 items-center gap-6">
-            <KeySwitch size={54} tint="red" className="hidden sm:block" />
+            <KeySwitch size={54} tint="ivory" className="hidden sm:block" />
             <Button href={localizePath(lang, "/location")} arrow>
               {t("footer.cta")}
             </Button>

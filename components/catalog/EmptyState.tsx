@@ -15,7 +15,7 @@ export default function EmptyState({
   body,
   cta,
   href,
-  tint = "plum",
+  tint = "onyx",
 }: {
   title: string;
   body: string;

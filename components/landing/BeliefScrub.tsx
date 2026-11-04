@@ -72,7 +72,7 @@ export default function BeliefScrub() {
         </p>
         <p className="mt-10 flex items-center gap-4 font-mono text-xs uppercase tracking-widest text-paper/50">
           {t("belief.signature")}
-          <KeySwitch size={42} tint="mint" />
+          <KeySwitch size={42} tint="ivory" />
         </p>
       </div>
     </div>

@@ -216,9 +216,9 @@ export default function Hero() {
                 d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"
               />
               <linearGradient id="hero-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#9d5a8f" />
-                <stop offset="50%" stopColor="#b85c7a" />
-                <stop offset="100%" stopColor="#e0a23a" />
+                <stop offset="0%" stopColor="#d4af37" />
+                <stop offset="50%" stopColor="#d4af37" />
+                <stop offset="100%" stopColor="#d4af37" />
               </linearGradient>
             </defs>
             {/* no `uppercase` here — it would render the wordmark as R ALLY'S TECH */}

@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useSpring } from "framer-motion";
 import type { TeamMember } from "@/lib/team";
 
-/** Each member gets their own tilt of the brand gradient. */
+/** v2: the orb is a flat gold disc with a soft falloff — each member gets a different light angle. */
 const orbGradient = (i: number) =>
-  `linear-gradient(${105 + i * 42}deg, #9d5a8f, #b85c7a, #e0a23a)`;
+  `radial-gradient(circle at ${30 + (i % 3) * 20}% ${25 + (i % 2) * 30}%, #f0d98a 0%, #d4af37 45%, #8c6d1f 100%)`;
 
 /**
  * The team as an editorial roster. On desktop a gradient orb — the member's

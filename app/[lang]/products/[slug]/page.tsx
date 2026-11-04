@@ -101,7 +101,7 @@ export default async function ProductPage({ params }: Params) {
               <Button href={localizePath(lang, "/location")} variant={p.cta ? "outline" : "solid"} arrow>
                 {askLabel}
               </Button>
-              <KeySwitch size={46} tint="mint" className="hidden sm:block" />
+              <KeySwitch size={46} tint="onyx" className="hidden sm:block" />
             </div>
           </Reveal>
 

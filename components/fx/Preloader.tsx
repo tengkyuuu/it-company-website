@@ -8,7 +8,7 @@ import { markReady } from "./ready";
 /**
  * Opening sequence, played on every full load of the site.
  *
- * 1. the R Ally's Tech mark sits in gray on #111a24
+ * 1. the R Ally's Tech mark sits in gray on #0c0a09
  * 2. a raked band of white light sweeps left→right, leaving the mark white behind it
  * 3. it resolves to black with a thin white outline
  * 4. the panel lifts away and dispatches `mykt:ready` (the Hero headline waits on it)

@@ -63,7 +63,7 @@ export default async function BlogPage({ params }: LangParams) {
                 : t("blog.countMany", { count: pad2(posts.length) })}
             </span>
             <span className="h-px flex-1 bg-mist/70" aria-hidden />
-            <KeySwitch size={44} tint="sky" />
+            <KeySwitch size={44} tint="onyx" />
           </Reveal>
         )}
       </Section>
@@ -75,7 +75,7 @@ export default async function BlogPage({ params }: LangParams) {
             body={t("blog.emptyBody")}
             cta={t("blog.emptyCta")}
             href={localizePath(lang, "/location")}
-            tint="sky"
+            tint="onyx"
           />
         </Section>
       ) : (

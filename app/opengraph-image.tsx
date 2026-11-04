@@ -7,7 +7,7 @@ export const alt = "R Ally's Tech — Software, designed with intent";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const ACCENT = "linear-gradient(135deg,#9d5a8f,#b85c7a,#e0a23a)";
+const ACCENT = "#d4af37";
 
 // the lockup's own proportions (scripts/build-wordmark.mjs prints them)
 const MARK_W = 780;
@@ -19,7 +19,7 @@ export default async function OpengraphImage() {
   // at build time, when there is no origin to fetch /brand/wordmark.svg from.
   const svg = await readFile(join(process.cwd(), "public/brand/wordmark.svg"), "utf8");
   const mark = `data:image/svg+xml;base64,${Buffer.from(
-    svg.replace('fill="#000"', 'fill="#f8fafc"')
+    svg.replace('fill="#000"', 'fill="#fafaf9"')
   ).toString("base64")}`;
 
   return new ImageResponse(
@@ -31,7 +31,7 @@ export default async function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#1e293b",
+          background: "#0c0a09",
           padding: "72px",
           fontFamily: "sans-serif",
         }}
@@ -67,7 +67,7 @@ export default async function OpengraphImage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
           {/* eslint-disable-next-line @next/next/no-img-element -- satori, not the DOM */}
           <img src={mark} width={MARK_W} height={MARK_H} alt="" />
-          <div style={{ display: "flex", fontSize: 44, color: "#cbd5e1" }}>
+          <div style={{ display: "flex", fontSize: 44, color: "#a8a29e" }}>
             {site.tagline}
           </div>
         </div>

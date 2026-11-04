@@ -1,20 +1,11 @@
 import type { ReactNode } from "react";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import { Syne } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import SiteAnalytics from "@/components/SiteAnalytics";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import ThemeScript from "@/components/theme/ThemeScript";
 import "@/app/globals.css";
-
-// Brand / display typeface (free look-alike for "Inline" by Letters from Sweden)
-const syne = Syne({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-syne",
-  display: "swap",
-});
 
 /**
  * The <html>/<body> boilerplate shared by the site's TWO root layouts —
@@ -45,12 +36,12 @@ export default function DocumentShell({
     <html
       lang={lang}
       suppressHydrationWarning
-      className={`${GeistSans.variable} ${GeistMono.variable} ${syne.variable}`}
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
     >
       <head>
         <ThemeScript />
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F8FAFC" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B1220" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FAFAF9" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0C0A09" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         {head}
       </head>

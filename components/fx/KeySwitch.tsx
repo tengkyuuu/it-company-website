@@ -7,27 +7,29 @@ import type { CSSProperties } from "react";
  * The R Ally's Tech keyswitch — two layered renders (public/brand/keycap.avif +
  * keyswitch.avif, both alpha AVIF). The cap floats above the housing; hover
  * flares an under-cap glow and a press (:active) drives the cap home. All CSS —
- * no listeners, no JS animation. The cap is recolored per
- * placement with a hue-rotate tint (the housing stays neutral), so the same
- * switch shows up in a different color everywhere it appears.
+ * no listeners, no JS animation. The cap is recoloured per placement
+ * (gold / onyx / ivory — the housing stays neutral); the glow is always gold.
  * Decorative (aria-hidden). Press/glow CSS lives in globals.css (.keyswitch).
  */
 
-/** The source cap is red resin (hue ≈ 12°); tints rotate from there. */
+/**
+ * The source cap is red resin. v2 palette: three resins (DESIGN.md §5), made with
+ * CSS filters on the cap image (verified visually — onyx keeps its facets):
+ *  - gold  → the accent resin (hero + at most one more key per page)
+ *  - onyx  → near-black resin, the default on white sections
+ *  - ivory → frosted white resin, the default on black bands
+ */
 const TINTS = {
-  red: "none",
-  gold: "hue-rotate(34deg) saturate(0.95) brightness(1.05)",
-  plum: "hue-rotate(298deg) saturate(0.7) brightness(0.98)",
-  rose: "hue-rotate(330deg) saturate(0.78)",
-  sky: "hue-rotate(196deg) saturate(0.72) brightness(1.03)",
-  mint: "hue-rotate(140deg) saturate(0.68) brightness(1.03)",
+  gold: "grayscale(1) sepia(1) hue-rotate(2deg) saturate(2.2) brightness(1.15)",
+  onyx: "grayscale(1) brightness(0.5) contrast(1.15)",
+  ivory: "grayscale(1) brightness(1.7) contrast(0.8)",
 } as const;
 
 export type KeyTint = keyof typeof TINTS;
 
 export default function KeySwitch({
   size = 56,
-  tint = "gold",
+  tint = "onyx",
   className = "",
 }: {
   size?: number;

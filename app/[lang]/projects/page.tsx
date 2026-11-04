@@ -159,7 +159,7 @@ export default async function ProjectsPage({ params }: LangParams) {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-5">
-            <KeySwitch size={50} tint="plum" className="hidden sm:block" />
+            <KeySwitch size={50} tint="onyx" className="hidden sm:block" />
             <Button href={localizePath(lang, "/location")} arrow>
               {t("projects.closingCta")}
             </Button>
