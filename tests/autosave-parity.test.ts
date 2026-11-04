@@ -84,7 +84,7 @@ const FORMS: Record<AutosaveEntity, Entry[]> = {
     ...META,
   ],
   site_settings: [
-    ["brand_name", "R Ally's Tech"],
+    ["brand_name", "MykTech"],
     ["tagline", "Software, designed with intent."],
     ["email", "hello@mykt.studio"],
     ["phone", "+63 900 000 0000"],

@@ -40,13 +40,13 @@ type Props = { children: React.ReactNode; params: Promise<{ lang: string }> };
 // Long-form description stays English in both locales (marketing copy is out of
 // the i18n scope — see lib/i18n/messages/en/site.ts).
 const description =
-  "R Ally's Tech is an IT studio in Dipolog City building web, mobile, and cloud products. We make software and innovate — with taste.";
+  "MykTech is an IT studio in Dipolog City building web, mobile, and cloud products. We make software and innovate — with taste.";
 
 export async function generateMetadata({ params }: Omit<Props, "children">): Promise<Metadata> {
   const lang = toLocale((await params).lang);
   const title = getDictionary(lang).t("meta.siteTitle");
   return {
-    title: { default: title, template: "%s · R Ally's Tech" },
+    title: { default: title, template: "%s · MykTech" },
     description,
     metadataBase: new URL(site.url),
     openGraph: openGraphFor(lang, "/", { title, description }),

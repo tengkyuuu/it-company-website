@@ -1,9 +1,9 @@
 /**
- * The R Ally's Tech logo.
+ * The MykTech logo.
  *
- * The house lockup: an oversized serif R (Cinzel) with a hairline flick in its
- * crook, a four-point spark, ALLY'S in tracked serif caps, and TECH (Geist)
- * between two hairline rules beneath. The spark, the flick and the rules are
+ * The house lockup: an oversized serif M (Cinzel), a four-point spark, YK in
+ * tracked serif caps, and TECH (Geist) between two hairline rules beneath. The
+ * spark and the rules are
  * drawn shapes, not glyphs, so scripts/build-wordmark.mjs composes the whole
  * thing as OUTLINES once, at build time, into public/brand/wordmark.svg.
  *
@@ -12,9 +12,9 @@
  * free. `variant="outline"` swaps in the ring asset, which sidesteps
  * drop-shadow (filters apply BEFORE masking, so a shadow would be clipped off).
  *
- * Sizing: the element carries the lockup's aspect ratio (~3:1), so set ONE
+ * Sizing: the element carries the lockup's aspect ratio (~2.4:1), so set ONE
  * axis — `className="h-10"` or `className="w-full"` — and the other follows.
- * The R is the full height, so the name's caps are under half of it: below
+ * The M is the full height, so the name's caps are under half of it: below
  * ~36px tall the TECH line stops being legible. It's vector, so there is no
  * maximum size.
  *

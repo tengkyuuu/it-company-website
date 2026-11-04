@@ -15,9 +15,9 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   // This is a ROOT layout now (there's no app/layout.tsx — the public site's
   // root is app/[lang]/layout.tsx), so it carries what it used to inherit: the
-  // base URL and the "· R Ally's Tech" title template.
+  // base URL and the "· MykTech" title template.
   metadataBase: new URL(site.url),
-  title: { default: "Admin · R Ally's Tech", template: "%s · R Ally's Tech" },
+  title: { default: "Admin · MykTech", template: "%s · MykTech" },
   // keep the panel out of search results and out of the sitemap
   robots: { index: false, follow: false },
 };
@@ -74,7 +74,7 @@ async function AdminLayout({
             href="/admin"
             className="flex shrink-0 items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
           >
-            <Logo label="R Ally's Tech — admin home" className="h-9" />
+            <Logo label="MykTech — admin home" className="h-9" />
             <span className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-slatey sm:inline">
               Admin
             </span>

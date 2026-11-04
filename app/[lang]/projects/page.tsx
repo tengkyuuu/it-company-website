@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return {
     title: getDictionary(lang).t("meta.projects"),
     description:
-      "Real products R Ally's Tech has shipped — CRM, healthcare, structural monitoring, fintech and ordering platforms, with a live preview of each.",
+      "Real products MykTech has shipped — CRM, healthcare, structural monitoring, fintech and ordering platforms, with a live preview of each.",
     ...localeMetadata(lang, "/projects"),
   };
 }

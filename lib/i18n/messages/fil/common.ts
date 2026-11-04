@@ -26,7 +26,7 @@ const common: DeepPartial<typeof en> = {
     careers: "Trabaho",
     blog: "Blog",
     search: "Maghanap sa site",
-    homeLabel: "R Ally's Tech — pumunta sa home",
+    homeLabel: "MykTech — pumunta sa home",
     ariaLabel: "Pangunahin",
     openMenu: "Buksan ang menu",
     closeMenu: "Isara ang menu",
@@ -66,10 +66,10 @@ const common: DeepPartial<typeof en> = {
   },
   belief: {
     eyebrow: "Ang aming paniniwala",
-    signature: "— Ang studio ng R Ally's Tech",
+    signature: "— Ang studio ng MykTech",
   },
   showreel: {
-    label: "Showreel ng R Ally's Tech",
+    label: "Showreel ng MykTech",
     tag: "Sa loob ng studio",
   },
   preview: {
@@ -107,7 +107,7 @@ const common: DeepPartial<typeof en> = {
   chat: {
     open: "Makipag-chat sa amin",
     close: "Isara ang chat",
-    dialogLabel: "Makipag-chat sa R Ally's Tech",
+    dialogLabel: "Makipag-chat sa MykTech",
     title: "Magtanong ka lang",
     badge: "AI assistant",
     greeting:

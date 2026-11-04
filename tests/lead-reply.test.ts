@@ -20,16 +20,16 @@ import {
  * sandbox refuses to deliver.
  */
 
-const SITE = "R Ally's Tech";
+const SITE = "MykTech";
 
 describe("subject", () => {
   it("names what's being answered", () => {
-    expect(replySubject("contact", { siteName: SITE })).toBe("Re: your enquiry to R Ally's Tech");
+    expect(replySubject("contact", { siteName: SITE })).toBe("Re: your enquiry to MykTech");
     expect(replySubject("application", { siteName: SITE, jobTitle: "Frontend Developer" })).toBe(
       "Re: your application — Frontend Developer"
     );
     expect(replySubject("application", { siteName: SITE, jobTitle: null })).toBe(
-      "Re: your application to R Ally's Tech"
+      "Re: your application to MykTech"
     );
   });
 
@@ -77,7 +77,7 @@ describe("the email", () => {
   it("plain text: reply, first-name signature, the original quoted", () => {
     const text = buildReplyText(input);
     expect(text).toContain("Yes — we build apps.\nLet's talk.");
-    expect(text).toContain("— Jhade\nR Ally's Tech");
+    expect(text).toContain("— Jhade\nMykTech");
     expect(text).toContain("On Oct 3, 2026, Maria wrote:\n> Can you build an app?\n> Thanks");
   });
 
@@ -103,7 +103,7 @@ describe("the email", () => {
     const html = buildReplyHtml(input);
     expect(html).toContain('<p style="margin:0 0 14px">Hi Maria,</p>');
     expect(html).toContain("Yes — we build apps.<br>Let&#39;s talk.");
-    expect(html).toContain("R Ally&#39;s Tech");
+    expect(html).toContain("MykTech");
   });
 
   it("quotes at most 12 lines of the original", () => {

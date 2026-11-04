@@ -1,27 +1,27 @@
 /**
- * Builds the "R Ally's Tech" logo as OUTLINED SVG PATHS.
+ * Builds the "MykTech" logo as OUTLINED SVG PATHS.
  *
  *   node scripts/build-wordmark.mjs
  *
- * The lockup (the house mark shared with the Rally's sister brands, with the
- * descriptor swapped to TECH):
+ * The lockup (MykTech, 2026-11-04 — the same house style the earlier
+ * "R Ally's Tech" mark used, re-lettered: M + spark + YK, TECH beneath):
  *
- *        ██▀▀█▄
- *        ██▄▄█▀  ✦  A L L Y ’ S        one oversized serif R, a four-point
- *        ██ ▀█▄     ─── T E C H ───    spark, the name in tracked serif caps,
- *                                      the descriptor in tracked sans beneath
+ *        ██▄ ▄██
+ *        ██ ▀ ██  ✦  Y K               one oversized serif M, a four-point
+ *        ██   ██     ─ T E C H ─       spark, the rest of the name in tracked
+ *                                      serif caps, the descriptor in sans beneath
  *
  * Why outlines instead of live web text: the site paints the mark through a CSS
  * mask in three places (Logo, the footer's gradient fill, and the Preloader's
- * light-sweep, which is clipped to the letterforms), and the spark and the R's
- * hairline are drawn shapes, not glyphs. Converting everything to one path at
+ * light-sweep, which is clipped to the letterforms), and the spark (and the optional
+ * hairline flick) are drawn shapes, not glyphs. Converting everything to one path at
  * build time keeps all of that intact, costs the visitor zero font downloads,
  * and scales to any size.
  *
  * Outputs (all consumed as CSS masks or re-coloured, so only alpha matters):
  *   public/brand/wordmark.svg          filled silhouette of the full lockup
  *   public/brand/wordmark-outline.svg  same paths, stroked only — a real ring
- *   public/brand/monogram.svg          just the R + spark, tightly cropped — the
+ *   public/brand/monogram.svg          just the initial + spark, tightly cropped — the
  *                                      source for the favicon / PWA icons
  *                                      (scripts/build-icons.mjs) and offline.html
  *
@@ -36,23 +36,24 @@ import opentype from "opentype.js";
 import { writeFileSync } from "node:fs";
 
 /* ---------------------------------------------------------------------------
-   The design. Everything is in units of the R's cap height (= CAP), with the
-   R's baseline at y = 0 and y growing DOWNWARD, so the proportions read
+   The design. Everything is in units of the initial's cap height (= CAP), with
+   its baseline at y = 0 and y growing DOWNWARD, so the proportions read
    straight off the artwork.
 --------------------------------------------------------------------------- */
 const CAP = 1000;
 
 /** The oversized initial. */
-const INITIAL = { char: "R", family: "Cinzel", weight: 500 };
+const INITIAL = { char: "M", family: "Cinzel", weight: 500 };
 
-/** Thickness of the hairline flick in the R's crook (0 = leave it out). */
-const HAIRLINE = 0.016 * CAP;
+/** Thickness of the hairline flick that sat in the old R's crook (0 = leave it
+ *  out). Its coordinates are fractions of Cinzel's R, so it is off for the M. */
+const HAIRLINE = 0;
 
-/** The four-point spark between the R and the name. */
+/** The four-point spark between the initial and the name. */
 const SPARK = {
-  /** gap between the R's bowl and the spark's left tip */
+  /** gap between the initial and the spark's left tip */
   gap: 0.05 * CAP,
-  /** centre height above the R's baseline */
+  /** centre height above the initial's baseline */
   rise: 0.43 * CAP,
   /** half-height / half-width — slightly taller than wide, as drawn */
   ry: 0.26 * CAP,
@@ -61,15 +62,15 @@ const SPARK = {
   pinch: 0.9,
 };
 
-/** The name, in tracked serif caps, sitting just above the R's baseline. */
+/** The rest of the name, in tracked serif caps, just above the initial's baseline. */
 const WORD = {
-  text: "ALLY’S",
+  text: "YK",
   family: "Cinzel",
   weight: 500,
   cap: 0.46 * CAP,
   /** extra space between letters */
-  tracking: 0.07 * CAP,
-  /** baseline above the R's */
+  tracking: 0.14 * CAP,
+  /** baseline above the initial's */
   rise: 0.11 * CAP,
   /** gap between the spark's right tip and the first letter */
   gap: 0.09 * CAP,
@@ -85,12 +86,14 @@ const SUB = {
   weight: 500,
   cap: 0.165 * CAP,
   /** extra space between letters */
-  tracking: 0.115 * CAP,
+  tracking: 0.075 * CAP,
   /** clear space between the name's baseline and the descriptor's cap line */
   drop: 0.115 * CAP,
   /** the rules: thickness, and the gap between a rule and the word */
   rule: 0.014 * CAP,
-  ruleGap: 0.13 * CAP,
+  ruleGap: 0.07 * CAP,
+  /** shortest rule worth drawing; with less room the rules are left out */
+  minRule: 0.05 * CAP,
 };
 
 /** Ring thickness for the outline variant, in final viewBox units. */
@@ -173,13 +176,13 @@ function toD(commands) {
 --------------------------------------------------------------------------- */
 const parts = [];
 
-// — the R ————————————————————————————————————————————————————————————————
+// — the initial ——————————————————————————————————————————————————————————
 const initialFont = await loadFont(INITIAL.family, INITIAL.weight);
 const R = glyph(initialFont, INITIAL.char, CAP, 0, 0);
-parts.push({ name: "R", ...R });
+parts.push({ name: "initial", ...R });
 
-// The bowl's right edge, to hang the spark off: the widest ink in the R's
-// upper half (below that the leg kicks out further).
+// The initial's right edge, to hang the spark off: the widest ink in its upper
+// half (for the old R, below that the leg kicked out further).
 function rightEdgeAbove(d, yLimit) {
   const nums = d.match(/-?\d+(?:\.\d+)?/g).map(Number);
   let max = -Infinity;
@@ -188,7 +191,9 @@ function rightEdgeAbove(d, yLimit) {
   }
   return max;
 }
-const bowlRight = rightEdgeAbove(R.d, -0.55 * CAP);
+// An R tucks the spark over its leg; any other initial just clears its ink.
+const bowlRight =
+  INITIAL.char === "R" ? rightEdgeAbove(R.d, -0.55 * CAP) : R.box.x2;
 
 // — the hairline —————————————————————————————————————————————————————————
 // The calligraphic flick in the R's crook: a tapered sliver from the foot of
@@ -243,7 +248,9 @@ for (const char of WORD.text) {
   cursor = g.box.x2 + WORD.tracking;
 }
 parts.push(...letters);
-const wordLeft = letters[0].box.x1;
+// The descriptor and its rules run under the spark AND the name: "YK" alone is
+// barely wider than "TECH", which left the rules as hyphen-length stubs.
+const wordLeft = spark.box.x1;
 const wordRight = letters.at(-1).box.x2;
 
 // — the descriptor ———————————————————————————————————————————————————————
@@ -270,11 +277,17 @@ const rule = (x1, x2) => ({
   d: `M${n(x1)} ${n(ruleY)}L${n(x2)} ${n(ruleY)}L${n(x2)} ${n(ruleY + SUB.rule)}L${n(x1)} ${n(ruleY + SUB.rule)}Z`,
   box: { x1, x2, y1: ruleY, y2: ruleY + SUB.rule },
 });
-parts.push(
-  rule(wordLeft, subLeft - SUB.ruleGap),
-  ...subLetters,
-  rule(subLeft + subWidth + SUB.ruleGap, wordRight)
-);
+const ruleLen = subLeft - SUB.ruleGap - wordLeft;
+if (ruleLen >= SUB.minRule) {
+  parts.push(
+    rule(wordLeft, subLeft - SUB.ruleGap),
+    ...subLetters,
+    rule(subLeft + subWidth + SUB.ruleGap, wordRight)
+  );
+} else {
+  console.warn(`rules left out: only ${Math.round(ruleLen)} units each side`);
+  parts.push(...subLetters);
+}
 
 /* ---------------------------------------------------------------------------
    Write
@@ -315,7 +328,7 @@ writeFileSync(
   )
 );
 
-const mono = compose(parts.filter((p) => ["R", "hair", "spark"].includes(p.name)));
+const mono = compose(parts.filter((p) => ["initial", "hair", "spark"].includes(p.name)));
 writeFileSync(
   "public/brand/monogram.svg",
   svg(mono, `<path d="${mono.d}" fill="#000" fill-rule="nonzero"/>`)

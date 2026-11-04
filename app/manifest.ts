@@ -15,10 +15,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "R Ally's Tech",
-    short_name: "R Ally's Tech",
+    name: "MykTech",
+    short_name: "MykTech",
     description:
-      "R Ally's Tech is an IT studio in Dipolog City building web, mobile, and cloud products.",
+      "MykTech is an IT studio in Dipolog City building web, mobile, and cloud products.",
     start_url: "/",
     scope: "/",
     display: "standalone",

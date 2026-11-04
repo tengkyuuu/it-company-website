@@ -52,7 +52,7 @@ export function cleanSubject(s: string): string {
   return wellFormed(/[\uD800-\uDBFF]$/.test(one) ? one.slice(0, -1) : one);
 }
 
-/** "Re: your enquiry to R Ally's Tech" / "Re: your application — Frontend Developer". */
+/** "Re: your enquiry to MykTech" / "Re: your application — Frontend Developer". */
 export function replySubject(
   kind: ReplyLeadKind,
   opts: { siteName: string; jobTitle?: string | null }

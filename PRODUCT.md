@@ -20,7 +20,7 @@ Job seekers are **not** a target audience right now. Careers stays CMS-gated and
 
 ## Product Purpose
 
-The marketing site for **R Ally's Tech**, an IT studio in Dipolog City. It has to
+The marketing site for **MykTech**, an IT studio in Dipolog City. It has to
 answer four questions quickly: who you are, what you build, whether it's real, and how to
 start. Success is a visitor sending the contact form (there is no public email or phone yet).
 
@@ -49,7 +49,7 @@ template agency site cannot truthfully claim.
 
 ## Brand Commitments
 
-- Name: R Ally's Tech; the logo lockup is generated (`components/Logo.tsx`).
+- Name: MykTech; the logo lockup is generated (`components/Logo.tsx`).
 - The **keycap** is the brand's signature object and must survive every redesign.
 - Visual system: see DESIGN.md (black / white / gold).
 

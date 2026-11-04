@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 
 /**
- * The R Ally's Tech keyswitch — two layered renders (public/brand/keycap.avif +
+ * The MykTech keyswitch — two layered renders (public/brand/keycap.avif +
  * keyswitch.avif, both alpha AVIF). The cap floats above the housing; hover
  * flares an under-cap glow and a press (:active) drives the cap home. All CSS —
  * no listeners, no JS animation. The cap is recoloured per placement

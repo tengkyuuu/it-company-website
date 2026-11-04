@@ -33,7 +33,7 @@ export default function AuthNoAccess({
       title: "You don’t have access yet",
       body: (
         <p>
-          {who}, but that account isn’t on the R Ally's Tech panel. Ask the owner to invite
+          {who}, but that account isn’t on the MykTech panel. Ask the owner to invite
           you — the invite link sets up your access.
         </p>
       ),

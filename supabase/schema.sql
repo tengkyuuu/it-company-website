@@ -1,5 +1,5 @@
 -- ============================================================================
--- R Ally's Tech website — Supabase schema
+-- MykTech website — Supabase schema
 --
 -- Run this ONCE in the Supabase SQL editor (Dashboard → SQL Editor → New query
 -- → paste → Run). It is idempotent, so re-running it is safe — and re-running
@@ -463,8 +463,7 @@ create trigger projects_touch_updated_at
 -- ----------------------------------------------------------------------------
 create table if not exists public.site_settings (
   id             integer primary key default 1 check (id = 1),
-  -- doubled apostrophe: SQL escaping for the one in "R Ally's Tech"
-  brand_name     text not null default 'R Ally''s Tech',
+  brand_name     text not null default 'MykTech',
   tagline        text not null default 'Software, designed with intent.',
   email          text not null default 'hello@mykt.studio',
   phone          text not null default '',

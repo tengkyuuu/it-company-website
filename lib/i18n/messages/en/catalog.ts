@@ -24,7 +24,7 @@ const catalog = {
   products: {
     metaTitle: "Products",
     metaDescription:
-      "Software R Ally's Tech designs, builds and looks after under its own name.",
+      "Software MykTech designs, builds and looks after under its own name.",
     eyebrow: "Products",
     titleLead: "Software we make",
     titleAccent: "under our own name.",
@@ -64,7 +64,7 @@ const catalog = {
   careers: {
     metaTitle: "Careers",
     metaDescription:
-      "Open roles at R Ally's Tech, a small, senior software studio in Dipolog City.",
+      "Open roles at MykTech, a small, senior software studio in Dipolog City.",
     eyebrow: "Careers",
     titleLead: "Help us build software",
     titleAccent: "with taste.",
@@ -163,7 +163,7 @@ const catalog = {
   blog: {
     metaTitle: "Blog",
     metaDescription:
-      "Notes from R Ally's Tech on how we design and build software.",
+      "Notes from MykTech on how we design and build software.",
     eyebrow: "Blog",
     titleLead: "Notes from",
     titleAccent: "the studio.",

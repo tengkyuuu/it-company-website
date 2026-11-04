@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Logo from "@/components/Logo";
 
 /**
- * The giant footer R Ally's Tech — outlined by default; flat gold inks in
+ * The giant footer MykTech — outlined by default; flat gold inks in
  * under a spotlight that follows the cursor (CSS lives in globals.css, `.fw`).
  * Touch devices get a quiet full-width fill instead. Decorative.
  *

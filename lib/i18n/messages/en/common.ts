@@ -26,7 +26,7 @@ const common = {
     careers: "Careers",
     blog: "Blog",
     search: "Search the site",
-    homeLabel: "R Ally's Tech — home",
+    homeLabel: "MykTech — home",
     ariaLabel: "Main",
     openMenu: "Open menu",
     closeMenu: "Close menu",
@@ -66,10 +66,10 @@ const common = {
   },
   belief: {
     eyebrow: "Our belief",
-    signature: "— The R Ally's Tech studio",
+    signature: "— The MykTech studio",
   },
   showreel: {
-    label: "R Ally's Tech showreel",
+    label: "MykTech showreel",
     tag: "Inside the studio",
   },
   preview: {
@@ -109,7 +109,7 @@ const common = {
   chat: {
     open: "Chat with us",
     close: "Close chat",
-    dialogLabel: "Chat with R Ally's Tech",
+    dialogLabel: "Chat with MykTech",
     title: "Ask us anything",
     badge: "AI assistant",
     greeting:

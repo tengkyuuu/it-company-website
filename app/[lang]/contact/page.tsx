@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return {
     title: getDictionary(lang).t("meta.location"),
     description:
-      "Start a project with R Ally's Tech — an IT studio in Dipolog City, Zamboanga del Norte, working with clients in the Philippines and abroad.",
+      "Start a project with MykTech — an IT studio in Dipolog City, Zamboanga del Norte, working with clients in the Philippines and abroad.",
     ...localeMetadata(lang, "/contact"),
   };
 }

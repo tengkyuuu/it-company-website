@@ -12,7 +12,7 @@ import type { DeepPartial } from "../../translate";
 
 const site: DeepPartial<typeof en> = {
   meta: {
-    siteTitle: "R Ally's Tech — Software na may maingat na disenyo",
+    siteTitle: "MykTech — Software na may maingat na disenyo",
     about: "Tungkol sa Amin",
     services: "Mga Serbisyo",
     projects: "Mga Proyekto",
@@ -49,11 +49,11 @@ const site: DeepPartial<typeof en> = {
     startsAs: "Kadalasang nagsisimula bilang",
   },
   about: {
-    eyebrow: "Tungkol sa R Ally's Tech",
+    eyebrow: "Tungkol sa MykTech",
     titleLine1: "Isang maliit na studio na",
     titleLine2: "masinsin sa bawat",
     titleAccent: "detalye.",
-    imageAlt: "Brand identity ng R Ally's Tech sa mga business card",
+    imageAlt: "Brand identity ng MykTech sa mga business card",
     valuesEyebrow: "Ang aming pinahahalagahan",
     valuesTitle: "Apat na prinsipyong hindi namin isinasantabi.",
     teamEyebrow: "Ang mga tao",
@@ -124,7 +124,7 @@ const site: DeepPartial<typeof en> = {
     studio: "Studio",
     phone: "Telepono",
     hours: "Oras",
-    mapTitle: "Lokasyon ng studio ng R Ally's Tech — Dipolog City",
+    mapTitle: "Lokasyon ng studio ng MykTech — Dipolog City",
     follow: "Sundan kami",
     nextEyebrow: "Ano ang susunod",
     nextRead: "Babasahin namin.",

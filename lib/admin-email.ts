@@ -29,7 +29,7 @@ export type SendResult =
 const FROM =
   process.env.ADMIN_FROM_EMAIL ||
   process.env.CONTACT_FROM_EMAIL ||
-  "R Ally's Tech <onboarding@resend.dev>";
+  "MykTech <onboarding@resend.dev>";
 
 export const emailConfigured = () => Boolean(process.env.RESEND_API_KEY);
 

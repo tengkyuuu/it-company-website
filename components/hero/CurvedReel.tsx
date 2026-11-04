@@ -27,6 +27,8 @@ const CAMERA = 1.6;
 const MAX_WIDTH = 55;
 /** the chrome bar, as a share of the tile's height */
 const BAR = 0.07;
+/** how far each strip overhangs its neighbours, as a share of a strip's width */
+const OVERLAP = 0.12;
 
 function arc(bend: number) {
   return (CAMERA - 1 + Math.cos(bend)) / (2 * CAMERA * Math.sin(bend));
@@ -185,23 +187,34 @@ export default function CurvedReel({
                 });
               }}
             >
-              {Array.from({ length: SLICES }, (_, k) => (
+              {Array.from({ length: SLICES }, (_, k) => {
+                // Each strip overhangs its neighbours a little. Adjacent facets of
+                // the arc only meet along a hairline, and the compositor leaves a
+                // crack there at some angles (the page showed through as a dark
+                // line on the right of the reel). The overhang lies outside the
+                // arc, i.e. behind the neighbouring facet, so it only ever fills
+                // a crack. The outer edges of the tile don't overhang.
+                const l = k === 0 ? 0 : OVERLAP * share;
+                const r = k === SLICES - 1 ? 0 : OVERLAP * share;
+                return (
                 <div
                   key={k}
                   className={`absolute top-0 overflow-hidden bg-[#1c1917] ${
-                    k === 0 ? "rounded-l-xl" : ""
-                  } ${k === SLICES - 1 ? "rounded-r-xl" : ""}`}
+                    k === 0 ? "rounded-l-lg" : ""
+                  } ${k === SLICES - 1 ? "rounded-r-lg" : ""}`}
                   style={{
-                    left: u((aspectRatio - share) / 2),
-                    width: k === SLICES - 1 ? u(share) : `calc(${u(share)} + 1px)`,
+                    left: u((aspectRatio - share) / 2 - l),
+                    width: u(share + l + r),
                     height: u(1),
+                    // rotate about the facet's own centre, not the widened box's
+                    transformOrigin: `${u(l + share / 2)} 50%`,
                     transform: turn((aspectRatio / 2 - (k + 0.5) * share) * unit),
                   }}
                 >
                   {/* the whole tile, offset so this strip shows its share */}
                   <div
                     className="absolute top-0"
-                    style={{ left: u(-k * share), width: u(aspectRatio), height: u(1) }}
+                    style={{ left: u(l - k * share), width: u(aspectRatio), height: u(1) }}
                   >
                     {/* chrome bar: three dots + an address pill */}
                     <div
@@ -237,7 +250,8 @@ export default function CurvedReel({
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           );
         })}

@@ -1,6 +1,6 @@
-# R Ally's Tech — Company Website
+# MykTech — Company Website
 
-Marketing website for **R Ally's Tech**, an IT company. Prototype. Goal: a sleek,
+Marketing website for **MykTech**, an IT company. Prototype. Goal: a sleek,
 modern, *graphic-designer-grade* site that tells customers who we are and what we build.
 Clean and human — **not** "techy" (avoid circuit boards, matrix code, neon-on-black clichés).
 The impression to leave: *we make software and we innovate, with taste.*
@@ -50,7 +50,7 @@ something is published (`getPublishedSections()`); see "Products / Careers / Blo
 screenshots in `public/work/` (+ hero derivatives in `public/work/hero/`), data in `lib/work.ts`.
 **Team (real):** Jhade Banquiao (Project Lead), James Calunsag (Frontend), Haron Diniay
 (Backend), Ralph Andilab (Mobile), Sean Jacinto (AI Automation), Hasnain Fayyaz (Marketing).
-**Nav:** the `R✦ALLY'S / TECH` lockup (`components/Logo.tsx`), top-left.
+**Nav:** the `M✦YK / TECH` lockup (`components/Logo.tsx`), top-left.
 
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
 **Hero** (`Hero` — 100svh, `CurvedReel` behind the headline, gold keycap) →
@@ -77,38 +77,38 @@ The visual system is **v2 "Monochrome + Gold"** (shipped on branch `redesign-v2`
 `DESIGN.md` is the spec.
 
 ### Logo — a generated vector lockup, used as a CSS mask
-The logo is the **Rally's house lockup** (client artwork for the sister brand "Rally's Tours &
-Transfers", adapted 2026-10-12 with the descriptor swapped to TECH): an **oversized serif `R`**
-with a hairline flick in its crook, a **four-point spark**, **`ALLY’S`** in tracked serif caps
-sitting just above the R's baseline, and **`TECH`** in tracked sans caps between two hairline
-rules beneath. It is **generated, not artwork** — `scripts/build-wordmark.mjs` fetches the fonts
-from Google Fonts (`R` + `ALLY’S` = Cinzel 500, `TECH` = Geist 500), converts the glyphs to
-**outlines**, draws the spark / flick / rules as paths, and composes one SVG. (It replaced the
-earlier "ransom-note" lockup — eleven typefaces, one per glyph.)
+**The brand is MykTech** (renamed back from "R Ally's Tech" on 2026-11-04, client request). The
+logo keeps the house style of the R Ally's lockup, re-lettered (client's pick): an **oversized
+serif `M`**, a **four-point spark**, **`YK`** in tracked serif caps sitting just above the M's
+baseline, and **`TECH`** in tracked sans caps between two hairline rules beneath — the rules run
+under the spark *and* `YK` (under `YK` alone they were hyphen-length stubs). It is **generated,
+not artwork** — `scripts/build-wordmark.mjs` fetches the fonts from Google Fonts (`M` + `YK` =
+Cinzel 500, `TECH` = Geist 500), converts the glyphs to **outlines**, draws the spark / rules as
+paths, and composes one SVG. History: ransom-note "mykTech()" (eleven typefaces) → R Ally's house
+lockup (2026-10-12, adapted from the sister brand "Rally's Tours & Transfers") → this.
 
 - **To restyle**: edit the constants at the top of `scripts/build-wordmark.mjs` (everything is a
-  fraction of the R's cap height), re-run `node scripts/build-wordmark.mjs`, paste the printed
-  ratio into `aspect-ratio` in `globals.css` (it appears **twice** — `.wm/.wm-outline` and
-  `.pl-stage`; currently `3636 / 1206`, also hardcoded in `app/opengraph-image.tsx`), then run
-  `node scripts/build-icons.mjs` and re-paste the monogram path into `public/offline.html`.
+  fraction of the initial's cap height), re-run `node scripts/build-wordmark.mjs`, paste the
+  printed ratio into `aspect-ratio` in `globals.css` (it appears **twice** — `.wm/.wm-outline` and
+  `.pl-stage`; currently `2958 / 1226`, also hardcoded in `app/opengraph-image.tsx`), then run
+  `node scripts/build-icons.mjs`, re-paste the monogram path + viewBox into `public/offline.html`,
+  and bump `VERSION` in `public/sw.js`.
   Needs `npm install --no-save opentype.js` (build-time only — deliberately not a dependency,
   same reasoning as Playwright in `scripts/verify.mjs`).
-- **Monochrome on purpose.** The source artwork is maroon; here the mark takes `currentColor`
-  like everything else (ink in light, near-white in dark), and gold appears only on the monogram
-  in the icons. A fixed maroon would not survive dark mode or the Preloader.
-- **TECH is centred between rules, not letterspaced across the width** like the sister brand's
-  long descriptor — four letters stretched that far stop reading as a word.
-- Three traps in the generator, all hit while building it:
+- **Monochrome on purpose.** The mark takes `currentColor` like everything else (ink in light,
+  near-white in dark); gold appears only on the monogram in the icons.
+- Traps in the generator, all hit while building it:
   - **Don't use opentype.js `toPathData()`.** Its rounding goes through a string, so a
     float-error coordinate like `1.1e-13` (ink landing exactly on x = 0) is written as the
-    literal text `NaN` and the renderer silently stops drawing there — the R lost its stem and
-    every later glyph vanished. The script serialises commands itself (`toD`).
-  - **These fonts build glyphs from overlapping contours** (the R's stem and bowl are separate
-    pieces). Filling is fine; **stroking draws every internal seam**. So the outline asset is the
-    stroke with the filled silhouette **masked back out** — only the half outside the letters
-    survives. Hand-drawn shapes that overlap a glyph (the flick) must share the font's
-    **winding direction**, or nonzero fill cancels and punches a notch through the letter.
-  - The flick's coordinates are fractions of *Cinzel's* R — re-place it if the typeface changes.
+    literal text `NaN` and the renderer silently stops drawing there — the old R lost its stem
+    and every later glyph vanished. The script serialises commands itself (`toD`).
+  - **These fonts build glyphs from overlapping contours.** Filling is fine; **stroking draws
+    every internal seam**. So the outline asset is the stroke with the filled silhouette
+    **masked back out** — only the half outside the letters survives. Hand-drawn shapes that
+    overlap a glyph must share the font's **winding direction**, or nonzero fill cancels and
+    punches a notch through the letter.
+  - The spark hangs off the initial's ink box; only an `R` tucks it over its bowl. The optional
+    hairline flick (`HAIRLINE`, now 0) is positioned for Cinzel's **R** only.
 - **`components/Logo.tsx`** is the only way to render it. Generated assets, painted as
   a **CSS `mask` over `currentColor`** (not `<img>`), so the mark inherits the text colour and
   follows light/dark and `.band` for free:
@@ -116,37 +116,32 @@ earlier "ransom-note" lockup — eleven typefaces, one per glyph.)
   - `public/brand/wordmark-outline.svg` — a ring just **outside** the same silhouette. Use
     `variant="outline"`. This exists because CSS `drop-shadow` is applied
     *before* masking, so a shadow-based outline on a masked element gets clipped straight off.
-  - `public/brand/monogram.svg` — just the R + flick + spark, cropped tight. Not loaded by any
+  - `public/brand/monogram.svg` — just the M + spark, cropped tight. Not loaded by any
     page: it is the source for `scripts/build-icons.mjs` (favicon `app/icon.png` + the PWA icons,
     flat gold on `#0c0a09`) and for the inline mark in `public/offline.html`.
-  - Sizing: the element carries the lockup's aspect ratio (~3:1) — set **one** axis (`h-10`,
-    `w-full`). The R is the full height and the name's caps are under half of it, so **below
-    ~36px tall the TECH line is no longer legible** (the old lockup sat at 26px).
-  - Used in `Nav` (`h-10`, alone — the R + spark is the mark), `FooterWordmark`, `Preloader`,
-    the admin chrome (`h-9`) and auth cards (`h-11`), and the social image
-    (`app/opengraph-image.tsx` reads the SVG from disk and re-inks it).
-- ✅ **It's vector, so there is no upscale limit.** The old raster's ~820px blur cap is gone and
-  `FooterWordmark` is full-bleed again.
+  - Sizing: the element carries the lockup's aspect ratio (~2.4:1) — set **one** axis (`h-10`,
+    `w-full`). The M is the full height and the name's caps are under half of it, so **below
+    ~36px tall the TECH line is no longer legible**.
+  - Used in `Nav` (`h-10`), `FooterWordmark`, `Preloader`, the admin chrome (`h-9`) and auth
+    cards (`h-11`), and the social image (`app/opengraph-image.tsx` reads the SVG from disk and
+    re-inks it).
+- ✅ **It's vector, so there is no upscale limit** — `FooterWordmark` is full-bleed.
 - Changing the mask files in place means returning visitors' service worker would serve the old
   ones from its shell cache — **bump `VERSION` in `public/sw.js`** whenever the logo changes.
-- **The apostrophe is the thing that bites now** (the old name's `()` did). Three places:
-  - **SQL**: must be doubled — `default 'R Ally''s Tech'` in `supabase/schema.sql`.
-  - **dotenv**: use **double** quotes. `CONTACT_FROM_EMAIL='...R Ally's Tech...'` ends the value
-    early and truncates the name to `R Ally`.
-  - **Email `From`**: no quoting needed any more — an apostrophe is valid RFC 5322 atext, so
-    `R Ally's Tech <…>` is three legal atoms. (The old name *had* to be quoted.)
+- **The name has no apostrophe or brackets any more**, so the old quoting traps are gone: plain
+  `'MykTech'` in SQL, any dotenv quoting, and `MykTech <…>` as an email `From` (the earlier
+  `mykTech()` had to be quoted there — `()` are RFC 5322 comment delimiters). ⚠️ Env vars set
+  **outside the repo** (Vercel's `CONTACT_FROM_EMAIL` / `ADMIN_FROM_EMAIL`) may still carry the
+  old display name — they override the code default.
 - ⚠️ Never place the wordmark inside an `uppercase` / `text-transform` context — bitten twice
-  already under the old name (Hero badge, Preloader label). The mask can't be transformed,
-  which is another reason to prefer `Logo` over set type.
+  already (Hero badge, Preloader label). The mask can't be transformed, which is another reason
+  to prefer `Logo` over set type.
 - `public/brand/logo.png` (the old "KT" shield), `mykTech().png`, `wordmark.png` and
-  `wordmark-outline.png` are **old-brand artwork, all unreferenced** — kept, not deleted. The
-  favicon and the social image were also still the old MYKT brand until 2026-10-12; both are
-  now generated from the lockup.
-- Technical identifiers keep the old spelling on purpose — `mykt-website`, `mykt.studio`,
-  `mykt-theme`, `mykt-preloaded`, `mykt:ready`. Those are **not** the brand name; renaming them
-  would break a storage key, the preloader event, and the domain. Leave them alone.
-- `components/Wordmark.tsx` and `components/KMark.tsx` (the old Syne + gradient-K type
-  treatment) were **deleted** in this rebrand — both were unused and encoded the old name.
+  `wordmark-outline.png` are **old-brand artwork, all unreferenced** — kept, not deleted.
+- Technical identifiers keep the `mykt` spelling — `mykt-website`, `mykt.studio`,
+  `mykt-theme`, `mykt-preloaded`, `mykt:ready`. Renaming them would break a storage key, the
+  preloader event, and the domain. Leave them alone.
+- **"Rally's Equities" is a client project, not the brand** — it keeps its name in `lib/work.ts`.
 
 ### Colour palette (v2 "Monochrome + Gold", 2026-11-04 — full spec in `DESIGN.md`)
 Warm stone neutrals at roughly **white 70% / black 20% / gold 10%**.
@@ -188,7 +183,9 @@ them back.
 ## Design direction
 - **Editorial & airy**, not corporate-techy. Lots of `paper` whitespace, ink type,
   one flat gold accent. Think a design studio's site, not an SaaS dashboard.
-- Soft, large radii (`16–24px`), subtle shadows, thin stone borders. No hard tech edges.
+- Moderate radii — sharpened 2026-11-04 at the client's request: `rounded-xl` 10px,
+  `rounded-2xl` 14px, `rounded-3xl` 16px (tokens in `@theme`); pills stay pills. Subtle shadows,
+  thin stone borders.
 - Imagery: our own project screenshots (never cropped or upscaled — sources are ~1536px wide);
   team and workspace photos are requested from the client (`docs/content-request.md`), not stock.
 - A dark section or two for rhythm/contrast (footer, belief band, last process card) — see
@@ -292,7 +289,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
   **`CurvedReel`** — a port of 21st.dev "Tilted Grid Hero" (ruixen.ui; the untouched source is
   `docs/reference/tilted-grid-hero.tsx.txt`): one row of browser-framed screenshots streams round
   the inside of a cylinder, **pure CSS 3D** (each tile cut into strips, one `rotateY` keyframe per
-  tile). Tuned `curve` 45 / `gap` 5 / `tileHeight` 25 — the reference defaults put too few,
+  tile). Each strip overhangs its neighbours by `OVERLAP` (12% of a strip) — without it the compositor left a crack between two facets that showed the page through as a dark vertical line (client report, 2026-11-04). Tuned `curve` 45 / `gap` 5 / `tileHeight` 25 — the reference defaults put too few,
   too-large tiles on a tall hero, and at 1919px they swelled and overlapped. Images come from
   `heroShots()` (`lib/hero-shots.ts`: interleaves projects, maps `/work/x.ext` →
   `/work/hero/x.webp`, **skips `physiopano-app.webp`** whose 1.78 shape stretched in the strip);
@@ -570,7 +567,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
     - Invite (owner only, `app/admin/team-actions.ts`): upsert `invitations` → issue token →
       email `${origin}/admin/auth/confirm?t=<raw>` (branded, `lib/admin-email.ts`) or return the
       link to copy. **No auth user is created until redemption.** Resend = new token; revoke =
-      delete invitation + tokens. The bulk "Invite the Rally's Tech team" card still works.
+      delete invitation + tokens. The bulk "Invite the MykTech team" card still works.
     - Reset (`requestPasswordReset`, unauthenticated): same "if an account exists…" reply, work
       done in `after()`, durable limits (8 / 15 min per IP hash, 3 / 15 min per email hash,
       `failClosed`). The owner can also "Send reset" to a member from Team — the owner never

@@ -57,5 +57,5 @@ Is the live site public now? URL:
 
 ## 5. The About story
 
-A few honest paragraphs: how R Ally's Tech started, why it's based in Dipolog, and what the
+A few honest paragraphs: how MykTech started, why it's based in Dipolog, and what the
 team cares about. Rough notes are fine, and we'll shape the wording with you.

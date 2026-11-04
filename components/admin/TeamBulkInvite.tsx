@@ -61,7 +61,7 @@ const STATUS: Record<
 };
 
 /**
- * "Invite the Rally's Tech team" — one row per person on the public roster
+ * "Invite the MykTech team" — one row per person on the public roster
  * (getTeam()), minus anyone already on the panel or invited. Fill in emails and
  * send once; everyone joins as an admin (the only invitable role). Rows that
  * went through drop off; failures stay for another try.
@@ -138,7 +138,7 @@ export default function TeamBulkInvite({ roster }: { roster: RosterRow[] }) {
   return (
     <Card>
       <CardTitle hint="Everyone on the public roster who isn’t on the panel yet. Add their emails and send — each gets their own link and chooses their own password. Leave a row’s email blank to skip it.">
-        Invite the Rally’s Tech team
+        Invite the MykTech team
       </CardTitle>
 
       {already.length > 0 && (

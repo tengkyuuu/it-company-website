@@ -15,7 +15,7 @@
  */
 const site = {
   meta: {
-    siteTitle: "R Ally's Tech — Software, designed with intent",
+    siteTitle: "MykTech — Software, designed with intent",
     about: "About",
     services: "Services",
     projects: "Projects",
@@ -52,11 +52,11 @@ const site = {
     startsAs: "Usually starts as",
   },
   about: {
-    eyebrow: "About R Ally's Tech",
+    eyebrow: "About MykTech",
     titleLine1: "A small studio that",
     titleLine2: "sweats the",
     titleAccent: "details.",
-    imageAlt: "R Ally's Tech brand identity on business cards",
+    imageAlt: "MykTech brand identity on business cards",
     valuesEyebrow: "What we value",
     valuesTitle: "Four things we won’t compromise on.",
     teamEyebrow: "The people",
@@ -127,7 +127,7 @@ const site = {
     studio: "Studio",
     phone: "Phone",
     hours: "Hours",
-    mapTitle: "R Ally's Tech studio location — Dipolog City",
+    mapTitle: "MykTech studio location — Dipolog City",
     follow: "Follow along",
     nextEyebrow: "What happens next",
     nextRead: "We read it.",

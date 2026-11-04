@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ----------------------------------------------------------------------------
-   R Ally's Tech design tokens (v2) — warm black/white neutrals + one flat gold. See DESIGN.md.
+   MykTech design tokens (v2) — warm black/white neutrals + one flat gold. See DESIGN.md.
    Tailwind v4 reads @theme to generate utilities (bg-paper, text-ink, …).
 ---------------------------------------------------------------------------- */
 @theme {
@@ -26,8 +26,12 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
-  --radius-xl: 1.25rem;
-  --radius-2xl: 1.5rem;
+  /* Sharper rectangles (client, 2026-11-04): roughly 60% of the v1 radii. Pills
+     (rounded-full) are unchanged. */
+  --radius-lg: 0.5rem; /*  8px */
+  --radius-xl: 0.625rem; /* 10px (was 20) */
+  --radius-2xl: 0.875rem; /* 14px (was 24) */
+  --radius-3xl: 1rem; /* 16px (was 24) */
 
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -137,7 +141,7 @@ body {
    Reusable brand helpers
 ---------------------------------------------------------------------------- */
 
-/* Gradient text — the signature R Ally's Tech move. Use on ONE word per view.
+/* Gradient text — the signature MykTech move. Use on ONE word per view.
    Declared as @utility (not plain classes) so hover:/group-hover: variants work. */
 @utility text-accent {
   /* v2: flat gold TEXT — the darker gold on white, bright gold on black */
@@ -331,10 +335,10 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   The R Ally's Tech wordmark (components/Logo.tsx).
+   The MykTech wordmark (components/Logo.tsx).
 
-   The house lockup — an oversized serif R with a hairline flick, a four-point
-   spark, ALLY'S in tracked serif caps and TECH between two rules beneath. Part
+   The house lockup — an oversized serif M, a four-point spark, YK in tracked
+   serif caps and TECH between two rules beneath. Part
    type, part drawn shapes, so it can't be set in a web font — but it is a real
    VECTOR, not a raster: scripts/build-wordmark.mjs outlines it at build time.
    Painted as a CSS *mask* over `currentColor` rather than an <img>, so it
@@ -351,7 +355,7 @@ body {
   .wm-outline {
     display: block;
     /* intrinsic ratio of the trimmed asset — set one axis, the other follows */
-    aspect-ratio: 3636 / 1206;
+    aspect-ratio: 2958 / 1226;
     background-color: currentColor;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
@@ -389,7 +393,7 @@ body {
   --pl-w: min(74vw, 720px);
   position: relative;
   width: var(--pl-w);
-  aspect-ratio: 3636 / 1206;
+  aspect-ratio: 2958 / 1226;
 }
 .pl-layer {
   position: absolute;
@@ -739,7 +743,7 @@ body {
   color: var(--color-ink);
   background: var(--color-surface);
   border: 1px solid var(--color-mist);
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   padding: 1.1em 1.3em;
   overflow-x: auto;
   white-space: pre;
@@ -828,7 +832,7 @@ body {
   max-width: 100%;
   height: auto;
   margin-inline: auto;
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklab, var(--color-mist) 80%, transparent);
   background: var(--color-surface);
 }

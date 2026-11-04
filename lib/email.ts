@@ -29,13 +29,10 @@ export async function sendContactEmail(data: ContactInput) {
   // honestly instead of handing Resend an empty recipient.
   const to = process.env.CONTACT_TO_EMAIL || site.email;
   if (!to) throw new Error("CONTACT_TO_EMAIL is not set");
-  // Unquoted is correct here. The old mykTech() name HAD to be quoted, because
-  // "()" are RFC 5322 comment delimiters. "R Ally's Tech" has no parens, and an
-  // apostrophe is valid atext, so each word is a legal atom — quoting it would
-  // only add noise. (Don't "fix" this by wrapping it in single quotes either:
-  // see the .env.example note about the apostrophe closing a dotenv literal.)
+  // Unquoted is correct here. The older mykTech() name HAD to be quoted, because
+  // "()" are RFC 5322 comment delimiters; "MykTech" is a single legal atom.
   const from =
-    process.env.CONTACT_FROM_EMAIL || `R Ally's Tech <onboarding@resend.dev>`;
+    process.env.CONTACT_FROM_EMAIL || `MykTech <onboarding@resend.dev>`;
   const resend = new Resend(apiKey);
 
   const name = esc(data.name);
@@ -107,7 +104,7 @@ export async function sendApplicationEmail(data: {
   if (!to) return false;
   // Unquoted on purpose — see sendContactEmail.
   const from =
-    process.env.CONTACT_FROM_EMAIL || `R Ally's Tech <onboarding@resend.dev>`;
+    process.env.CONTACT_FROM_EMAIL || `MykTech <onboarding@resend.dev>`;
   const resend = new Resend(apiKey);
 
   const a = data.application;

@@ -20,7 +20,7 @@ function siteUrl() {
 }
 
 export const site = {
-  name: "R Ally's Tech",
+  name: "MykTech",
   tagline: "Software, designed with intent.",
   url: siteUrl(),
   // Public contact details. Empty = not shown anywhere (footer, /contact,

@@ -21,7 +21,7 @@ export const OG_IMAGE = {
   url: "/opengraph-image",
   width: 1200,
   height: 630,
-  alt: "R Ally's Tech — Software, designed with intent",
+  alt: "MykTech — Software, designed with intent",
 };
 export const TWITTER_IMAGE = "/twitter-image";
 

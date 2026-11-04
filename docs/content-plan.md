@@ -119,7 +119,7 @@ rows on the Services page.
 
 - **KEEP** the call-to-action band. It becomes the **one** closing call to action site-wide.
 - **KEEP** the columns and the giant wordmark.
-- **REMOVE** the "Developed by R Ally's Tech · for R Ally's Tech" line. It reads like
+- **REMOVE** the "Developed by MykTech · for MykTech" line. It reads like
   leftover template text.
 - **CHANGE** the service names in the footer to link to their rows on Services.
 

@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return {
     title: getDictionary(lang).t("meta.services"),
     description:
-      "Web, mobile, cloud, AI, design and consulting — the full toolkit for building modern software at R Ally's Tech.",
+      "Web, mobile, cloud, AI, design and consulting — the full toolkit for building modern software at MykTech.",
     ...localeMetadata(lang, "/services"),
   };
 }

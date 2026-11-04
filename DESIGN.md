@@ -1,4 +1,4 @@
-# R Ally's Tech — Design System v2 ("Monochrome + Gold")
+# MykTech — Design System v2 ("Monochrome + Gold")
 
 > **Status: DRAFT, 2026-11-04.** This replaces the v1 look (slate neutrals and a
 > magenta→rose→gold gradient over gooey `MeshDistortMaterial` blobs). Nothing in code has
@@ -121,8 +121,9 @@ h3 `1.5rem`, body `1.0625rem`, small `0.875rem`, label `0.6875rem`.
 
 ## 4. Shape, space, depth
 
-- **Radii:** cards `20px`, buttons `9999px` (pill), inputs `12px`, images `16px`. Keep it soft;
-  the black/white contrast already supplies the edge.
+- **Radii (sharpened 2026-11-04, client):** `rounded-xl` 10px, `rounded-2xl` 14px (cards,
+  frames), `rounded-3xl` 16px, `rounded-lg` 8px; buttons stay `9999px` (pill). Set as tokens in
+  `@theme`, so one edit there moves every rectangle.
 - **Borders:** 1px `mist`. On black bands, `white/10`.
 - **Shadows:** almost none. Depth comes from black-on-white and from the keycap. Use one soft
   shadow token, `0 1px 2px rgb(12 10 9 / 0.06), 0 8px 24px rgb(12 10 9 / 0.06)`, for raised

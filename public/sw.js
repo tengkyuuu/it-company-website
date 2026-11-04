@@ -1,5 +1,5 @@
 /*
- * R Ally's Tech — service worker. A SHELL-ONLY PWA: it makes the site
+ * MykTech — service worker. A SHELL-ONLY PWA: it makes the site
  * installable and gives it an offline page, and otherwise stays out of the way.
  * Registered by components/pwa/ServiceWorkerRegistrar.tsx (production, public
  * site only, after the opening sequence). Pinned by tests/service-worker.test.ts.
@@ -27,7 +27,7 @@
  */
 "use strict";
 
-var VERSION = "2026-11-04.2";
+var VERSION = "2026-11-04.3";
 var PREFIX = "rat-";
 var SHELL_CACHE = PREFIX + "shell-" + VERSION;
 var STATIC_CACHE = PREFIX + "static-" + VERSION;

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { site } from "@/lib/site";
 
-export const alt = "R Ally's Tech — Software, designed with intent";
+export const alt = "MykTech — Software, designed with intent";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -11,7 +11,7 @@ const ACCENT = "#d4af37";
 
 // the lockup's own proportions (scripts/build-wordmark.mjs prints them)
 const MARK_W = 780;
-const MARK_H = Math.round((MARK_W * 1206) / 3636);
+const MARK_H = Math.round((MARK_W * 1226) / 2958);
 
 export default async function OpengraphImage() {
   // The real logo, not a typeset approximation: the generated silhouette,

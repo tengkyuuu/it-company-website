@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return {
     title: { absolute: getDictionary(lang).t("meta.siteTitle") },
     description:
-      "R Ally's Tech is an IT studio in Dipolog City crafting web, mobile, and cloud products — with the eye of a design house.",
+      "MykTech is an IT studio in Dipolog City crafting web, mobile, and cloud products — with the eye of a design house.",
     ...localeMetadata(lang, "/"),
   };
 }

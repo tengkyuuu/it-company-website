@@ -18,7 +18,7 @@ const catalog: DeepPartial<typeof en> = {
   products: {
     metaTitle: "Mga Produkto",
     metaDescription:
-      "Software na dinidisenyo, binubuo at inaalagaan ng R Ally's Tech sa sarili nitong pangalan.",
+      "Software na dinidisenyo, binubuo at inaalagaan ng MykTech sa sarili nitong pangalan.",
     eyebrow: "Mga Produkto",
     titleLead: "Software na gawa namin",
     titleAccent: "sa sarili naming pangalan.",
@@ -58,7 +58,7 @@ const catalog: DeepPartial<typeof en> = {
   careers: {
     metaTitle: "Trabaho",
     metaDescription:
-      "Mga bakanteng posisyon sa R Ally's Tech, isang maliit at senior na software studio sa Dipolog City.",
+      "Mga bakanteng posisyon sa MykTech, isang maliit at senior na software studio sa Dipolog City.",
     eyebrow: "Trabaho",
     titleLead: "Tulungan kaming bumuo ng software",
     titleAccent: "na may panlasa.",
@@ -156,7 +156,7 @@ const catalog: DeepPartial<typeof en> = {
   blog: {
     metaTitle: "Blog",
     metaDescription:
-      "Mga tala ng R Ally's Tech tungkol sa kung paano kami nagdidisenyo at bumubuo ng software.",
+      "Mga tala ng MykTech tungkol sa kung paano kami nagdidisenyo at bumubuo ng software.",
     eyebrow: "Blog",
     titleLead: "Mga tala mula sa",
     titleAccent: "studio.",

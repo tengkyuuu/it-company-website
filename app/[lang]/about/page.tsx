@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
   return {
     title: getDictionary(lang).t("meta.about"),
     description:
-      "R Ally's Tech is a small, senior IT studio in Dipolog City that builds software with the care of a design house.",
+      "MykTech is a small, senior IT studio in Dipolog City that builds software with the care of a design house.",
     ...localeMetadata(lang, "/about"),
   };
 }
@@ -67,7 +67,7 @@ export default async function AboutPage({ params }: LangParams) {
           <Reveal delay={0.1}>
             <p className="text-pretty text-lg leading-relaxed text-ink/60">
               We’re a tight team of designers and engineers in Dipolog City who got
-              tired of software that felt like a chore. R Ally's Tech exists to prove
+              tired of software that felt like a chore. MykTech exists to prove
               that serious technology can also be warm, clear, and a little
               beautiful.
             </p>

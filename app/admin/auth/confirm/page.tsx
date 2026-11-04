@@ -103,7 +103,7 @@ export default async function ConfirmPage({
   return (
     <AuthCard
       eyebrow={isReset ? "Password reset" : "You’re invited"}
-      title={isReset ? "Choose a new password" : "Welcome to the R Ally's Tech panel"}
+      title={isReset ? "Choose a new password" : "Welcome to the MykTech panel"}
       intro={
         <>
           <p>

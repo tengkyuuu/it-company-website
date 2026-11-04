@@ -280,7 +280,7 @@ const BulkRowSchema = z.object({
 
 const MAX_BULK = 25;
 
-/** The "Invite the Rally's Tech team" card. */
+/** The "Invite the MykTech team" card. */
 export async function inviteTeam(rows: { name: string; email: string }[]): Promise<BulkResult> {
   const gate = await ownerGate();
   if ("denied" in gate) return { ...gate.denied, results: [] };
