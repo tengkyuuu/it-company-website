@@ -16,8 +16,8 @@ import { markReady } from "./ready";
  * Every state is the same wordmark mask in a different colour, so there's no font
  * swap and no reflow. The choreography is **CSS**, not GSAP (see `.pl-*` in
  * globals.css): it therefore starts at first paint instead of waiting for React to
- * hydrate, and it runs on the compositor, so it stays smooth while hydration, the
- * hero's WebGL scene and the showreel preload all fight for the main thread.
+ * hydrate, and it runs on the compositor, so it stays smooth while hydration and
+ * the first image requests fight for the main thread.
  * This component only decides when the sequence is over.
  *
  * No sessionStorage gate — the client asked for this on each opening. It replays

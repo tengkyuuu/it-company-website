@@ -5,41 +5,64 @@ modern, *graphic-designer-grade* site that tells customers who we are and what w
 Clean and human — **not** "techy" (avoid circuit boards, matrix code, neon-on-black clichés).
 The impression to leave: *we make software and we innovate, with taste.*
 
+**Where the decisions live** (read these before changing a page):
+- `PRODUCT.md` — who the site is for (local businesses, teams abroad, founders), what counts as
+  success (a sent contact form), the evidence on hand, and the principles: **every fact has one
+  home** and **nothing invented**.
+- `DESIGN.md` — the v2 visual system (tokens, gold rules, type, keycaps, hero spec).
+- `docs/content-plan.md` — what each page says, adds and removes (Parts A and B built 2026-11-04;
+  Part C waits on material). `docs/content-request.md` — the material asked of the team (case
+  studies, photos, client names + quotes, FAQ answers, About story). `docs/part-b-copy.md` — the
+  team's confirmed answers (in-person meetings **by arrangement**, clients abroad **already**,
+  languages **English, Filipino, Bisaya**, reply **within one business day**, a first call of
+  varying length, **price agreed after scoping**). Don't state anything beyond these.
+- `docs/redesign-plan.md` — the v2 build phases.
+
 ## Pages
-1. **Landing** — hero, what we do, proof, CTA.
-2. **Services** — web dev, app dev, + the offerings below.
-3. **Projects** — `/projects` index + `/projects/[slug]` detail, each with a preview.
-4. **About** — who we are, values, team/story.
-5. **Location** — where to find us, map, contact.
+Nav: `Home · Services · Work · About · Contact`.
+1. **Home** `/` — hero reel, tech marquee, who we build for, services macropad, process, belief.
+2. **Services** `/services` — the single home for service detail; engagement models
+   (`#engagements`, each with a "Good for" line). FAQ waits on the team's answers.
+3. **Work** `/projects` (nav label "Work", URL unchanged) + `/projects/[slug]` case studies.
+4. **About** — story, values, team, where we work.
+5. **Contact** `/contact` — form first + what happens next. **`/location` and `/fil/location`
+   308 here** (`next.config.mjs` `redirects()`, which run before middleware). Some keys and
+   identifiers still say `location` (e.g. the `location.*` i18n namespace) — intentional.
 6. **Admin** — `/admin`, the CMS (not in `nav`; noindex + robots-disallowed).
 
+**One home per fact:** project screenshots appear only in the hero reel (motion, no text) and on
+Work; full service detail only on Services; the closing call to action only in the footer band —
+no per-page CTA rows. Selected Work gallery, showreel, About marquee and the old MYKT
+business-card image were removed for this reason (2026-11-04).
+
 Every public page exists in **English (unprefixed: `/projects`) and Filipino (`/fil/projects`)**
-— routes live under `app/[lang]/`; see "Internationalisation" below. Plus CMS-driven
+— routes live under `app/[lang]/`; see "Internationalisation" below. ⚠️ The EN/FIL **switcher was
+removed** (client: "does not make sense"), so nothing links to `/fil` any more; the pages are
+still built (open decision — leave them for now). `components/i18n/LanguageSwitcher.tsx` remains,
+unused. Plus CMS-driven
 **Products** (`/products`, `/products/[slug]`), **Careers** (`/careers`, `/careers/[slug]` with
 an apply form) and **Blog** (`/blog`, `/blog/[slug]`) — their nav/footer links appear only once
 something is published (`getPublishedSections()`); see "Products / Careers / Blog".
 
 **HQ:** Dipolog City, Zamboanga del Norte (single source of truth: `lib/site.ts`).
-**Hero:** immersive WebGL "constellation" (no photo). **Selected Work = real client projects**
-(FameCRM, PhysioPano, SHM, Rally's Equities, Coffee Shop) — screenshots in `public/work/`,
-data in `lib/work.ts`.
+**Hero:** a curved reel of our own project screenshots (CSS 3D, no WebGL, no photo).
+**Real client projects** (FameCRM, PhysioPano, SHM, Rally's Equities, Coffee Shop) —
+screenshots in `public/work/` (+ hero derivatives in `public/work/hero/`), data in `lib/work.ts`.
 **Team (real):** Jhade Banquiao (Project Lead), James Calunsag (Frontend), Haron Diniay
 (Backend), Ralph Andilab (Mobile), Sean Jacinto (AI Automation), Hasnain Fayyaz (Marketing).
 **Nav:** the `R✦ALLY'S / TECH` lockup (`components/Logo.tsx`), top-left.
 
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
-**3D hero** (`Hero` — sticky 175vh stage; scroll scatters the constellation) →
-**tech-stack marquee** (`TechMarquee`, velocity-reactive, real logos via `simple-icons`,
-colorise on hover) → showreel (`VideoReveal`) → **Services** (`ServicesGalaxy` — theme-following
-band on `bg-surface`,
-sticky WebGL glyph morphs per service as the index scrolls) → **Selected Work**
-(`WorkGallery` — pinned horizontal gallery, parallax plates, live counter) →
+**Hero** (`Hero` — 100svh, `CurvedReel` behind the headline, gold keycap) →
+**tech-stack marquee** (`TechMarquee`, velocity-reactive, monochrome logos via `simple-icons`) →
+**Who we build for** (`Audiences` — three editorial columns) → **Services** (`ServicesGalaxy` —
+theme-following band on `bg-surface`, sticky keycap macropad, one key per service) →
 **Process** (`ProcessDeck` — sticky stacked cards) → belief band (`BeliefScrub` —
 words ink in with scroll) → footer.
-(Removed the testimonials carousel — it used famous design quotes, misleading as
-"client" quotes — and the invented stats row, per client feedback.)
-Global: `ScrollProgress` gradient bar fixed at top. Work images in `public/work/` (real
-client screenshots).
+Removed: the testimonials carousel (famous design quotes, misleading as "client" quotes), the
+invented stats row, the showreel (`VideoReveal`) and the Selected Work gallery (`WorkGallery`).
+A **proof band** (permitted client names + one real quote) is planned, hidden until the material
+arrives. Global: `ScrollProgress` gold bar fixed at top.
 
 ## Services (prototype set — refine later)
 - Web Development
@@ -50,9 +73,8 @@ client screenshots).
 - IT Consulting
 
 ## Brand
-
-> ⚠️ **Visual redesign planned (2026-11-04)** — black/white/gold "v2" in `DESIGN.md`, build
-> order in `docs/redesign-plan.md`. Until Phase 1 ships, this section describes what's **live**.
+The visual system is **v2 "Monochrome + Gold"** (shipped on branch `redesign-v2`, 2026-11-04);
+`DESIGN.md` is the spec.
 
 ### Logo — a generated vector lockup, used as a CSS mask
 The logo is the **Rally's house lockup** (client artwork for the sister brand "Rally's Tours &
@@ -72,8 +94,8 @@ earlier "ransom-note" lockup — eleven typefaces, one per glyph.)
   Needs `npm install --no-save opentype.js` (build-time only — deliberately not a dependency,
   same reasoning as Playwright in `scripts/verify.mjs`).
 - **Monochrome on purpose.** The source artwork is maroon; here the mark takes `currentColor`
-  like everything else (ink in light, near-white in dark), and the accent gradient appears only
-  on the monogram in the icons. A fixed maroon would not survive dark mode or the Preloader.
+  like everything else (ink in light, near-white in dark), and gold appears only on the monogram
+  in the icons. A fixed maroon would not survive dark mode or the Preloader.
 - **TECH is centred between rules, not letterspaced across the width** like the sister brand's
   long descriptor — four letters stretched that far stop reading as a word.
 - Three traps in the generator, all hit while building it:
@@ -96,14 +118,13 @@ earlier "ransom-note" lockup — eleven typefaces, one per glyph.)
     *before* masking, so a shadow-based outline on a masked element gets clipped straight off.
   - `public/brand/monogram.svg` — just the R + flick + spark, cropped tight. Not loaded by any
     page: it is the source for `scripts/build-icons.mjs` (favicon `app/icon.png` + the PWA icons,
-    gradient on `#111a24`) and for the inline mark in `public/offline.html`.
+    flat gold on `#0c0a09`) and for the inline mark in `public/offline.html`.
   - Sizing: the element carries the lockup's aspect ratio (~3:1) — set **one** axis (`h-10`,
     `w-full`). The R is the full height and the name's caps are under half of it, so **below
     ~36px tall the TECH line is no longer legible** (the old lockup sat at 26px).
   - Used in `Nav` (`h-10`, alone — the R + spark is the mark), `FooterWordmark`, `Preloader`,
     the admin chrome (`h-9`) and auth cards (`h-11`), and the social image
-    (`app/opengraph-image.tsx` reads the SVG from disk and re-inks it). The hero badge's centre
-    dot is the same spark.
+    (`app/opengraph-image.tsx` reads the SVG from disk and re-inks it).
 - ✅ **It's vector, so there is no upscale limit.** The old raster's ~820px blur cap is gone and
   `FooterWordmark` is full-bleed again.
 - Changing the mask files in place means returning visitors' service worker would serve the old
@@ -127,46 +148,51 @@ earlier "ransom-note" lockup — eleven typefaces, one per glyph.)
 - `components/Wordmark.tsx` and `components/KMark.tsx` (the old Syne + gradient-K type
   treatment) were **deleted** in this rebrand — both were unused and encoded the old name.
 
-### Color palette
+### Colour palette (v2 "Monochrome + Gold", 2026-11-04 — full spec in `DESIGN.md`)
+Warm stone neutrals at roughly **white 70% / black 20% / gold 10%**.
+
 | Role | Token | Light | Dark |
 |------|-------|-------|------|
-| Page background | `paper` | `#F8FAFC` | `#0B1220` |
-| Raised card | `surface` | `#FFFFFF` | `#131D30` |
-| Borders / dividers | `mist` | `#CBD5E1` | `#2A3647` |
-| Secondary text | `slatey` | `#94A3B8` | `#8496B0` |
-| Headings / body | `ink` | `#1E293B` | `#E6EDF7` |
+| Page background | `paper` | `#FAFAF9` | `#0C0A09` |
+| Raised card | `surface` | `#FFFFFF` | `#1C1917` |
+| Borders / dividers | `mist` | `#E7E5E4` | `#292524` |
+| Secondary text | `slatey` | `#78716C` | `#A8A29E` |
+| Headings / body | `ink` | `#0C0A09` | `#F5F5F4` |
 
 **Never hardcode these** — use the Tailwind utilities (`bg-paper`, `text-ink`,
 `border-mist`, `bg-surface`). They're generated from `--color-*` in `@theme`, and
 dark mode works purely by re-declaring those variables (see Dark mode below), so a
-literal `bg-white` or `#1E293B` is what breaks the theme.
+literal `bg-white` or `#0C0A09` is what breaks the theme.
 
-**Accent — the only color in the system. Use sparingly, as the gradient:**
+**Gold — the only colour in the system, and it is flat (no gradient anywhere):**
 ```
---accent-from: #9D5A8F;  /* magenta-purple */
---accent-mid:  #B85C7A;  /* mauve-rose      */
---accent-to:   #E0A23A;  /* gold            */
---accent: linear-gradient(135deg, var(--accent-from), var(--accent-mid), var(--accent-to));
+--color-gold:       #D4AF37;  /* marks, fills, gold ON black            */
+--color-gold-ink:   #8C6D1F;  /* gold TEXT on white (4.9:1); #D4AF37 in dark mode and in .band */
+--color-gold-press: #B8962E;
 ```
-Reserve the gradient for: the logo's letter, one key word in a headline, CTA hover/underline,
-a single hero glow, link/active states. If a second thing on screen uses it, remove one.
+The v1 names `--accent-from/-mid/-to` and `--accent` still exist so old call sites compile, but
+all point at the same gold. Rules: **one gold moment per viewport** (a headline word, the gold
+keycap, the progress bar…); **no `#D4AF37` small text on white** (use `text-accent` /
+`gold-ink`); if a second gold thing appears on screen, make one of them ink. The magenta/rose v1
+gradient, its glows (`.aurora`, `.accent-glow`) and the goo blobs are **gone** — don't bring
+them back.
 
 ### Typography
-- **Display/brand: Syne** (`--font-display`, via next/font) — free stand-in for the paid
-  "Inline" by Letters from Sweden. Used for big headings (Hero h1,
-  `SectionHeader` titles). Swap in real Inline `.woff2` via next/font/local if licensed.
-- **Geist** (Geist Sans for body/UI; Geist Mono only for tiny labels/code chips).
-- Big, confident display headings (tight tracking, weight 600–700). Generous body line-height.
+- **Geist only** (decided 2026-11-04): Geist Sans for display, body and UI; Geist Mono for tiny
+  labels and code chips. `--font-display` points at Geist Sans (Syne was removed). The only serif
+  on the site is inside the logo artwork.
+- Display headings: medium weight (500–600), tight tracking (≈ −0.035 to −0.045em). Generous body
+  line-height.
 - Scale leans editorial — let headings breathe with whitespace, not effects.
 
 ## Design direction
 - **Editorial & airy**, not corporate-techy. Lots of `paper` whitespace, ink type,
-  one gradient accent. Think a design studio's site, not an SaaS dashboard.
-- Soft, large radii (`16–24px`), subtle shadows, thin slate borders. No hard tech edges.
-- Imagery: real, warm, human/abstract (people collaborating, soft 3D, paper/light textures).
-  Source from Pexels/Pinterest. Avoid stocky "hacker/server-room" shots.
-- A dark section or two for rhythm/contrast (footer, belief band) — see `.band` below.
-
+  one flat gold accent. Think a design studio's site, not an SaaS dashboard.
+- Soft, large radii (`16–24px`), subtle shadows, thin stone borders. No hard tech edges.
+- Imagery: our own project screenshots (never cropped or upscaled — sources are ~1536px wide);
+  team and workspace photos are requested from the client (`docs/content-request.md`), not stock.
+- A dark section or two for rhythm/contrast (footer, belief band, last process card) — see
+  `.band` below.
 ## Dark mode
 Light/dark is driven by a **`data-theme` attribute on `<html>`**, not `prefers-color-scheme`
 alone, and not `dark:` variants sprinkled through the markup.
@@ -176,14 +202,14 @@ alone, and not `dark:` variants sprinkled through the markup.
   usually needs *zero* dark-mode work — just use the tokens.
   These rules are **unlayered**, so they beat Tailwind's `@layer theme` defaults.
 - **`.band`** = a section deliberately dark in *both* themes (footer, `BeliefScrub`, the last
-  `ProcessDeck` card, `VideoReveal`'s frame, `Preloader`, the `WorkGallery` plates). It pins the
+  `ProcessDeck` card, `Preloader`, `LivePreview`'s browser frame). It pins the
   neutral ramp *locally* to its light-on-dark values, so descendants keep using
   `bg-ink` / `text-paper` / `text-slatey` and read correctly either way. In dark mode a band sits
   slightly **above** the page background, so it reads as an elevated surface, not a hole.
   Literal `border-white/10`-style alphas are fine inside a band (it's dark in both themes).
 - `components/theme/`: `ThemeScript` (blocking inline script in `<head>`; stamps `data-theme`
   before first paint so there's no flash), `ThemeProvider` (mirrors the attribute into React
-  for the WebGL scenes; `setTheme` writes the DOM **synchronously** so it can run inside a View
+  for components that need it; `setTheme` writes the DOM **synchronously** so it can run inside a View
   Transition), `ThemeToggle` (pill in the `Nav`).
   ⚠️ The shared key/type live in **`lib/theme.ts`, which must NOT have `"use client"`** —
   `ThemeScript` is a server component, and importing a value out of a client module across the
@@ -192,27 +218,23 @@ alone, and not `dark:` variants sprinkled through the markup.
 - **Toggle transition**: `document.startViewTransition()` + an animated `clip-path` circle
   expanding from the button, so the incoming theme wipes over the outgoing one. Browsers without
   the API and `prefers-reduced-motion` get an instant swap. Because the API holds a static
-  snapshot for the whole animation, prop-driven repaints (the Three.js material colors) are
+  snapshot for the whole animation, prop-driven repaints are
   hidden by the wipe — no lerping needed.
 - `dark:` **does** work if you need it — registered via
   `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *))`.
-- `HeroScene` keeps a light mesh albedo in dark mode but drops `ambientLight` hard, so the accent
-  point-lights still paint the gradient while unlit faces fall into shadow (otherwise the forms
-  read as blown-out white blobs). `GlyphScene` needs nothing — near-white lit forms already work
-  on both grounds.
 - Reveal note: `Reveal direction="left"/"right"` offsets by ±28px, which **overflows a
   full-width mobile column** (and sticks, because framer-motion fixes `initial` at mount). Use
   the default vertical reveal for anything full-bleed.
 
 ## Motion
 - Tasteful, not flashy. Scroll-reveal fades/translates, staggered list entrances,
-  gradient-shift on the accent, magnetic/hover micro-interactions on CTAs, smooth page
-  transitions. Respect `prefers-reduced-motion`. Keep easing soft (e.g. `cubic-bezier(0.22,1,0.36,1)`),
+  magnetic/hover micro-interactions on CTAs, keycap presses, smooth page transitions. Respect
+  `prefers-reduced-motion`. Keep easing soft (e.g. `cubic-bezier(0.22,1,0.36,1)`),
   durations 300–700ms.
 
 ### Opening sequence (`components/fx/Preloader.tsx`)
 Plays on **every full load** (client request — no sessionStorage gate; client-side route
-changes don't remount it). On `#111a24`: the gray mark → a raked band of white light sweeps
+changes don't remount it). On `#0c0a09`: the gray mark → a raked band of white light sweeps
 left→right leaving the mark **white** behind it → it resolves to **black with a thin white
 outline** → the panel lifts away and dispatches `mykt:ready`. ~2.14s.
 
@@ -220,7 +242,7 @@ Every state is the same wordmark mask in a different colour, so there is no font
 reflow. Two non-obvious rules, both learned the hard way here:
 1. **The choreography is CSS, not GSAP** (`.pl-*` in `globals.css`). GSAP can't start until React
    hydrates, which left a ~0.75s dead pause on the gray frame, and the sequence only got ~4fps
-   because hydration + the hero's WebGL boot + the showreel preload own the main thread. CSS
+   because hydration + the (v1) hero WebGL boot + the showreel preload owned the main thread. CSS
    starts at first paint (`.pl` is in the SSR HTML) and every keyframe animates **only
    `transform`/`opacity`**, so it composites and stays smooth regardless. Don't animate `width`
    here — the reveal is a wrapper/child counter-translate pair for exactly this reason.
@@ -230,8 +252,6 @@ reflow. Two non-obvious rules, both learned the hard way here:
    **not** its `animationend` event — that event dispatches on the busy main thread and measured
    ~700ms late, holding `lenis-stopped` well after the panel had visually cleared.
    Read the animation off the element, not by keyframe name (a minifier may rename it).
-- `VideoReveal` defers its 80-frame preload until `mykt:ready` (with a 4s backstop) so those
-  requests stop competing with the sequence.
 - `fx/ready.ts` (`markReady` / `isReady` / `whenReady`) is the source of truth for "the sequence
   is done" — `Preloader` calls `markReady()`. Use `whenReady()`, **not** a bare
   `addEventListener("mykt:ready")`: a component mounted *after* the event fired (client-side
@@ -243,66 +263,77 @@ reflow. Two non-obvious rules, both learned the hard way here:
 - **Motion engine: GSAP + ScrollTrigger** (scroll choreography) and **Lenis** (smooth scroll),
   synced via the GSAP ticker. **Framer Motion** for component-level interaction
   (`Reveal`, nav, accordion, roster orb, magnetic `Button`).
-- **Three.js + @react-three/fiber + drei** — two scenes in `components/three/`:
-  `HeroScene` (constellation) and `GlyphScene` (per-service morphing glyphs). Gating util:
-  `lib/webgl.ts` (`wants3D()` = desktop + WebGL + no reduced-motion; CSS gradient fallback otherwise;
-  the WebGL probe runs **once**, is cached and its context released — it used to leak a context
-  per call; `observeVisible()` is the shared on-screen observer both scenes use to pause).
+- **No WebGL any more.** v2 removed both Three.js scenes (`HeroScene`, `GlyphScene`) and
+  uninstalled `three`, `@react-three/fiber` and `drei`. `lib/webgl.ts` keeps only
+  `observeVisible()`, the shared on-screen observer that pauses the hero reel and the services
+  keycap. (`components/three/` may linger as an empty folder on disk; git doesn't track it.)
 - **Geist** font (`geist` package: `GeistSans`, `GeistMono`)
 - **Supabase** (`@supabase/supabase-js` + `@supabase/ssr`) — auth + Postgres + Storage behind
   the `/admin` CMS. Entirely optional: with no env vars the site serves the static content.
 - Brand assets live in `public/` (logo, mockups, `work/` tiles).
 - Run: `npm run dev` → http://localhost:3000
 
-### Motion architecture (the "awwwards" layer)
-- `components/fx/`: `AmbientBackground` (**static** gray `radial-gradient` clouds + a depth veil
-  + the grain texture, all *behind* content — no `filter`, no animation, no cursor tracking; it is
+### Motion architecture
+- `components/fx/`: `AmbientBackground` (**static** monochrome `radial-gradient` clouds + a depth
+  veil + the grain texture, all *behind* content — no `filter`, no animation, no cursor tracking;
   drawn once and only composited), `SmoothScroll` (Lenis↔GSAP, `lerp: 0.12`, `autoRaf: false` so
   the GSAP ticker is the only loop driving it; `pauseSmoothScroll()`/`resumeSmoothScroll()` for
   overlays like the search palette),
-  `Preloader` (the opening sequence — see below — dispatches `mykt:ready`),
+  `Preloader` (the opening sequence — see above — dispatches `mykt:ready`),
   `ScrollFX` (global `[data-animate]` reveal via `ScrollTrigger.batch`; adds `reveal-ready`
   to `<html>` so content is never stuck hidden with JS off). `app/template.tsx` = per-route
   fade (opacity-only — a transform would break `position:fixed`/sticky descendants).
-- `components/hero/`: `Hero` — sticky stage inside a 175vh section. Kinetic line-mask
-  headline (one line outlined via `.text-stroke`, one gradient word), gated on `mykt:ready`;
-  a scrubbed ScrollTrigger pipes progress into `HeroScene` (satellites scatter, camera pulls
-  back) and lifts the copy away. Extras: rotating circular-text badge, live PHT clock
-  (`fx/LocalTime`), geo coordinates from `lib/site.ts`. Accent point-lights paint the
-  magenta→gold gradient onto near-white meshes (the "one gradient" rule, in 3D).
-- `components/landing/`: `TechMarquee` (speed reacts to scroll velocity; plays only while on
-  screen), `VideoReveal` (80-frame webp sequence in `public/brand/reel/` — pins + expands to
-  full-bleed while **scrubbing with scroll**; mobile = contained loop),
-  `ServicesGalaxy` (**follows the theme** — `bg-surface text-ink`, so it is light in light
-  mode and an elevated slate in dark; deliberately does NOT use `.band`, and therefore
-  carries no hardcoded `white/XX` alphas — use the neutral ramp inside it. Left panel
-  sticky with `GlyphScene` — IntersectionObserver
-  marks the row crossing mid-viewport "active", glyph + label crossfade; mobile stacks with
-  `Icon`s, which animate only on `.group` hover and rest fully drawn), `WorkGallery` (pinned horizontal scroll via `gsap.matchMedia`; each
-  plate is tinted with the project's own `dots` colors and layers 1–2 **browser-framed
-  screenshots contained at native aspect** — sources are only ~1536×743, so never
-  cover-crop/upscale them (that's what made them blurry once); parallax is translate-only
-  (`.work-shot-drift` + `data-depth`, sign flips direction) via `containerAnimation`; live
-  `01/05` counter + progress rail; mobile stacks, main shot only; `img2` in `lib/work.ts`
-  is the optional secondary shot), `ProcessDeck` (position-sticky card stack; GSAP scales covered cards back),
-  `BeliefScrub` (scrubbed per-word opacity; words default visible so no-JS still reads).
-- Inner pages: Services = `services/ServiceIndex` (framer-motion accordion, outlined
-  numerals) + `services/ServicesGlyph` (cycling `GlyphScene`); About = outline-type marquee
-  band + `about/TeamRoster` (cursor-following gradient monogram orb, rows recede on hover);
-  Location = giant `mailto:` typographic moment + live clock, hairline detail rows,
-  grayscale→color map hover.
-- **Projects** (`app/projects/`): index is **alternating editorial feature rows** (deliberately
-  not another card grid — it has to differ from both `WorkGallery` and the Services accordion);
+  `ScrollProgress` = a thin gold bar fixed at the top.
+- `components/hero/`: `Hero` — **one 100svh viewport** (the v1 175vh sticky runway and its
+  ScrollTrigger are gone). Line-mask headline "We build software / that feels *designed.*"
+  (`designed.` outlined via `.text-stroke`), gated on `whenReady()`; "See our work" (→ Work) +
+  "Start a project" (→ Contact); a **gold keycap** that is a link to Contact (the hero's one gold
+  moment); coordinates + "Dipolog City · live PHT clock" in the bottom bar. Behind the copy,
+  **`CurvedReel`** — a port of 21st.dev "Tilted Grid Hero" (ruixen.ui; the untouched source is
+  `docs/reference/tilted-grid-hero.tsx.txt`): one row of browser-framed screenshots streams round
+  the inside of a cylinder, **pure CSS 3D** (each tile cut into strips, one `rotateY` keyframe per
+  tile). Tuned `curve` 45 / `gap` 5 / `tileHeight` 25 — the reference defaults put too few,
+  too-large tiles on a tall hero, and at 1919px they swelled and overlapped. Images come from
+  `heroShots()` (`lib/hero-shots.ts`: interleaves projects, maps `/work/x.ext` →
+  `/work/hero/x.webp`, **skips `physiopano-app.webp`** whose 1.78 shape stretched in the strip);
+  the server page passes them as a prop. Screenshots are **never cropped or upscaled**.
+- `components/landing/`: `TechMarquee` (monochrome logos via `simple-icons`, hover = full ink;
+  speed reacts to scroll velocity; plays only while on screen), `Audiences` ("Who we build
+  for": three editorial columns — Local businesses / Teams abroad / Founders with an idea — each
+  ending "Usually starts as …" → `/services#engagements`; copy approved in
+  `docs/part-b-copy.md`), `ServicesGalaxy` (**follows the theme** — `bg-surface text-ink`; does
+  NOT use `.band`, so no hardcoded `white/XX` alphas inside. Desktop: a sticky **3×2 macropad**,
+  one onyx `KeySwitch` per service with its `Icon` as the **legend on the cap's top face**; the
+  row crossing mid-viewport (IntersectionObserver) presses its key (`pressed` → `.is-pressed`,
+  gold glow) and the previous one releases; keys are `<button>`s that scroll to their row. Rows
+  are title + one-line `blurb` only — full detail lives on Services — then "All services →".
+  Mobile: each row carries a 64px key), `ProcessDeck` (position-sticky card stack; GSAP scales
+  covered cards back), `BeliefScrub` (scrubbed per-word opacity; words default visible so no-JS
+  still reads).
+- Inner pages: Services = `services/ServiceIndex` (framer-motion accordion, outlined numerals)
+  + `services/ServicesGlyph` (one 250px onyx keycap that presses itself every 2.6 s and cycles its
+  legend through the six icons; paused off screen and under reduced motion) + engagement models
+  with a "Good for" line each (`#engagements`); About = values + `about/TeamRoster`
+  (cursor-following gold monogram orb, rows recede on hover) + "Where we work" (studio, hours with
+  live clock, languages English · Filipino · Bisaya); Contact = **form first** beside a sticky
+  column with the reply promise and "What happens next" (We read it → A short call → A written
+  proposal, price agreed after scoping), then hairline detail rows and a grayscale map.
+- **Projects / Work** (`app/[lang]/projects/`): index is **alternating editorial feature rows**
+  (deliberately not another card grid — it has to differ from the hero reel and the Services
+  accordion);
   `[slug]` detail = header + spec rail (`<dl>`) + highlights + stack chips, a large preview,
   **The story** (numbered Challenge / Approach / Outcome), a Results row, a client testimonial,
   a Screens grid (secondary shot + gallery; mobile shots in phone frames), and wrapping
   prev/next. **Every case-study section renders only when filled in** — the static
   `lib/work.ts` entries have none of them, by design (never invent client names, quotes or
-  metrics). The fields live on `projects` (`client`, `industry`, `timeline`, `services[]`,
+  metrics; the team's write-ups are requested in `docs/content-request.md`). The fields live on
+  `projects` (`client`, `industry`, `timeline`, `services[]`,
   `team[]`, `stack[]`, `challenge`, `approach`, `outcome`, `results` jsonb, `gallery` jsonb,
   `testimonial_*`), are edited in `components/admin/ProjectForm.tsx` +
   `ProjectCaseStudy.tsx` (repeating rows submit as parallel `getAll()` arrays), and are also fed
-  to the chatbot via `lib/chat-context.ts`. `components/projects/LivePreview` renders browser chrome around either
+  to the chatbot via `lib/chat-context.ts`. The per-project `dots` colours are **stored but no
+  longer rendered** (v2 shows neutral chrome). `components/projects/LivePreview` renders browser
+  chrome (a `.band`, so dark in both themes) around either
   a real **live `<iframe>`** (only when the project has a `liveUrl`) or the screenshot:
   IntersectionObserver-gated mount, rendered at 1440px then CSS-scaled via ResizeObserver so you
   see the *desktop* layout, pointer-events off until "Interact" is clicked (otherwise the iframe
@@ -320,20 +351,26 @@ reflow. Two non-obvious rules, both learned the hard way here:
   always trails the OS cursor by ≥1 frame and stutters whenever the main thread is busy, and its
   `mix-blend-mode: difference` re-blended everything beneath it every frame. That was the "I can
   feel it in my cursor" lag the client reported. Don't bring one back.
-- `fx/KeySwitch` — the site-wide mascot object (client request, ref. midu.design): two
-  client-supplied alpha-AVIF renders layered in CSS — `public/brand/keyswitch.avif`
-  (housing, stays neutral) under `public/brand/keycap.avif` (translucent resin cap).
-  **Hover only flares the under-cap glow — the cap does not move; the press (cap travels
-  down onto the housing) is reserved for `:active`**, so the click has its own payoff
+- **`fx/KeySwitch` — the brand's signature object; the client "really really" wants it kept
+  through every redesign.** Two client-supplied alpha-AVIF renders layered in CSS —
+  `public/brand/keyswitch.avif` (housing, stays neutral) under `public/brand/keycap.avif`
+  (translucent resin cap). Props: `size`, `tint` (`gold` | `onyx` | `ivory` — CSS filters on the
+  **cap image only**, so the under-cap glow stays gold), `legend` (a node printed on the cap's top
+  face, transformed into the render's perspective, with a face-coloured patch hiding the source
+  cap's embossed squiggle), `pressed` (adds `.is-pressed` = the `:active` travel).
+  **Hover only flares the glow — the cap does not move; the press is reserved for `:active`**
   (`.keyswitch` CSS in `globals.css`: fast press w/ overshoot, slow spring release;
-  reduced-motion = no travel, glow alone carries both states). A `tint` prop hue-rotates cap+glow together (red/gold/plum/rose/sky/mint) so
-  **each placement wears a different color**: hero=gold, ServicesGalaxy=plum,
-  WorkGallery=sky, ProcessDeck=rose, BeliefScrub=mint, Services page=rose, About=sky,
-  Location=plum, Footer=red. Decorative (`aria-hidden`).
+  reduced-motion = no travel, glow alone carries both states). A parent with class
+  **`.ks-trigger`** presses the key when *it* is pressed — that's how the hero and footer keys
+  (links to Contact) and the contact form's **keycap Send button** (gold, `pressed` while
+  sending, "↵ Press to send") work. Tints: hero / Send / careers = gold; white sections = onyx;
+  `.band`s (footer, BeliefScrub, ProcessDeck) = ivory. **At most one gold key per page.**
+  Every key has a job (`docs/content-plan.md` §5); purely decorative ones were removed.
+  Decorative keys are `aria-hidden`.
 - `.beam` utility (`globals.css`, via `@property --beam-angle`) draws an accent border-comet —
   used sparingly (the contact card). It **rests as a still arc and travels only on hover**: an
   animated conic gradient can't be composited, so a looping one repainted the card every frame.
-  One accent moment per view.
+- **All motion respects `prefers-reduced-motion`.**
 - **All motion respects `prefers-reduced-motion`.**
 
 ### Backend & production
@@ -717,8 +754,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
   placeholders, so `site.phone` is `""` and the address is just "Dipolog City, Zamboanga del
   Norte, Philippines"; `socials` is `[]` (they pointed at linkedin.com etc., not profiles).
   Every renderer treats them as optional: footer (shows "Send us a message" →
-  `/location#contact`), `/location` (the giant typographic moment becomes the city with a ↓ to
-  the form), JSON-LD (fields omitted, not emitted empty), the chat prompt (says outright there
+  `/contact#contact`), `/contact` (no email line; the form is the way in), JSON-LD (fields omitted, not emitted empty), the chat prompt (says outright there
   is no public email — otherwise the model guesses one), and every error string has a
   `…NoEmail` variant. Fill them in `lib/site.ts` (or Site settings, once the CMS is on) when
   real ones exist; nothing else needs to change.
@@ -779,12 +815,12 @@ reflow. Two non-obvious rules, both learned the hard way here:
   paths must go through `stripLocale`, or it hydrates differently.
 - **Nav fit is link-count dependent.** Hamburger below `lg` with the five core links; once any
   CMS section is published (6+ links) the inline row starts at **`xl`** with tighter padding; with
-  7+ links the desktop "Get in touch" button is dropped (it duplicates Location, which is in the
+  7+ links the desktop "Get in touch" button is dropped (it duplicates Contact, which is in the
   row; it stays in the mobile sheet). Measured 2026-10-02 with all three sections published: 8
-  links + search + EN/FIL + theme fit at 1280 px in both languages, hamburger at 1024. The bar is
-  capped at `max-w-6xl`, so wider screens add no room — re-check before adding a 9th item. The
-  switcher lives in the desktop bar, the mobile sheet and the footer — never the mobile top bar
-  (390 px overflow). Nav links also light up on detail pages (`/projects/x` → Projects).
+  links + search + the (since removed) EN/FIL switcher + theme fit at 1280 px in both languages, hamburger at 1024. The bar is
+  capped at `max-w-6xl`, so wider screens add no room — re-check before adding a 9th item. Never put
+  extra controls in the mobile top bar (390 px overflow). Nav links also light up on detail pages
+  (`/projects/x` → Work).
 
 ### Products / Careers / Blog — public pages
 - Each is **structurally distinct** from the rest of the site: Products = stacked enclosed "spec
@@ -857,7 +893,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
   without `NEXT_PUBLIC_SUPABASE_URL`.
 
 ### Tests (`npm test` — Vitest + PGlite)
-`tests/` — **38 suites, 886 tests** (2026-10-19). Philosophy (from the reference project): test
+`tests/` — **40 suites, 893 tests** (2026-11-04). Philosophy (from the reference project): test
 derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
 - **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
   (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,
@@ -895,59 +931,39 @@ the script installs it on demand with `--no-save`, so it never touches `package.
 Run: `npm run build && npx next start -p 3100 &` then `npm run verify`.
 
 ### Performance — what was actually heavy, and the trap in measuring it
-The landing page used to ship **7.99 MB / 210 requests**. Now: **0.81 MB / 43 requests** if the
-visitor doesn't scroll, **3.11 MB / 139** for a full scroll. Main-thread blocking on a normal
-desktop went from 13 long tasks (2288 ms) to 3 (417 ms); JS heap from 48–87 MB to 14–17 MB.
+⚠️ **The figures below were measured on v1** (WebGL hero + glyph scenes + an 80-frame showreel).
+v2 removed all three — the landing page has **no WebGL and no showreel**, and `three`,
+`@react-three/fiber` and `drei` are uninstalled — so it should be lighter, but it has **not been
+re-measured**. Re-run a GPU-enabled probe before quoting numbers.
+
+v1 history: the landing page went from **7.99 MB / 210 requests** to **0.81 MB / 43** without
+scrolling (**3.11 MB / 139** full scroll); long tasks 13 (2288 ms) → 3 (417 ms); JS heap
+48–87 MB → 14–17 MB. Most of that was the showreel frames and over-tessellated WebGL geometry,
+both now gone.
 
 - ⚠️ **Never benchmark this site in default headless Chromium.** It falls back to SwiftShader
-  (software rendering), which makes the blur/WebGL/canvas work look catastrophic — it reported
+  (software rendering), which makes blur/canvas/3D work look catastrophic — it reported
   ~250 ms median frames and 24 s of blocking, i.e. ~4 fps, none of it real. Launch with
   `chromium.launch({ args: ["--enable-gpu", "--ignore-gpu-blocklist"] })` and the same page is a
   flat **16.7 ms (60 fps)**. Frame rate was never the problem; **bytes and blocked interaction
   were**. Throttle CPU (`Emulation.setCPUThrottlingRate`, 4x) to model a real mid-range machine.
-- **The showreel was the bulk of it.** `public/brand/reel/` is now **80 frames at 1280×960**
-  (was 160 at 1600×1200): 7.07 MB → 2.14 MB. Frame *count* is a **memory** decision, not just
-  bandwidth — `VideoReveal` holds every frame as a decoded bitmap, so the old set had a ceiling of
-  160 × 1600 × 1200 × 4 B ≈ **1.14 GB** of bitmap vs ~0.37 GB now. Re-encode with
-  `node scripts/build-reel.mjs`, then update `FRAME_COUNT`/`FRAME_W`/`FRAME_H` to match.
-- **The preload is gated twice**: `mykt:ready` (don't starve the opening sequence) **and** an
-  IntersectionObserver (don't spend 2 MB on someone who never scrolls there). It loads every 4th
-  frame first so the scrub is usable at once, then backfills on `requestIdleCallback`; `draw()`
-  falls back to the nearest *arrived* frame, which is what makes the coarse pass look right.
-- ⚠️ **`rootMargin` on that observer must be in PIXELS.** `"150%"` = 1350 px, which already
-  overlaps the section at scroll 0 and silently defeated the gate (all 80 frames still loaded).
-  It's `"400px"`: measured, the section starts **805 px** below the fold at 1440×900. Note it is
-  only **130 px** down at 390×844 (mobile hero is 100svh, not 175vh), so **mobile still starts
-  immediately** — no percentage or pixel value satisfies both. The coarse-first pass is what
-  keeps that acceptable.
-- **Geometry was wildly over-tessellated.** `icosahedronGeometry(r, 64)` is **84,500 faces**, and
-  `MeshDistortMaterial` runs a vertex shader over all of them every frame. Both scenes had one:
-  hero core → detail 20 (8,820), Glyph blob → detail 16 (5,780). Torus/knot segment counts came
-  down similarly. Detail above ~20 is invisible under a smooth distort — don't raise it back.
-- **DPR is capped at `[1, 1.25]`** on both `<Canvas>`es, and drei `PerformanceMonitor` drops it
-  to 1 on sustained low fps (it's restarted on every resume so a pause doesn't read as a slow frame).
-- **`GlyphScene` mounts only when its section is near** (`show3d && near`). It's far below the
-  fold, and booting a second WebGL context + compiling shaders during the hydration burst was
-  contention for work nobody could see.
-- **Both canvases render only while on screen** — r3f `frameloop` flips to `"demand"` offscreen
-  (and the hero stays idle until `mykt:ready`, after one hidden frame to compile shaders). An r3f
-  canvas otherwise draws every frame forever once mounted.
+- **The hero reel** (`CurvedReel`) is CSS 3D: one `rotateY` keyframe per tile, so it composites.
+  Its images are ~1000px WebP derivatives in `public/work/hero/` (**~0.21 MB for all 11**, built by
+  `node scripts/build-hero-shots.mjs`; `tests/hero-shots.test.ts` fails if one is missing), fetched
+  only once `whenReady()` fires, and it pauses off screen via `observeVisible()`. Still to check
+  with a GPU probe: the layer count of ~160 strip `<img>`s.
 - **The 2026-10 lag pass** (client: "I can feel it in my cursor"). Removed every *constant* cost:
   the JS cursor + its `mix-blend-mode`, the ambient spotlight's forever-rAF, `filter: blur()` on
   animated full-viewport layers, the z-40 grain over everything, `backdrop-blur` on the fixed nav
-  (now `bg-paper/[0.93]`), looping repaint-only animations (`.beam`, SVG icon dashes), per-move
-  `getBoundingClientRect()` (magnetic button, roster orb, footer wordmark), and the 140px shadow
-  on the resizing `VideoReveal` frame. Measured on a real AMD iGPU, same probe before/after —
-  4x CPU: idle hero 27 → 64 fps, mouse-move input delay p95 54 → 19 ms, landing scroll 14 → 34
-  fps with long tasks 366 → 23; 1x: idle mid-page main-thread busy ~70% → ~26%, scroll jank
-  frames 14% → 1.5%. **Rule going forward: nothing may run every frame while the visitor is
-  doing nothing.** What's left during scroll is spread across layout/paint/commit with no single
-  hotspot (BeliefScrub per-word opacity and WorkGallery plates are the next candidates).
-- **Remaining lever**: time-to-interactive on the landing page is now *hydration*-bound, ~2.6 s
-  desktop / ~3.7 s at 4x CPU. A floor of ~2.14 s of that is the `Preloader`, which by client
-  request has **no sessionStorage gate** and so replays on every full load. Shortening it (or
-  gating repeat loads within a session) is the single biggest remaining win — but it's a client
-  decision, not a technical one.
+  (now `bg-paper/[0.93]`), looping repaint-only animations (`.beam`, SVG icon dashes), and
+  per-move `getBoundingClientRect()` (magnetic button, roster orb, footer wordmark). Measured on a
+  real AMD iGPU — 4x CPU: idle hero 27 → 64 fps, mouse-move input delay p95 54 → 19 ms, landing
+  scroll 14 → 34 fps. **Rule going forward: nothing may run every frame while the visitor is
+  doing nothing.** `BeliefScrub`'s per-word opacity is the next scroll-cost candidate.
+- **Remaining lever**: time-to-interactive is *hydration*-bound. A floor of ~2.14 s is the
+  `Preloader`, which by client request has **no sessionStorage gate** and replays on every full
+  load. Shortening it (or gating repeat loads within a session) is the biggest remaining win — but
+  it's a client decision, not a technical one.
 
 ### ⚠️ Stale `.next` cache (build/dev collision) — and how to sidestep it
 `next build` (production) and `next dev` write **different** client-reference/module
@@ -980,19 +996,23 @@ moving the repo outside OneDrive.
 
 ## Conventions
 - Mobile-first, fully responsive. Accessible (semantic HTML, focus states, alt text, contrast).
-- Reusable components: `Button`, `Section`, `Nav`, `Footer`, `ServiceCard`, `Reveal` (motion wrapper).
-- Footer is a **feature**, not a sigh-off: interactive giant wordmark
-  (`FooterWordmark` — the outlined `Logo` mask, ghosted, with the accent gradient inking in
-  under the cursor: a soft "hole" in an ink cover clipped to the letters, moved by `transform`
-  only and measured once per hover; `.fw` CSS; touch = quiet static fill; full-bleed — the mark
-  is vector), availability status + live PHT clock, social pill chips,
-  `fx/BackToTop` (uses `scrollToTop()` exported from `fx/SmoothScroll`), and a
-  `Developed by R Ally's Tech · for R Ally's Tech` credit line at the very bottom.
+- Reusable components: `Button`, `Section` (+ `SectionHeader`, `Eyebrow`), `Nav`, `Footer`,
+  `Reveal` (motion wrapper), `fx/KeySwitch`, `Icon`.
+- Footer is a **feature**, not a sign-off: an ivory keycap "Start a project" band (the **one**
+  closing call to action site-wide — pages no longer end in their own CTA row), interactive giant
+  wordmark (`FooterWordmark` — the outlined `Logo` mask, ghosted, with flat gold inking in under
+  the cursor: a soft "hole" in an ink cover clipped to the letters, moved by `transform` only and
+  measured once per hover; `.fw` CSS; touch = quiet static fill; full-bleed — the mark is vector),
+  availability status + live PHT clock, `fx/BackToTop` (uses `scrollToTop()` exported from
+  `fx/SmoothScroll`). The "Developed by…" credit line was removed (2026-11-04).
 - `text-accent`/`bg-accent` are Tailwind v4 `@utility`s (not plain classes) so
-  `hover:`/`group-hover:` variants work — keep it that way.
+  `hover:`/`group-hover:` variants work — keep it that way. Since v2 they mean **gold-ink text**
+  and **a flat gold fill**.
 - **Theme-safe styling**: reach for the semantic tokens (`bg-paper`, `bg-surface`, `text-ink`,
   `border-mist`, `text-slatey`). A literal `bg-white` / hex won't flip in dark mode. Inside a
-  `.band`, `white/N` alphas are fine. See **Dark mode** above.
+  `.band`, `white/N` alphas are fine. See **Dark mode** above. ⚠️ `ink-900` flips too (near-white
+  in dark mode) — something meant to be black in both themes needs `.band` (as `LivePreview`'s
+  frame does), not `bg-ink-900` alone.
 
 ## CMS upgrade — phased port of the "Portfolio Web v2" admin (in progress)
 Porting the admin/backend strengths of the client's personal-portfolio project

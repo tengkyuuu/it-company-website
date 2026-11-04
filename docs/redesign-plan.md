@@ -7,6 +7,13 @@ ships on its own branch and is verified (`npm test`, `next build` to `.next-veri
 Today's footprint: the accent gradient is used **~150 times across ~70 files**, there are
 **2** `MeshDistortMaterial` scenes and **19** keycap placements.
 
+> **Status (2026-11-04):** Phases 0–4 are built on `redesign-v2` — tokens, Geist-only type,
+> gold/onyx/ivory keycaps with legends, the curved-reel hero, the services macropad, no WebGL
+> (three/r3f/drei uninstalled), glows removed, icons/offline page/OG image recoloured. The
+> showreel and Selected Work were **removed** rather than restyled (content plan). Left: Phase 5
+> (full verify sweep in both themes, GPU perf probe, squint test). Unticked boxes below are the
+> original plan, kept for the record.
+
 ---
 
 ## Phase 0: Inputs and decisions (blocking)
