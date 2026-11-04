@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Hero from "@/components/hero/Hero";
+import { heroShots } from "@/lib/hero-shots";
 import Section, { SectionHeader, Eyebrow } from "@/components/Section";
 import TechMarquee from "@/components/landing/TechMarquee";
 import VideoReveal from "@/components/landing/VideoReveal";
@@ -30,8 +31,8 @@ export default async function Home({ params }: LangParams) {
 
   return (
     <>
-      {/* 3D constellation hero — scroll scatters the system */}
-      <Hero />
+      {/* hero — curved reel of our real project screenshots */}
+      <Hero shots={heroShots(projects)} />
 
       {/* Our stack */}
       <div className="border-y border-mist/60">

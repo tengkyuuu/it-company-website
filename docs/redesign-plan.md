@@ -42,7 +42,9 @@ The goal is to change values, not markup, so every page moves together and nothi
 - [ ] Check: a contrast pass on every token pair; grep for leftover hexes
       (`#9D5A8F`, `#B85C7A`, `#E0A23A`, `#111a24`, the v1 slate values).
 
-## Phase 2: Hero, the curved reel of our own work (DESIGN.md §6)
+## Phase 2: Hero, the curved reel of our own work (DESIGN.md §6) — ✅ built 2026-11-04
+
+Built: `scripts/build-hero-shots.mjs` (0.21 MB for all 11), `lib/hero-shots.ts`, `components/hero/CurvedReel.tsx`, new 100svh `Hero`, `HeroScene` deleted, `tests/hero-shots.test.ts`. Tuned `curve` 62 / `tileHeight` 25 (the reference defaults put too few, too-big tiles on a tall hero). Still to check: `VideoReveal` rootMargin, the mobile reel sitting close to the subline, and a GPU probe of layer cost.
 
 - [ ] `scripts/build-hero-shots.mjs`: write ~1000px-wide WebP (q≈72) copies of the nine
       `img`/`img2` screenshots to `public/work/hero/`. Add an integrity test (like the

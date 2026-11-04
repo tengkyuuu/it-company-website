@@ -1,49 +1,38 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 import Button from "@/components/Button";
 import { Eyebrow } from "@/components/Section";
 import LocalTime from "@/components/fx/LocalTime";
 import KeySwitch from "@/components/fx/KeySwitch";
 import { whenReady } from "@/components/fx/ready";
 import { useI18n } from "@/components/i18n/I18nProvider";
+import CurvedReel from "@/components/hero/CurvedReel";
+import type { HeroShot } from "@/lib/hero-shots";
 import { site } from "@/lib/site";
-import { observeVisible, wants3D } from "@/lib/webgl";
-
-const HeroScene = dynamic(() => import("@/components/three/HeroScene"), {
-  ssr: false,
-});
+import { observeVisible } from "@/lib/webgl";
 
 /**
- * Immersive hero: a 175vh runway with a sticky full-viewport stage.
- * Scroll progress is piped into the WebGL constellation (shapes scatter,
- * camera pulls back) while the headline lifts away at its own speed.
+ * v2 hero: one viewport. The headline sits over a curved reel of our real
+ * project screenshots (CurvedReel — pure CSS 3D, no WebGL); the gold keycap is
+ * the hero's one gold moment. The reel plays only while the hero is on screen and
+ * the opening sequence is done.
  */
-export default function Hero() {
+export default function Hero({ shots }: { shots: HeroShot[] }) {
   // headline + sub stay English in both locales (marketing copy, and the line
-  // mask is choreographed per line); eyebrow, CTAs and the cue are chrome
+  // mask is choreographed per line); eyebrow, CTAs are chrome
   const { t, href } = useI18n();
   const root = useRef<HTMLElement>(null);
-  const progress = useRef(0);
-  const [show3d, setShow3d] = useState(false);
-  // the scene only animates while the hero is on screen and the splash is gone
-  const [sceneActive, setSceneActive] = useState(false);
+  const [active, setActive] = useState(false);
 
-  useEffect(() => {
-    setShow3d(wants3D());
-  }, []);
-
+  // the reel animates only while on screen and once the splash is gone
   useEffect(() => {
     const el = root.current;
-    if (!show3d || !el) return;
+    if (!el) return;
     let visible = true;
     let ready = false;
-    const sync = () => setSceneActive(visible && ready);
-    // a little margin so it's already running again as the stage re-enters
+    const sync = () => setActive(visible && ready);
     const stopObserving = observeVisible(
       el,
       (v) => {
@@ -60,43 +49,12 @@ export default function Hero() {
       stopObserving();
       offReady();
     };
-  }, [show3d]);
-
-  // ---- scroll choreography (desktop only — mobile hero is one viewport tall)
-  useGSAP(
-    () => {
-      gsap.registerPlugin(ScrollTrigger);
-      const mm = gsap.matchMedia();
-      mm.add(
-        "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
-        () => {
-          const tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: root.current,
-              start: "top top",
-              end: "bottom bottom",
-              scrub: true,
-              onUpdate: (self) => {
-                progress.current = self.progress;
-              },
-            },
-            defaults: { ease: "none" },
-          });
-          tl.to(".hero-copy", { yPercent: -22, opacity: 0 }, 0)
-            .to(".hero-meta", { opacity: 0 }, 0)
-            .to(".hero-badge", { opacity: 0 }, 0)
-            .to(".hero-canvas", { opacity: 0.15 }, 0.2);
-        }
-      );
-    },
-    { scope: root }
-  );
+  }, []);
 
   // ---- first-load intro, gated on the preloader's "mykt:ready"
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const targets =
-      ".hero-eyebrow, .hero-line > span, .hero-sub, .hero-cta, .hero-cue, .hero-meta, .hero-badge";
+    const targets = ".hero-eyebrow, .hero-line > span, .hero-sub, .hero-cta, .hero-meta";
     let played = false;
     let play: () => void = () => {};
     let offReady: () => void = () => {};
@@ -111,22 +69,10 @@ export default function Hero() {
         played = true;
         const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
         tl.from(".hero-eyebrow", { opacity: 0, y: 16, duration: 0.6 })
-          .from(
-            ".hero-line > span",
-            { yPercent: 115, duration: 1, stagger: 0.12 },
-            "-=0.3"
-          )
+          .from(".hero-line > span", { yPercent: 115, duration: 1, stagger: 0.12 }, "-=0.3")
           .from(".hero-sub", { opacity: 0, y: 20, duration: 0.8 }, "-=0.6")
-          .from(
-            ".hero-cta",
-            { opacity: 0, y: 20, duration: 0.7, stagger: 0.08 },
-            "-=0.6"
-          )
-          .from(
-            ".hero-meta, .hero-badge, .hero-cue",
-            { opacity: 0, duration: 0.6 },
-            "-=0.4"
-          );
+          .from(".hero-cta", { opacity: 0, y: 20, duration: 0.7, stagger: 0.08 }, "-=0.6")
+          .from(".hero-meta", { opacity: 0, duration: 0.6 }, "-=0.4");
       };
 
       let hasPreloaded = false;
@@ -150,110 +96,63 @@ export default function Hero() {
   }, []);
 
   return (
-    <section ref={root} className="relative h-[100svh] md:h-[175vh]">
-      {/* sticky stage */}
-      <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden">
-        {/* visual layer */}
-        <div className="hero-canvas pointer-events-none absolute inset-0 -z-10">
-          {show3d ? (
-            <HeroScene progress={progress} active={sceneActive} />
-          ) : (
-            <div className="accent-glow absolute right-[-20%] top-[24%] h-[70vmin] w-[70vmin] rounded-full opacity-60" />
-          )}
-          {/* (no grain layer here any more: over a live WebGL canvas it was a
-              second full-viewport layer to composite on every frame) */}
+    <section
+      ref={root}
+      className="relative flex h-[100svh] min-h-[640px] flex-col overflow-hidden"
+    >
+      {/* the reel fills the stage behind the copy */}
+      <CurvedReel shots={shots} active={active} className="absolute inset-0" />
+
+      {/* headline */}
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 pt-28 md:pt-32">
+        <div className="hero-eyebrow">
+          <Eyebrow>{t("hero.eyebrow")}</Eyebrow>
         </div>
-
-        {/* copy */}
-        <div className="hero-copy mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-6 pt-24">
-          <div className="hero-eyebrow">
-            <Eyebrow>{t("hero.eyebrow")}</Eyebrow>
-          </div>
-
-          <h1 className="mt-6 font-display text-[clamp(3.1rem,9.5vw,8.75rem)] font-bold leading-[0.98] tracking-[-0.03em]">
-            <span className="hero-line block overflow-hidden">
-              <span className="block">We build</span>
-            </span>
-            <span className="hero-line block overflow-hidden">
-              <span className="text-stroke block">software that</span>
-            </span>
-            <span className="hero-line block overflow-hidden">
-              <span className="block">
-                feels <span className="text-accent">designed.</span>
-              </span>
-            </span>
-          </h1>
-
-          <div className="mt-9 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-            <p className="hero-sub max-w-md text-pretty text-lg leading-relaxed text-ink/60">
-              An IT studio crafting web, mobile, and cloud products — solid
-              engineering with the eye of a design house.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="hero-cta inline-block">
-                <Button href={href("/services")} arrow>
-                  {t("hero.primaryCta")}
-                </Button>
-              </span>
-              <span className="hero-cta inline-block">
-                <Button href={href("/about")} variant="outline">
-                  {t("hero.secondaryCta")}
-                </Button>
-              </span>
-              <span className="hero-cta hidden sm:inline-block">
-                <KeySwitch size={54} tint="gold" className="align-middle" />
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* rotating badge */}
-        <div className="hero-badge pointer-events-none absolute right-10 top-28 hidden lg:block">
-          <svg viewBox="0 0 120 120" className="badge-spin h-28 w-28" aria-hidden>
-            <defs>
-              <path
-                id="hero-circ"
-                d="M60,60 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"
-              />
-              <linearGradient id="hero-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#d4af37" />
-                <stop offset="50%" stopColor="#d4af37" />
-                <stop offset="100%" stopColor="#d4af37" />
-              </linearGradient>
-            </defs>
-            {/* no `uppercase` here — it would render the wordmark as R ALLY'S TECH */}
-            <text className="fill-slatey font-mono text-[9px] tracking-[0.32em]">
-              <textPath href="#hero-circ">
-                R Ally's Tech · software · design · innovation ·
-              </textPath>
-            </text>
-            {/* the logo's four-point spark, in the accent */}
-            <path
-              d="M60 50Q60.8 59 68.5 60Q60.8 61 60 70Q59.2 61 51.5 60Q59.2 59 60 50Z"
-              fill="url(#hero-grad)"
-            />
-          </svg>
-        </div>
-
-        {/* meta bar */}
-        <div className="hero-meta pointer-events-none absolute inset-x-0 bottom-0">
-          <div className="mx-auto flex max-w-7xl items-end justify-between px-6 pb-6 font-mono text-[10px] uppercase tracking-[0.25em] text-slatey">
-            <span className="hidden sm:block">
-              {site.geo.lat}° N — {site.geo.lng}° E
-            </span>
-            <span>
-              Dipolog City · <LocalTime />
-            </span>
-          </div>
-        </div>
-
-        {/* scroll cue */}
-        <div className="hero-cue absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex">
-          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-slatey">
-            {t("hero.scroll")}
+        <h1 className="mt-5 font-display text-[clamp(2.5rem,6.6vw,6rem)] font-medium leading-[1] tracking-[-0.045em]">
+          <span className="hero-line block overflow-hidden">
+            <span className="block">We build software</span>
           </span>
-          <span className="relative h-12 w-px overflow-hidden bg-mist">
-            <span className="absolute left-0 top-0 h-4 w-px animate-[scrollcue_1.8s_ease-in-out_infinite] bg-accent" />
+          <span className="hero-line block overflow-hidden">
+            <span className="block">
+              that feels <span className="text-stroke">designed.</span>
+            </span>
+          </span>
+        </h1>
+      </div>
+
+      {/* bottom: sub + CTAs + the gold keycap */}
+      <div className="relative z-10 mx-auto mt-auto w-full max-w-7xl px-6 pb-14 md:pb-16">
+        <div className="flex flex-col gap-7 md:flex-row md:items-end md:justify-between">
+          <p className="hero-sub max-w-md text-pretty text-lg leading-relaxed text-ink/60">
+            An IT studio crafting web, mobile, and cloud products — solid engineering
+            with the eye of a design house.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="hero-cta inline-block">
+              <Button href={href("/projects")} arrow>
+                {t("hero.primaryCta")}
+              </Button>
+            </span>
+            <span className="hero-cta inline-block">
+              <Button href={href("/about")} variant="outline">
+                {t("hero.secondaryCta")}
+              </Button>
+            </span>
+            <span className="hero-cta hidden sm:inline-block">
+              <KeySwitch size={58} tint="gold" className="align-middle" />
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* meta bar */}
+      <div className="hero-meta pointer-events-none absolute inset-x-0 bottom-0">
+        <div className="mx-auto flex max-w-7xl items-end justify-between px-6 pb-5 font-mono text-[10px] uppercase tracking-[0.25em] text-slatey">
+          <span className="hidden sm:block">
+            {site.geo.lat}° N — {site.geo.lng}° E
+          </span>
+          <span>
+            Dipolog City · <LocalTime />
           </span>
         </div>
       </div>
