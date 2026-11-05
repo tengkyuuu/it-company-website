@@ -46,8 +46,13 @@ something is published (`getPublishedSections()`); see "Products / Careers / Blo
 
 **HQ:** Dipolog City, Zamboanga del Norte (single source of truth: `lib/site.ts`).
 **Hero:** a curved reel of our own project screenshots (CSS 3D, no WebGL, no photo).
-**Real client projects** (FameCRM, PhysioPano, SHM, Rally's Equities, Coffee Shop) —
+**Real projects** (FameCRM, PhysioPano, SHM, Rally's Equities, Coffee Shop, and since 2026-11-05 six
+more from James's portfolio — Stormfresh, Flux, Aperture, Ulat, PAVEtrack, Rally's Transfers, whose
+write-ups keep their real credits: on team builds the copy says which part was ours) —
 screenshots in `public/work/` (+ hero derivatives in `public/work/hero/`), data in `lib/work.ts`.
+Production reads projects from Supabase, so new static entries appear there only after the admin's
+**Import** on `/admin/projects` (adds missing slugs, now including the case-study fields and gallery).
+Non-2:1 captures are listed in `SKIP` in `lib/hero-shots.ts` (they'd stretch in the reel).
 **Team (real, seven — `lib/team.ts` is the source):** Hasnain Fayyaz (Founder · Marketing), Sean
 Jacinto (Co-founder · AI Automation), Jhade Banquiao (Project Lead), James Calunsag (UI/UX), Haron
 Diniay (Backend), Ralph Andilab (Mobile), Rhett Manubag (Mobile / Web).

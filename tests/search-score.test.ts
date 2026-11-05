@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { projects as staticProjects } from "@/lib/work";
 import {
   clip,
   defaultResults,
@@ -237,7 +238,7 @@ describe("buildSearchIndex", () => {
       "/contact",
       // no /status: its reports live in the CMS database
     ]);
-    expect(byType("project").length).toBe(5);
+    expect(byType("project").length).toBe(staticProjects.length);
     expect(byType("service").length).toBe(6);
     expect(byType("team").length).toBeGreaterThan(0);
     // no database → no products, roles or posts (and no section pages for them)

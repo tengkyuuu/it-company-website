@@ -213,6 +213,11 @@ export async function moveProject(formData: FormData): Promise<ActionResult> {
  * already exists, and inserts with ON CONFLICT DO NOTHING, so pressing it twice
  * (or from two tabs at once) imports each project exactly once.
  */
+/** Drops undefined values, so an insert leaves those columns to their defaults. */
+function defined<T extends Record<string, unknown>>(o: T): Partial<T> {
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
+
 export async function importStaticProjects(): Promise<ActionResult> {
   await requireStaff();
   const supabase = await createClient();
@@ -243,6 +248,24 @@ export async function importStaticProjects(): Promise<ActionResult> {
       img2: p.img2 ?? null,
       published: true,
       sort_order: start + i,
+      // case-study fields travel too, but only when the static entry has them —
+      // an absent key keeps the column's own default
+      ...defined({
+        client: p.client,
+        industry: p.industry,
+        timeline: p.timeline,
+        services: p.services,
+        team: p.team,
+        stack: p.stack,
+        challenge: p.challenge,
+        approach: p.approach,
+        outcome: p.outcome,
+        results: p.results,
+        gallery: p.gallery,
+        testimonial_quote: p.testimonial?.quote,
+        testimonial_author: p.testimonial?.author,
+        testimonial_role: p.testimonial?.role,
+      }),
     }));
 
   if (rows.length === 0) {

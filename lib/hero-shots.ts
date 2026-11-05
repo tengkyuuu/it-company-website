@@ -3,7 +3,16 @@ import type { Project } from "@/lib/work";
 export type HeroShot = { src: string; alt: string };
 
 /** Captures whose shape is not the 2.07 browser window — stretched into a tile they distort. */
-const SKIP = new Set(["/work/physiopano-app.webp"]);
+const SKIP = new Set([
+  "/work/physiopano-app.webp",
+  // 1.6 and 1.78 captures (2026-11-05 portfolio additions): shown on Work, not in the reel
+  "/work/ulat-hub-map.webp",
+  "/work/ulat-hub-locked.webp",
+  "/work/pavetrack-dashboard.webp",
+  "/work/pavetrack-detection.webp",
+  "/work/rallys-transfers-dispatch.webp",
+  "/work/rallys-transfers-dashboard.webp",
+]);
 
 /**
  * A full-size work screenshot maps to its hero-sized derivative (see
