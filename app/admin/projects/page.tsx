@@ -29,6 +29,9 @@ export default async function AdminProjectsPage() {
 
   const projects = (data ?? []) as ProjectRow[];
   const published = projects.filter((p) => p.published).length;
+  // built-in projects added to lib/work.ts after the database was first filled
+  const haveSlugs = new Set(projects.map((p) => p.slug));
+  const missing = staticProjects.filter((p) => !haveSlugs.has(p.slug));
 
   return (
     <div className="space-y-6">
@@ -76,6 +79,25 @@ export default async function AdminProjectsPage() {
           </p>
           <div className="mt-5">
             <ImportStaticButton count={staticProjects.length} />
+          </div>
+        </Card>
+      )}
+
+      {!error && projects.length > 0 && missing.length > 0 && (
+        <Card>
+          <p className="text-sm leading-relaxed text-ink/65">
+            {missing.length === 1 ? "One project" : `${missing.length} projects`} in{" "}
+            <code className="font-mono text-[13px]">lib/work.ts</code>{" "}
+            {missing.length === 1 ? "isn’t" : "aren’t"} in the panel yet:{" "}
+            <span className="text-ink">{missing.map((m) => m.name).join(", ")}</span>. Importing
+            adds {missing.length === 1 ? "it" : "them"} as published, after your current
+            projects, and leaves those untouched.
+          </p>
+          <div className="mt-5">
+            <ImportStaticButton
+              count={missing.length}
+              label={`Import ${missing.length} new project${missing.length === 1 ? "" : "s"}`}
+            />
           </div>
         </Card>
       )}
