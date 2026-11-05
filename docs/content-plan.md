@@ -71,6 +71,19 @@ Legend: **KEEP** · **CHANGE** · **ADD** · **REMOVE** · ⏳ waits on material
 | 7 | Process deck (Discover → Design → Build → Grow) | **KEEP.** This is its only home. |
 | 8 | Belief band | **KEEP.** It's the last beat before the footer's call to action. |
 
+**Update 2026-11-05 — the nav moved into a burger, so Home now tastes every inner page.**
+Three sections were added after spykercars.com (see CLAUDE.md "Landing page rhythm"), each a
+one-line taste and a link, not a copy of the page it points to:
+
+| Section | Taste of | Notes |
+|---|---|---|
+| **The studio** (after the marquee) | About | Team count from the roster; positioning from PRODUCT.md. |
+| **Selected work** (after Services) | Work | Names + category only. Rule 5 above still holds: no screenshots on Home outside the reel. |
+| **Built in Dipolog** (after Process) | About "where we work" | Confirmed facts only: clients abroad, three languages, one-business-day reply. |
+
+The draft copy in all three needs the team's approval. The photos are temporary
+(`lib/photo-slots.ts`).
+
 ### Services: "Can you do what I need, how do you work, what will it cost me?"
 
 | # | Section | Decision |

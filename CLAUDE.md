@@ -48,8 +48,9 @@ something is published (`getPublishedSections()`); see "Products / Careers / Blo
 **Hero:** a curved reel of our own project screenshots (CSS 3D, no WebGL, no photo).
 **Real client projects** (FameCRM, PhysioPano, SHM, Rally's Equities, Coffee Shop) —
 screenshots in `public/work/` (+ hero derivatives in `public/work/hero/`), data in `lib/work.ts`.
-**Team (real):** Jhade Banquiao (Project Lead), James Calunsag (Frontend), Haron Diniay
-(Backend), Ralph Andilab (Mobile), Sean Jacinto (AI Automation), Hasnain Fayyaz (Marketing).
+**Team (real, seven — `lib/team.ts` is the source):** Hasnain Fayyaz (Founder · Marketing), Sean
+Jacinto (Co-founder · AI Automation), Jhade Banquiao (Project Lead), James Calunsag (UI/UX), Haron
+Diniay (Backend), Ralph Andilab (Mobile), Rhett Manubag (Mobile / Web).
 **Nav (2026-11-05, after spykercars.com):** burger (left) · the Ignition horizontal lockup
 (`components/Logo.tsx`) **centred**, 160px / 176px wide with its gold spark · theme toggle (right).
 Nothing else in the bar — no inline links, no "Get in touch", **no search button** (search is
@@ -59,10 +60,24 @@ links + a side column (studio, live PHT clock, "Within one business day", Start 
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
 **Hero** (`Hero` — 100svh, `CurvedReel` behind the headline, gold keycap) →
 **tech-stack marquee** (`TechMarquee`, velocity-reactive, monochrome logos via `simple-icons`) →
+**The studio** (`StudioIntro` — About's taste: asymmetric editorial spread, copy left, a tall
+photo right starting lower and a wide one under the copy, drifting at different speeds) →
 **Who we build for** (`Audiences` — three editorial columns) → **Services** (`ServicesGalaxy` —
 theme-following surface on `bg-surface`, one sticky featured key with six navigation targets) →
-**Process** (`ProcessDeck` — sticky stacked cards) → belief band (`BeliefScrub` —
-words ink in with scroll) → footer.
+**Selected work** (`WorkIndex` — Work's taste as a typographic index: name + category per row,
+each a link to its case study; **no screenshots**, they stay in the hero reel and on Work) →
+**Process** (`ProcessDeck` — sticky stacked cards) → **Built in Dipolog** (`DipologCollage` — a
+scattered photo collage around one centred message; near photos large and drifting further, far
+ones smaller and washed back; phones get photo · copy · three-up strip) → belief band
+(`BeliefScrub` — words ink in with scroll) → footer.
+The three photo sections (added 2026-11-05 after spykercars.com) exist because the nav is a
+burger now: Home gives every inner page a one-line taste and a link. **Their photos are
+TEMPORARY stand-ins** — grayscale stock (Unsplash licence via picsum.photos), local in
+`public/placeholder/`, no faces. Every slot is in `lib/photo-slots.ts` with the real photo it
+wants; swap by changing `src` and `temporary`. Don't ship the stand-ins to real visitors as if
+they were ours. Drift is `fx/Parallax` (scrubbed, translate-only, off on phones and with reduced
+motion). Headline counts ("Seven people", "Five platforms") come from the data via
+`lib/count-word.ts`, so they stay true when the roster or projects change.
 Removed: the testimonials carousel (famous design quotes, misleading as "client" quotes), the
 invented stats row, the showreel (`VideoReveal`) and the Selected Work gallery (`WorkGallery`).
 A **proof band** (permitted client names + one real quote) is planned, hidden until the material
@@ -930,7 +945,7 @@ reflow. Non-obvious rules, learned the hard way here:
   without `NEXT_PUBLIC_SUPABASE_URL`.
 
 ### Tests (`npm test` — Vitest + PGlite)
-`tests/` — **40 suites, 893 tests** (2026-11-04). Philosophy (from the reference project): test
+`tests/` — **41 suites, 905 tests** (2026-11-05). Philosophy (from the reference project): test
 derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
 - **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
   (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,

@@ -7,8 +7,11 @@ import ServicesGalaxy from "@/components/landing/ServicesGalaxy";
 import Audiences from "@/components/landing/Audiences";
 import ProcessDeck from "@/components/landing/ProcessDeck";
 import BeliefScrub from "@/components/landing/BeliefScrub";
+import StudioIntro from "@/components/landing/StudioIntro";
+import WorkIndex from "@/components/landing/WorkIndex";
+import DipologCollage from "@/components/landing/DipologCollage";
 import { Reveal } from "@/components/Reveal";
-import { getProjects, getServices } from "@/lib/cms";
+import { getProjects, getServices, getTeam } from "@/lib/cms";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { localeMetadata } from "@/lib/i18n/metadata";
 import { pageLocale, toLocale, type LangParams } from "@/lib/i18n/params";
@@ -26,7 +29,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
 export default async function Home({ params }: LangParams) {
   const lang = await pageLocale(params);
   const { t } = getDictionary(lang);
-  const [projects, services] = await Promise.all([getProjects(), getServices()]);
+  const [projects, services, team] = await Promise.all([getProjects(), getServices(), getTeam()]);
 
   return (
     <>
@@ -41,11 +44,17 @@ export default async function Home({ params }: LangParams) {
         <TechMarquee />
       </div>
 
+      {/* The studio — About's taste: editorial copy + two drifting photos */}
+      <StudioIntro lang={lang} teamSize={team.length} />
+
       {/* Who we build for — the three audiences, each pointed at an engagement model */}
       <Audiences lang={lang} />
 
       {/* Services — featured keycap + one line per service (detail lives on /services) */}
       <ServicesGalaxy services={services} />
+
+      {/* Selected work — Work's taste, as a typographic index (no screenshots) */}
+      <WorkIndex lang={lang} projects={projects} />
 
       {/* Process — sticky card deck */}
       <Section className="pt-24 md:pt-32">
@@ -56,6 +65,9 @@ export default async function Home({ params }: LangParams) {
         />
         <ProcessDeck />
       </Section>
+
+      {/* Built in Dipolog — where we work, as a scattered photo collage */}
+      <DipologCollage lang={lang} />
 
       {/* Belief band — words ink in as you scroll */}
       <Section className="pt-24 md:pt-32">

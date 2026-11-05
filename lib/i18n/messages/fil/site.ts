@@ -47,6 +47,13 @@ const site: DeepPartial<typeof en> = {
     audienceAbroad: "Mga team sa ibang bansa",
     audienceFounders: "Mga founder na may ideya",
     startsAs: "Kadalasang nagsisimula bilang",
+    studioEyebrow: "Ang studio",
+    studioLink: "Kilalanin ang team",
+    workEyebrow: "Mga piling gawa",
+    workLink: "Lahat ng gawa",
+    workOpen: "Buksan ang case study ng {name}",
+    dipologEyebrow: "Dipolog City · PHT",
+    dipologLink: "Tungkol sa studio",
   },
   about: {
     eyebrow: "Tungkol sa MykTech",

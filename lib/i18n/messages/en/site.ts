@@ -50,6 +50,14 @@ const site = {
     audienceAbroad: "Teams abroad",
     audienceFounders: "Founders with an idea",
     startsAs: "Usually starts as",
+    // "The studio" spread, "Selected work" index, "Built in Dipolog" collage
+    studioEyebrow: "The studio",
+    studioLink: "Meet the team",
+    workEyebrow: "Selected work",
+    workLink: "All work",
+    workOpen: "Open the {name} case study",
+    dipologEyebrow: "Dipolog City · PHT",
+    dipologLink: "About the studio",
   },
   about: {
     eyebrow: "About MykTech",

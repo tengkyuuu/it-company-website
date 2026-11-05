@@ -38,6 +38,11 @@ Is the live site public now? URL:
 - **Workspace / team together:** 1–3 photos for the About page. Landscape, at least
   2000px wide.
 - Black and white is fine, and the site will likely show them that way.
+- **Home page photo slots (9):** listed with what each should show in `lib/photo-slots.ts`
+  (`wanted`). Two for "The studio" (a teammate at work, close in; a desk / workspace detail)
+  and seven for "Built in Dipolog" (the boulevard / seafront, workspace, a planning session,
+  a call with a client abroad, a desk detail, Dipolog at dusk, a candid team moment). They
+  currently hold temporary stock stand-ins.
 
 ## 3. Client names and quotes (for the Home proof band)
 
