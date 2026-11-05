@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { projects as staticProjects } from "@/lib/work";
+import { staticProjectRows } from "./_lib/import-projects";
 import {
   NOTHING_CHANGED,
   dbFail,
@@ -213,11 +213,6 @@ export async function moveProject(formData: FormData): Promise<ActionResult> {
  * already exists, and inserts with ON CONFLICT DO NOTHING, so pressing it twice
  * (or from two tabs at once) imports each project exactly once.
  */
-/** Drops undefined values, so an insert leaves those columns to their defaults. */
-function defined<T extends Record<string, unknown>>(o: T): Partial<T> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>;
-}
-
 export async function importStaticProjects(): Promise<ActionResult> {
   await requireStaff();
   const supabase = await createClient();
@@ -227,46 +222,8 @@ export async function importStaticProjects(): Promise<ActionResult> {
     .select("slug, sort_order");
   if (readError) return dbFail(readError);
 
-  const have = new Set((existing ?? []).map((r) => r.slug));
-  // append after whatever is already there instead of colliding with it
-  const start = (existing ?? []).reduce((m, r) => Math.max(m, (r.sort_order ?? 0) + 1), 0);
-  const rows = staticProjects
-    .filter((p) => !have.has(p.slug))
-    .map((p, i) => ({
-      slug: p.slug,
-      name: p.name,
-      category: p.category,
-      url: p.url,
-      live_url: p.liveUrl ?? null,
-      year: p.year,
-      summary: p.summary,
-      description: p.description,
-      highlights: p.highlights,
-      tags: p.tags,
-      dots: [...p.dots],
-      img: p.img,
-      img2: p.img2 ?? null,
-      published: true,
-      sort_order: start + i,
-      // case-study fields travel too, but only when the static entry has them —
-      // an absent key keeps the column's own default
-      ...defined({
-        client: p.client,
-        industry: p.industry,
-        timeline: p.timeline,
-        services: p.services,
-        team: p.team,
-        stack: p.stack,
-        challenge: p.challenge,
-        approach: p.approach,
-        outcome: p.outcome,
-        results: p.results,
-        gallery: p.gallery,
-        testimonial_quote: p.testimonial?.quote,
-        testimonial_author: p.testimonial?.author,
-        testimonial_role: p.testimonial?.role,
-      }),
-    }));
+  // every row carries every key — see staticProjectRows for why
+  const rows = staticProjectRows(existing ?? []);
 
   if (rows.length === 0) {
     return ok("All the built-in projects are already in the database — nothing to import.");
