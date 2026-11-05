@@ -42,7 +42,7 @@ export default function DocumentShell({
         <ThemeScript />
         <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FAFAF9" />
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0C0A09" />
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" href="/brand/myktech/app-icons/apple-touch-icon.png" />
         {head}
       </head>
       <body className="min-h-screen antialiased">

@@ -2,183 +2,88 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
-import Icon from "@/components/Icon";
-import KeySwitch from "@/components/fx/KeySwitch";
+import ServiceKeycap from "@/components/services/ServiceKeycap";
 import { useI18n } from "@/components/i18n/I18nProvider";
 import type { Service } from "@/lib/services";
 
-/**
- * Desktop: a sticky panel holds a macropad — one keycap per service, its icon
- * printed on the cap. As the visitor scrolls the index on the right, the row
- * crossing mid-viewport "presses" its key (cap travels home, gold glow lights)
- * and the previous one releases. Keys are buttons that jump to their row.
- * Mobile: the index stacks, each row carrying its own small key.
- * All CSS — no WebGL on the landing page any more.
- *
- * Follows the theme rather than using `.band` — it sits on `bg-surface`, which
- * is white in light mode and an elevated slate in dark, so the section still
- * reads as its own movement either way. That means no hardcoded white/XX
- * alphas inside: everything goes through the neutral ramp.
- */
+/** One photographic key follows the reading position; mobile pairs keys with copy. */
 export default function ServicesGalaxy({ services }: { services: Service[] }) {
   const { t, href } = useI18n();
   const root = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
 
-  // the row crossing the vertical middle of the viewport is "active"
   useEffect(() => {
     const rows = root.current?.querySelectorAll<HTMLElement>("[data-service-row]");
     if (!rows?.length) return;
-    const io = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            setActive(Number((e.target as HTMLElement).dataset.serviceRow));
-          }
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(Number((entry.target as HTMLElement).dataset.serviceRow));
         }
       },
       { rootMargin: "-45% 0px -45% 0px" }
     );
-    rows.forEach((r) => io.observe(r));
-    return () => io.disconnect();
-  }, []);
+    rows.forEach((row) => observer.observe(row));
+    return () => observer.disconnect();
+  }, [services.length]);
 
-  const current = services[active];
+  const current = services[Math.min(active, services.length - 1)];
+  if (!current) return null;
+
+  function selectService(index: number) {
+    setActive(index);
+    root.current?.querySelector(`[data-service-row="${index}"]`)?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "center",
+    });
+  }
 
   return (
-    <section
-      ref={root}
-      className="relative bg-surface text-ink"
-      aria-label={t("galaxy.sectionLabel")}
-    >
+    <section ref={root} className="relative bg-surface py-20 text-ink md:py-28" aria-label={t("galaxy.sectionLabel")}>
       <div className="mx-auto max-w-7xl px-6">
+        <div className="mb-12 md:mb-16 md:grid md:grid-cols-2 md:items-end md:gap-16">
+          <h2 className="max-w-lg text-balance font-display text-4xl font-semibold tracking-tight md:text-5xl">
+            {t("galaxy.title")}
+          </h2>
+          <p className="mt-5 max-w-sm text-pretty leading-relaxed text-slatey md:mt-0">
+            Six core practices, one team. Most clients start with one and grow into the rest.
+          </p>
+        </div>
+
         <div className="md:grid md:grid-cols-[0.95fr_1.05fr] md:gap-16">
-          {/* sticky glyph panel (desktop) */}
           <div className="hidden md:block">
-            <div className="sticky top-0 flex h-screen flex-col justify-center">
-              <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-slatey">
-                <span className="h-px w-6 bg-accent" />
-                {t("galaxy.eyebrow")}
-              </span>
-
-              {/* the macropad: six keys, the active one held down */}
-              <div className="mt-6 grid grid-cols-3 justify-items-center gap-x-2 gap-y-4 px-4">
-                {services.map((s, i) => (
-                  <button
-                    key={s.slug}
-                    type="button"
-                    aria-label={s.title}
-                    aria-current={i === active}
-                    onClick={() =>
-                      root.current
-                        ?.querySelector(`[data-service-row="${i}"]`)
-                        ?.scrollIntoView({ behavior: "smooth", block: "center" })
-                    }
-                    className="rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold-ink)]"
-                  >
-                    <KeySwitch
-                      size={140}
-                      tint="onyx"
-                      pressed={i === active}
-                      legend={<Icon name={s.icon} className="h-full w-full" />}
-                    />
+            <div className="sticky top-28 flex flex-col items-center py-4">
+              <div className="relative w-full max-w-[min(356px,calc((100svh_-_280px)/1.18))]" data-featured-key={current.icon}>
+                <ServiceKeycap icon={current.icon} />
+              </div>
+              <p className="mt-5 text-center font-display text-2xl font-semibold tracking-tight">{current.title}</p>
+              <div className="mt-5 flex gap-1" role="group" aria-label={t("galaxy.sectionLabel")}>
+                {services.map((service, index) => (
+                  <button key={service.slug} type="button" aria-label={service.title}
+                    aria-current={index === active ? "true" : undefined}
+                    onClick={() => selectService(index)}
+                    className="group flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-gold-ink)]">
+                    <span aria-hidden className={`h-0.5 w-6 transition-colors group-hover:bg-ink motion-reduce:transition-none ${index === active ? "bg-[var(--color-gold-ink)]" : "bg-slatey"}`} />
                   </button>
-                ))}
-              </div>
-
-              {/* crossfading label */}
-              <div className="mt-6 min-h-28">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={current.slug}
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  >
-                    <p className="font-mono text-sm text-accent">
-                      {String(active + 1).padStart(2, "0")} / 06
-                    </p>
-                    <h3 className="mt-1 font-display text-4xl font-semibold tracking-tight">
-                      {current.title}
-                    </h3>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              {/* index dots */}
-              <div className="mt-6 flex items-center gap-2" aria-hidden>
-                {services.map((s, i) => (
-                  <span
-                    key={s.slug}
-                    className={`h-1 rounded-full transition-all duration-500 ${
-                      i === active ? "w-8 bg-accent" : "w-3 bg-mist"
-                    }`}
-                  />
                 ))}
               </div>
             </div>
           </div>
 
-          {/* scrolling index */}
-          <div className="py-20 md:py-0">
-            {/* intro row */}
-            <div className="flex flex-col justify-center md:min-h-[70vh] md:pt-24">
-              <span className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-slatey md:hidden">
-                <span className="h-px w-6 bg-accent" />
-                {t("galaxy.eyebrow")}
-              </span>
-              <h2 className="mt-5 max-w-lg text-balance font-display text-4xl font-semibold tracking-tight md:mt-0 md:text-5xl">
-                {t("galaxy.title")}
-              </h2>
-              <p className="mt-5 max-w-sm text-pretty leading-relaxed text-slatey">
-                Six core practices, one team. Most clients start with one and
-                grow into the rest.
-              </p>
-            </div>
-
-            {services.map((s, i) => (
-              <article
-                key={s.slug}
-                data-service-row={i}
-                className={`flex flex-col justify-center border-t border-mist py-12 transition-opacity duration-500 md:min-h-[46vh] md:py-0 ${
-                  i === active ? "md:opacity-100" : "md:opacity-35"
-                }`}
-              >
-                <div className="flex items-center gap-5">
-                  <span className="font-mono text-sm text-accent">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {/* the macropad is hidden on mobile: each row carries its own key */}
-                  <span className="md:hidden">
-                    <KeySwitch
-                      size={64}
-                      tint="onyx"
-                      pressed={i === active}
-                      legend={<Icon name={s.icon} className="h-full w-full" />}
-                    />
-                  </span>
+          <div>
+            {services.map((service, index) => (
+              <article key={service.slug} data-service-row={index} className="flex items-center gap-5 border-t border-mist py-8 md:min-h-[34vh] md:py-12">
+                <div className="w-24 shrink-0 md:hidden"><ServiceKeycap icon={service.icon} /></div>
+                <div>
+                  <h3 className="font-display text-2xl font-semibold tracking-tight md:text-4xl">{service.title}</h3>
+                  <p className="mt-3 max-w-md text-pretty leading-relaxed text-slatey md:text-lg">{service.blurb}</p>
                 </div>
-                <h3 className="mt-4 font-display text-3xl font-semibold tracking-tight md:text-4xl">
-                  {s.title}
-                </h3>
-                <p className="mt-3 max-w-md text-pretty text-lg leading-relaxed text-slatey">
-                  {s.blurb}
-                </p>
               </article>
             ))}
-
-            {/* the full detail, deliverables and engagement models live on /services */}
-            <div className="border-t border-mist pb-8 pt-10 md:pb-[14vh]">
-              <Link
-                href={href("/services")}
-                className="group inline-flex items-center gap-2 text-lg font-medium text-ink"
-              >
-                <span className="underline decoration-mist underline-offset-[6px] transition-colors group-hover:decoration-ink">
-                  {t("galaxy.allServices")}
-                </span>
-                <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+            <div className="border-t border-mist pt-10">
+              <Link href={href("/services")} className="group inline-flex items-center gap-2 text-lg font-medium text-ink">
+                <span className="underline decoration-mist underline-offset-[6px] transition-colors group-hover:decoration-ink">{t("galaxy.allServices")}</span>
+                <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transform-none">→</span>
               </Link>
             </div>
           </div>

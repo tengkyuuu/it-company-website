@@ -1,0 +1,15 @@
+/* MykTech() Ignition identity v2.0 */
+:root {
+  --myktech-ink: #0C0A09;
+  --myktech-paper: #FAFAF9;
+  --myktech-surface: #FFFFFF;
+  --myktech-mist: #E7E5E4;
+  --myktech-muted: #78716C;
+  --myktech-gold: #D4AF37;
+  --myktech-gold-text: #8C6D1F;
+  --myktech-gold-press: #B8962E;
+  --myktech-font: 'Geist', sans-serif;
+  --myktech-mono: 'Geist Mono', monospace;
+  --myktech-space: 8px;
+  --myktech-logo-ratio: 561 / 112;
+}

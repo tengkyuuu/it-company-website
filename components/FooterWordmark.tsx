@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Logo from "@/components/Logo";
 
 /**
- * The giant footer MykTech — outlined by default; flat gold inks in
+ * The giant minimal MykTech() wordmark — outlined by default; white inks in
  * under a spotlight that follows the cursor (CSS lives in globals.css, `.fw`).
  * Touch devices get a quiet full-width fill instead. Decorative.
  *
@@ -58,12 +58,12 @@ export default function FooterWordmark() {
       className="fw mx-auto w-full"
     >
       <span className="fw-reveal">
-        <Logo className="fw-grad w-full" />
+        <Logo layout="wordmark" className="fw-grad w-full" />
         <span className="fw-cover">
           <span ref={hole} className="fw-hole" />
         </span>
       </span>
-      <Logo variant="outline" className="fw-ghost w-full" />
+      <Logo layout="wordmark" variant="outline" className="fw-ghost w-full" />
     </div>
   );
 }

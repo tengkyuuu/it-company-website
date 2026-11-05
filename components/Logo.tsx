@@ -1,39 +1,38 @@
-/**
- * The MykTech logo.
- *
- * The house lockup: an oversized serif M (Cinzel), a four-point spark, YK in
- * tracked serif caps, and TECH (Geist) between two hairline rules beneath. The
- * spark and the rules are
- * drawn shapes, not glyphs, so scripts/build-wordmark.mjs composes the whole
- * thing as OUTLINES once, at build time, into public/brand/wordmark.svg.
- *
- * It's painted as a CSS mask over `currentColor` rather than an <img>, so it
- * inherits the text colour and therefore follows light/dark and `.band` for
- * free. `variant="outline"` swaps in the ring asset, which sidesteps
- * drop-shadow (filters apply BEFORE masking, so a shadow would be clipped off).
- *
- * Sizing: the element carries the lockup's aspect ratio (~2.4:1), so set ONE
- * axis — `className="h-10"` or `className="w-full"` — and the other follows.
- * The M is the full height, so the name's caps are under half of it: below
- * ~36px tall the TECH line stops being legible. It's vector, so there is no
- * maximum size.
- *
- * To restyle the lockup, edit the constants in scripts/build-wordmark.mjs and
- * re-run it; then update `aspect-ratio` in globals.css to the printed ratio.
- */
+import type { CSSProperties } from "react";
+import { brandGeometry } from "@/lib/brand-geometry";
+
+/** Outlined MykTech() artwork, painted in currentColor for both themes.
+ * Set one dimension. Minimum width: horizontal 160px; wordmark 120px;
+ * stacked 160px; signature 320px; symbol 40px; micro 16px.
+ * Outline is decorative, horizontal/wordmark only, at least 600px wide.
+ * Source and full usage rules: public/brand/myktech/index.html. */
 export default function Logo({
   variant = "solid",
+  layout = "horizontal",
+  accent = false,
   label,
   className = "",
 }: {
   variant?: "solid" | "outline";
+  layout?: keyof typeof brandGeometry;
+  /** Gold spark on the solid emblem; use for primary identity placements. */
+  accent?: boolean;
   /** accessible name; omit when an ancestor link already provides one */
   label?: string;
   className?: string;
 }) {
+  const outline = variant === "outline" && (layout === "horizontal" || layout === "wordmark");
+  const style = {
+    "--wm-ratio": brandGeometry[layout],
+    "--wm-solid": `url("/brand/myktech/svg/myktech-${layout}-ink.svg")`,
+    "--wm-outline": `url("/brand/myktech/svg/myktech-${layout}-outline.svg")`,
+    "--wm-accent": `url("/brand/myktech/svg/myktech-${layout}-accent-mask.svg")`,
+  } as CSSProperties;
+  const goldSpark = accent && !outline && layout !== "wordmark" && layout !== "micro";
   return (
     <span
-      className={`${variant === "outline" ? "wm-outline" : "wm"} ${className}`}
+      className={`${outline ? "wm-outline" : "wm"}${goldSpark ? " wm-accent" : ""} ${className}`}
+      style={style}
       role={label ? "img" : undefined}
       aria-label={label || undefined}
       aria-hidden={label ? undefined : true}

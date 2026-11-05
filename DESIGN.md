@@ -1,4 +1,4 @@
-# MykTech — Design System v2 ("Monochrome + Gold")
+# MykTech() — Design System v2 ("Monochrome + Gold")
 
 > **Status: DRAFT, 2026-11-04.** This replaces the v1 look (slate neutrals and a
 > magenta→rose→gold gradient over gooey `MeshDistortMaterial` blobs). Nothing in code has
@@ -19,7 +19,9 @@ editorial type on white, solid black bands for weight, and gold only where somet
 The keycap is the one playful, tactile object, and it is the brand's signature.
 
 What we keep from v1, because it was never the problem:
-- The logo lockup (`components/Logo.tsx`). It is already monochrome and follows `currentColor`.
+- The logo's vector rendering through `components/Logo.tsx` and its theme-aware `currentColor`.
+  The approved **Ignition** identity update below replaces the earlier lockup while retaining
+  this rendering approach.
 - Real data only: no invented stats, testimonials or client names.
 - Editorial pacing: each landing section is structurally different from the next.
 - The motion rules: soft easing, nothing that runs every frame while the visitor is idle, and
@@ -90,7 +92,7 @@ the page (`#1C1917`), as it does today.
 2. Gold is **never** small text on white. Use `gold-ink` for that, sparingly.
 3. Gold is **flat**: no gradients, no metallic sheen, no glow halos. The only allowed
    exception is the keycap's under-glow (§5).
-4. Places gold may go: the hero keycap, the primary CTA's hover state, one emphasised word
+4. Places gold may go: the logo's small Ignition spark, the hero keycap, the primary CTA's hover state, one emphasised word
    per headline, active nav underline, focus rings, numerals in `ProcessDeck`, the hairline
    rule under a section eyebrow, and the PWA/favicon monogram.
 
@@ -107,11 +109,12 @@ us, so the site uses **Geist only**:
 - **Body / UI:** Geist Sans 400–500, line-height 1.6.
 - **Labels / eyebrows / numerals / code chips:** Geist Mono, small, uppercase, tracked +0.12em.
   This is the one "we build software" signal, and it is quiet.
-- **The serif lives only in the logo** (Cinzel, already outlined in the lockup). Keeping it out
+- **The serif lives only in the logo** (DM Serif Display Italic, outlined with adjusted spacing
+  and a clean native k terminal in the approved Ignition identity). Keeping it out
   of the page makes the mark the only classical element on screen, so it stands out. A second
   display face beside it would compete.
 
-Why not a serif accent or Cinzel eyebrows: tracked serif caps in gold on black reads as a law
+Why not a serif accent or serif eyebrows: tracked serif caps in gold on black reads as a law
 firm or a hotel. Paired with gold, a clean grotesk keeps it an IT company.
 
 Scale (desktop / mobile): display `clamp(3.5rem, 9vw, 9rem)`, h2 `clamp(2.25rem, 5vw, 4.5rem)`,
@@ -154,16 +157,26 @@ behaviour stay as they are. What changes is **colour**: the six hue-rotated resi
 - The source render is red resin. Onyx/ivory are made with CSS filters
   (`grayscale` + `brightness`/`contrast`). **If the filtered result looks dull, re-render the
   cap** as a neutral source rather than fighting filters. Verify visually before committing.
-- **Keycaps are the services visual (decided).** `ServicesGalaxy`'s sticky left panel drops
-  `GlyphScene` (the goo) for **one large keycap per service** (~220–280px), with the service's
-  `Icon` printed on the cap as its legend. As a service's row crosses mid-viewport, its key
-  **presses** (the same `:active` travel, triggered by a class) and its under-glow lights gold,
-  while the previous key releases. Six keys, one legend each. On mobile, each stacked row gets a
-  small key beside its title. All of this is CSS and needs no WebGL, so the second WebGL
-  context disappears from the landing page entirely.
-  - The legend has to sit on the cap's top face in the render's perspective (a `transform`
-    skew/scale measured against `keycap.avif`, the same way `.ks-capwrap`'s offsets were
-    measured). Prototype it in Phase 0 alongside the onyx/ivory filters.
+- **Keycaps are the services visual (updated 2026-11-05).** Six generated onyx PBT caps have
+  service icons physically integrated as champagne-gold inlays, following the top face's
+  perspective and curvature, corrected against the user's green keycap reference. The icon is
+  part of the cap image, not an HTML overlay. Six cap-only PNG masters and 1024 × 828 alpha
+  AVIF assets live in `public/brand/services/caps/`; final image-generation prompts are in
+  `public/brand/services/caps/prompts.json`. The **original separate `/brand/keyswitch.avif`
+  housing stays stationary** beneath the replacement cap. This service family uses the
+  incumbent palette and introduces no new tokens.
+  - `ServiceKeycap` is an accessible button wrapping `KeySwitch` with `capSrc` and `size="100%"`.
+    Click, touch and keyboard activation trigger a 180ms press pulse with the original CSS
+    press/glow treatment. Only the cap moves; reduced motion suppresses travel and keeps glow.
+  - Desktop `ServicesGalaxy` shows **one featured key** in a sticky panel, up to 356px wide
+    (about 420px tall), further clamped to the viewport. Its cap source swaps to the relevant
+    service as its row crosses mid-viewport, without a crossfade. Six 44px navigation targets
+    select a service and scroll to its row. Each mobile service row has a 96px key. Reduced
+    motion uses instant navigation scrolling.
+  - `ServicesGlyph` uses the same layered clickable assembly in the Services header, cycling through the six
+    inlaid symbols every 2.6 seconds while visible. Reduced motion rests on the first symbol.
+    These cap-only assets replace the prior overlay legends while retaining press/glow;
+    other keycap placements and the Ignition logo remain unchanged.
 
 ---
 
@@ -229,8 +242,8 @@ Copy stays real. The headline/subline are marketing copy, English in both locale
 - Swap colour-driven effects for **contrast-driven** ones: text inking from `mist` to `ink`
   (BeliefScrub already does this), black bands wiping in, hairline rules drawing on.
 - Gold should **arrive**, not loop. It fades or draws in once when its element enters view.
-- Preloader: same choreography on black. The final state stays monochrome. Decide in Phase 4
-  whether the light sweep goes gold.
+- Preloader: same choreography on black. The light sweep stays white; the final outlined
+  Ignition lockup resolves with its gold spark, using a solid fill below 600px artwork width.
 
 ---
 
@@ -238,17 +251,67 @@ Copy stays real. The headline/subline are marketing copy, English in both locale
 
 | Piece | v2 treatment |
 |-------|--------------|
-| `Nav` | white bar `bg-paper/[0.93]`, black logo, active link = gold underline |
+| `Nav` | white bar `bg-paper/[0.93]`, Ignition logo in ink with a gold spark (160px / 176px wide), active link = gold underline |
 | `Button` primary | black pill, white text → hover: gold fill, black text |
 | `Button` secondary | 1px `ink` outline pill → hover: black fill |
 | `TechMarquee` | monochrome logos at 50% → hover 100% ink. **No brand colours.** |
 | `VideoReveal` | black frame (already `.band`). Check the reel frames for purple. |
 | `Hero` | the curved screenshot reel (§6), replacing `HeroScene` |
-| `ServicesGalaxy` | white section, black type; one large keycap per service presses as its row activates (§5) |
+| `ServicesGalaxy` | theme-following surface; one sticky featured onyx key swaps with the active row, six navigation targets; 96px key per mobile row (§5) |
 | `WorkGallery` | black plates, no per-project tint, screenshots provide the colour |
 | `ProcessDeck` | white cards with black numerals; the last card black with a gold numeral |
 | `BeliefScrub` | black band, words ink from `#44403C` to white, one word gold |
-| `Footer` | black band, outlined wordmark; under the cursor it inks **white** (not gradient) |
+| `Footer` | black band, primary identity with gold spark; oversized minimal wordmark inks white under the cursor |
 | Inner pages | same tokens. Page headers lose their corner glows. |
 | Admin | follows tokens automatically. No bespoke work. |
-| Icons / OG / offline page | monogram gold on `#0C0A09` |
+| Icons / OG / offline page | approved Ignition family; complete emblem in warm white with a gold spark on ink, MT-only micro mark for tiny favicon sizes |
+
+### Logo identity — Ignition (approved 2026-11-04)
+
+This is an additive identity update to the incumbent monochrome and gold studio. It does not
+replace the website palette, Geist typography, keycap object or the historical draft record
+above. The user selected **"Ignition — keycap, M/T, gold spark"** after rejecting the simpler
+split-M proposal.
+
+The angled keycap connects the mark to the studio's tactile signature. Integrated M/T identifies
+MykTech(), and a four-point gold spark leaves the open corner: an idea becoming working software.
+Myk is the founder's name. The wordmark uses outlined **DM Serif Display Italic** with adjusted
+spacing and a clean native k terminal; parentheses remain part of the name. This expressive
+lettering belongs to the logo only. The website continues to use Geist Sans and Geist Mono.
+
+Use the supplied editable native SVG geometry rather than reconstructing the mark with text.
+The primary identity is ink with a gold spark; reversed is warm white with a gold spark. Ink,
+white and gold monochrome versions are supplied. `Logo` defaults to monochrome `currentColor`;
+its `accent` prop overlays the gold spark for primary identity placements in the header, footer
+identity and admin screens. The preloader resolves with the gold spark. The oversized footer
+uses the minimal wordmark in monochrome. Outlines are decorative horizontal/wordmark treatments
+at 600px or wider; footer and loading-screen artwork below that width use a solid fill.
+
+| Arrangement | Native canvas | Minimum screen width | Minimum print width |
+|-------------|---------------|----------------------|---------------------|
+| Horizontal (default) | 561 × 112 | 160px | 36mm |
+| Wordmark | 421 × 112 | 120px | 27mm |
+| Stacked | 453 × 332 | 160px | 36mm |
+| Signature | 561 × 148 | 320px | 72mm |
+| Complete symbol | 252 × 220 | 40px | 10mm |
+| MT-only micro | 252 × 220 | 16px | 5mm |
+
+Minimum widths measure the supplied canvas. Use the complete emblem at 40px and above;
+at 16–39px use the optical MT-only micro mark, omitting the keycap and spark. Clear space on
+every side is **one eighth of the complete emblem's visible width, including the spark**.
+Canvas padding is safety padding, not the full clear space. Preserve proportions, the original
+keycap angle, lettering, parentheses and supplied spacing. Do not add gradients, shadows or
+individual letter recoloring.
+
+`public/brand/myktech/index.html` is the offline usage guide; `tokens.json` supplies the identity
+tokens and `manifest.json` inventories **35 production SVGs and 33 PNGs** (six arrangements,
+two decorative outlines and three avatars). Six additional accent-mask SVGs are internal
+rendering assets. Local fonts and SIL Open Font Licenses are included in `fonts/`; the outlined
+logos have no runtime font dependency.
+
+Run `npm run build:brand` to regenerate the kit, geometry ratios, offline emblem, favicon and
+PWA icons. `scripts/build-brand.mjs` is the vector source; `scripts/build-icons.mjs` builds the
+application icons. The legacy `scripts/build-wordmark.mjs` delegates to the brand generator.
+`lib/brand-geometry.ts` is generated and keeps `Logo` arrangements proportional. The HTML guide,
+PDF and packaging are reviewed separately; the build command does not regenerate those review
+artifacts.

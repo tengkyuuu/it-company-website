@@ -31,13 +31,16 @@ export default function KeySwitch({
   size = 56,
   tint = "onyx",
   legend,
+  capSrc,
   pressed = false,
   className = "",
 }: {
-  size?: number;
+  size?: number | string;
   tint?: KeyTint;
   /** an icon printed on the cap's front face (e.g. a service `Icon`) */
   legend?: ReactNode;
+  /** A finished cap-only render; the original switch layer stays in place. */
+  capSrc?: string;
   /** hold the key down with the gold glow lit — same look as :active */
   pressed?: boolean;
   className?: string;
@@ -45,7 +48,7 @@ export default function KeySwitch({
   return (
     <span
       className={`keyswitch ks-${tint} ${pressed ? "is-pressed" : ""} ${className}`}
-      style={{ width: size, height: Math.round(size * 1.18) }}
+      style={{ width: size, height: typeof size === "number" ? Math.round(size * 1.18) : undefined, aspectRatio: "1 / 1.18" }}
       aria-hidden="true"
     >
       {/* housing */}
@@ -54,21 +57,21 @@ export default function KeySwitch({
         alt=""
         width={512}
         height={337}
-        sizes="96px"
+        sizes={typeof size === "number" ? `${size}px` : "(max-width: 767px) 96px, 420px"}
         className="ks-base"
       />
       {/* cap + its glow, tinted together so the glow matches the resin */}
       <span
         className="ks-capwrap"
-        style={{ "--ks-tint": TINTS[tint] } as CSSProperties}
+        style={{ "--ks-tint": capSrc ? "brightness(1)" : TINTS[tint] } as CSSProperties}
       >
         <span className="ks-glow" />
         <Image
-          src="/brand/keycap.avif"
+          src={capSrc ?? "/brand/keycap.avif"}
           alt=""
           width={512}
           height={414}
-          sizes="96px"
+          sizes={typeof size === "number" ? `${size}px` : "(max-width: 767px) 96px, 420px"}
           className="ks-capimg"
         />
         {legend ? <span className="ks-legend">{legend}</span> : null}

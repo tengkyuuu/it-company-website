@@ -23,7 +23,7 @@ export default function AuthCard({
     <div className="flex min-h-screen items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
         <Link href="/" className="inline-block">
-          <Logo label="MykTech — back to the site" className="h-11" />
+          <Logo accent label="MykTech() — back to the site" className="w-56" />
         </Link>
         {eyebrow && (
           <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.2em] text-slatey">

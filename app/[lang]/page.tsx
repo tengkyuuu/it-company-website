@@ -44,7 +44,7 @@ export default async function Home({ params }: LangParams) {
       {/* Who we build for — the three audiences, each pointed at an engagement model */}
       <Audiences lang={lang} />
 
-      {/* Services — keycap macropad + one line per service (detail lives on /services) */}
+      {/* Services — featured keycap + one line per service (detail lives on /services) */}
       <ServicesGalaxy services={services} />
 
       {/* Process — sticky card deck */}

@@ -4,6 +4,7 @@ import KeySwitch from "./fx/KeySwitch";
 import LocalTime from "./fx/LocalTime";
 import BackToTop from "./fx/BackToTop";
 import FooterWordmark from "./FooterWordmark";
+import Logo from "./Logo";
 import { Reveal } from "./Reveal";
 import { visibleNav } from "@/lib/site";
 import { getPublishedSections, getServices, getSiteContent } from "@/lib/cms";
@@ -61,6 +62,13 @@ export default async function Footer({ lang }: { lang: Locale }) {
         {/* Columns */}
         <div className="grid grid-cols-2 gap-10 py-14 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
+            <Link
+              href={localizePath(lang, "/")}
+              aria-label={t("nav.homeLabel")}
+              className="mb-6 inline-block rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-gold)]"
+            >
+              <Logo accent className="w-44" />
+            </Link>
             {/* long-form blurb: marketing copy, English in both locales */}
             <p className="max-w-xs text-sm leading-relaxed text-paper/60">
               {site.name} is an IT studio building web, mobile, and cloud
@@ -129,8 +137,7 @@ export default async function Footer({ lang }: { lang: Locale }) {
           </FooterCol>
         </div>
 
-        {/* Giant wordmark — inks in with the gradient under the cursor. The
-            bottom padding keeps the TECH line off the rule below it. */}
+        {/* Minimal wordmark, with the complete Ignition identity in the column above. */}
         <div className="pb-7 pt-6">
           <FooterWordmark />
         </div>

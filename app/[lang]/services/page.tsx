@@ -50,7 +50,7 @@ export default async function ServicesPage({ params }: LangParams) {
             }
             intro="Six core practices, one team. Mix and match — most clients start with one and grow into the rest."
           />
-          <div className="hidden h-72 w-72 md:block lg:h-80 lg:w-80" aria-hidden>
+          <div className="hidden h-72 w-72 md:block lg:h-80 lg:w-80">
             <ServicesGlyph icons={services.map((s) => s.icon)} />
           </div>
         </div>

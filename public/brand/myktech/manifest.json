@@ -1,0 +1,359 @@
+{
+  "brand": "MykTech()",
+  "version": "2.0",
+  "direction": "Ignition",
+  "date": "2026-11-04",
+  "ratio": 5.008928571428571,
+  "horizontal": {
+    "width": 561,
+    "height": 112
+  },
+  "exports": [
+    {
+      "name": "myktech-horizontal-primary",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-horizontal-reversed",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-horizontal-ink",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-horizontal-white",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-horizontal-gold",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-horizontal-outline",
+      "format": [
+        "svg"
+      ],
+      "width": 561,
+      "height": 112
+    },
+    {
+      "name": "myktech-wordmark-primary",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 421,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-wordmark-reversed",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 421,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-wordmark-ink",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 421,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-wordmark-white",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 421,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-wordmark-gold",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 421,
+      "height": 112,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-wordmark-outline",
+      "format": [
+        "svg"
+      ],
+      "width": 421,
+      "height": 112
+    },
+    {
+      "name": "myktech-stacked-primary",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 453,
+      "height": 332,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-stacked-reversed",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 453,
+      "height": 332,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-stacked-ink",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 453,
+      "height": 332,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-stacked-white",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 453,
+      "height": 332,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-stacked-gold",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 453,
+      "height": 332,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-signature-primary",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 148,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-signature-reversed",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 148,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-signature-ink",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 148,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-signature-white",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 148,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-signature-gold",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 561,
+      "height": 148,
+      "pngWidth": 2400
+    },
+    {
+      "name": "myktech-symbol-primary",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-symbol-reversed",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-symbol-ink",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-symbol-white",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-symbol-gold",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-micro-primary",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-micro-reversed",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-micro-ink",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-micro-white",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-micro-gold",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 252,
+      "height": 220,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-avatar-dark",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 512,
+      "height": 512,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-avatar-light",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 512,
+      "height": 512,
+      "pngWidth": 1024
+    },
+    {
+      "name": "myktech-avatar-gold",
+      "format": [
+        "svg",
+        "png"
+      ],
+      "width": 512,
+      "height": 512,
+      "pngWidth": 1024
+    }
+  ]
+}

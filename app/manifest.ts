@@ -15,8 +15,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "MykTech",
-    short_name: "MykTech",
+    name: "MykTech()",
+    short_name: "MykTech()",
     description:
       "MykTech is an IT studio in Dipolog City building web, mobile, and cloud products.",
     start_url: "/",
@@ -27,9 +27,9 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "en",
     categories: ["business", "productivity"],
     icons: [
-      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/brand/myktech/app-icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/brand/myktech/app-icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/brand/myktech/app-icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

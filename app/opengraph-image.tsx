@@ -11,15 +11,15 @@ const ACCENT = "#d4af37";
 
 // the lockup's own proportions (scripts/build-wordmark.mjs prints them)
 const MARK_W = 780;
-const MARK_H = Math.round((MARK_W * 1226) / 2958);
+const MARK_H = Math.round((MARK_W * 112) / 561);
 
 export default async function OpengraphImage() {
   // The real logo, not a typeset approximation: the generated silhouette,
   // re-inked for the dark ground. Read from disk — this route is prerendered
   // at build time, when there is no origin to fetch /brand/wordmark.svg from.
-  const svg = await readFile(join(process.cwd(), "public/brand/wordmark.svg"), "utf8");
+  const svg = await readFile(join(process.cwd(), "public/brand/myktech/svg/myktech-horizontal-reversed.svg"), "utf8");
   const mark = `data:image/svg+xml;base64,${Buffer.from(
-    svg.replace('fill="#000"', 'fill="#fafaf9"')
+    svg.replaceAll('fill="#000"', 'fill="#fafaf9"')
   ).toString("base64")}`;
 
   return new ImageResponse(

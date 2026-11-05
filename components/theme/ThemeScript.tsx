@@ -11,11 +11,14 @@ import { DISPLAY_SCRIPT } from "@/components/pwa/display-mode";
  * components/pwa/display-mode.ts). Separate try blocks: one failing must not
  * skip the other.
  *
+ * And stamps <html data-js>, so CSS can tell "JS will run" before it has — the
+ * opening sequence pre-hides the hero intro only then (see `.pl` in globals.css).
+ *
  * Inline on purpose — the CSP allows 'unsafe-inline' scripts precisely so this
  * can run without a nonce (lib/security-headers.mjs explains why).
  */
 export default function ThemeScript() {
-  const js = `(function(){try{var s=localStorage.getItem(${JSON.stringify(
+  const js = `(function(){document.documentElement.dataset.js="1";try{var s=localStorage.getItem(${JSON.stringify(
     THEME_KEY
   )});var d=s==="dark"||(s!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.dataset.theme=d?"dark":"light";}catch(e){document.documentElement.dataset.theme="light";}${DISPLAY_SCRIPT}})();`;
 

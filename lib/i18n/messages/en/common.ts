@@ -31,6 +31,10 @@ const common = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     cta: "Get in touch",
+    // the burger menu's side column
+    menuStudio: "Studio",
+    menuReply: "Replies",
+    menuReplyValue: "Within one business day",
   },
   theme: {
     toDark: "Switch to dark mode",

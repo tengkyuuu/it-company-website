@@ -69,11 +69,20 @@ export default function Hero({ shots }: { shots: HeroShot[] }) {
         if (played) return;
         played = true;
         const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
-        tl.from(".hero-eyebrow", { opacity: 0, y: 16, duration: 0.6 })
-          .from(".hero-line > span", { yPercent: 115, duration: 1, stagger: 0.12 }, "-=0.3")
-          .from(".hero-sub", { opacity: 0, y: 20, duration: 0.8 }, "-=0.6")
-          .from(".hero-cta", { opacity: 0, y: 20, duration: 0.7, stagger: 0.08 }, "-=0.6")
-          .from(".hero-meta", { opacity: 0, duration: 0.6 }, "-=0.4");
+        // fromTo, not from: during the opening sequence CSS pre-hides these
+        // (`.pl` in globals.css), and `from` would read that hidden state as
+        // its destination. Explicit end values make the CSS irrelevant.
+        const shown = { opacity: 1, y: 0 };
+        tl.fromTo(".hero-eyebrow", { opacity: 0, y: 16 }, { ...shown, duration: 0.6 })
+          .fromTo(
+            ".hero-line > span",
+            { yPercent: 115, y: 0 },
+            { yPercent: 0, y: 0, duration: 1, stagger: 0.12 },
+            "-=0.3"
+          )
+          .fromTo(".hero-sub", { opacity: 0, y: 20 }, { ...shown, duration: 0.8 }, "-=0.6")
+          .fromTo(".hero-cta", { opacity: 0, y: 20 }, { ...shown, duration: 0.7, stagger: 0.08 }, "-=0.6")
+          .fromTo(".hero-meta", { opacity: 0 }, { opacity: 1, duration: 0.6 }, "-=0.4");
       };
 
       let hasPreloaded = false;

@@ -337,10 +337,8 @@ body {
 /* ----------------------------------------------------------------------------
    The MykTech wordmark (components/Logo.tsx).
 
-   The house lockup — an oversized serif M, a four-point spark, YK in tracked
-   serif caps and TECH between two rules beneath. Part
-   type, part drawn shapes, so it can't be set in a web font — but it is a real
-   VECTOR, not a raster: scripts/build-wordmark.mjs outlines it at build time.
+   Ignition: the MT keycap, spark and outlined italic MykTech() lettering.
+   scripts/build-brand.mjs rebuilds the family and aspect ratios.
    Painted as a CSS *mask* over `currentColor` rather than an <img>, so it
    inherits the text colour and follows light/dark + `.band` with no extra work.
    `wordmark-outline.svg` is the same silhouette as a ring just outside the
@@ -355,7 +353,7 @@ body {
   .wm-outline {
     display: block;
     /* intrinsic ratio of the trimmed asset — set one axis, the other follows */
-    aspect-ratio: 2958 / 1226;
+    aspect-ratio: var(--wm-ratio, 561 / 112);
     background-color: currentColor;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
@@ -366,34 +364,110 @@ body {
   }
 }
 .wm {
-  -webkit-mask-image: url("/brand/wordmark.svg");
-  mask-image: url("/brand/wordmark.svg");
+  -webkit-mask-image: var(--wm-solid, url("/brand/myktech/svg/myktech-horizontal-ink.svg"));
+  mask-image: var(--wm-solid, url("/brand/myktech/svg/myktech-horizontal-ink.svg"));
 }
 .wm-outline {
-  -webkit-mask-image: url("/brand/wordmark-outline.svg");
-  mask-image: url("/brand/wordmark-outline.svg");
+  -webkit-mask-image: var(--wm-outline, url("/brand/myktech/svg/myktech-horizontal-outline.svg"));
+  mask-image: var(--wm-outline, url("/brand/myktech/svg/myktech-horizontal-outline.svg"));
+}
+.wm-accent {
+  position: relative;
+}
+.wm-accent::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-gold);
+  -webkit-mask: var(--wm-accent) center / contain no-repeat;
+  mask: var(--wm-accent) center / contain no-repeat;
 }
 
 /* ----------------------------------------------------------------------------
    Preloader — plays on every full load (components/fx/Preloader.tsx).
-   Gray mark → a raked band of white light sweeps left→right, leaving the mark
-   white behind it → resolves to black with a thin white outline. On #0c0a09.
+   Faint mark on the page colour → a gold band of light sweeps left→right,
+   inking the mark in → the gold spark resolves → the mark flies to the nav's
+   centre slot while the background fades and the hero comes in beneath.
+
+   Timeline (keep READY_MS / TOTAL_MS in Preloader.tsx in step):
+     0.20s–0.85s  sweep          0.85s–1.10s  spark resolves
+     1.15s–1.95s  flight + background fade   (READY at 1.15, TOTAL 1.95)
+
+   The landing spot is plain arithmetic on the Nav's own constants: centred,
+   --nav-h / 2 from the top, 160px wide (176px from md). The stage has a FIXED
+   width per breakpoint so the end scale is a known number — CSS can't divide
+   one length by another — and it scales DOWN to the nav size, never up, so the
+   mask is rasterised large and lands crisp.
 ---------------------------------------------------------------------------- */
+:root {
+  --nav-h: 72px;
+}
+@media (min-width: 768px) {
+  :root {
+    --nav-h: 80px;
+  }
+}
 .pl {
+  --pl-fly: cubic-bezier(0.65, 0, 0.35, 1);
   position: fixed;
   inset: 0;
   z-index: 100;
+  pointer-events: none;
+}
+/* the splash surface: the page colour, so the mark lands in the nav already
+   the colour it will be there, in either theme */
+.pl-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--color-paper);
+  pointer-events: auto;
+  /* the flight's own in-out easing: a fast-out fade would leave the mark
+     crossing the headline on an already-bare page */
+  animation: pl-fade 0.8s cubic-bezier(0.65, 0, 0.35, 1) 1.15s forwards;
+}
+@keyframes pl-fade {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.pl-travel {
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
-  padding: 1.5rem;
-  /* a fixed brand colour in both themes — this is a splash, not a surface */
-  background: #0c0a09;
+  animation: pl-rise 0.8s var(--pl-fly) 1.15s forwards;
+}
+@keyframes pl-rise {
+  /* % = of its own height, which is the viewport's: centre → nav centre line */
+  to {
+    transform: translateY(calc(-50% + var(--nav-h) / 2));
+  }
 }
 .pl-stage {
-  --pl-w: min(74vw, 720px);
+  --pl-w: 280px;
+  --pl-s: 0.571429; /* 160 / 280 */
   position: relative;
   width: var(--pl-w);
-  aspect-ratio: 2958 / 1226;
+  aspect-ratio: 561 / 112;
+  animation: pl-shrink 0.8s var(--pl-fly) 1.15s forwards;
+}
+@media (min-width: 640px) {
+  .pl-stage {
+    --pl-w: 440px;
+    --pl-s: 0.363636; /* 160 / 440 */
+  }
+}
+@media (min-width: 768px) {
+  .pl-stage {
+    --pl-w: 640px;
+    --pl-s: 0.275; /* 176 / 640 */
+  }
+}
+@keyframes pl-shrink {
+  to {
+    transform: scale(var(--pl-s));
+  }
 }
 .pl-layer {
   position: absolute;
@@ -401,23 +475,18 @@ body {
   width: 100%;
   height: 100%;
 }
-.pl-gray {
-  color: #78716c;
+.pl-faint,
+.pl-ink {
+  color: var(--color-ink);
 }
-.pl-white,
-.pl-ring {
-  color: #ffffff;
-}
-.pl-black {
-  color: #000000;
+.pl-faint {
+  opacity: 0.14;
 }
 
-/* The white state is revealed left→right by sliding the wrapper in while its
-   child slides the opposite way, so the mark stays put. Both are transforms —
-   the whole sequence therefore composites, which is the point: it has to stay
-   smooth while React hydrates and the hero's WebGL scene boots. Animating
-   `width` here instead cost ~4fps under that load. */
-.pl-white-wrap {
+/* The ink state is revealed left→right by sliding the wrapper in while its
+   child slides the opposite way, so the mark stays put. Both are transforms,
+   so the sequence composites — animating `width` here cost ~4fps under load. */
+.pl-ink-wrap {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -425,18 +494,13 @@ body {
   width: 100%;
   overflow: hidden;
   transform: translateX(-100%);
-  animation: pl-reveal 0.68s var(--ease-soft) 0.25s forwards;
+  animation: pl-reveal 0.65s var(--ease-soft) 0.2s forwards;
 }
-.pl-white-wrap .pl-layer {
+.pl-ink-wrap .pl-layer {
   transform: translateX(100%);
-  animation: pl-reveal-inner 0.68s var(--ease-soft) 0.25s forwards;
+  animation: pl-reveal 0.65s var(--ease-soft) 0.2s forwards;
 }
 @keyframes pl-reveal {
-  to {
-    transform: translateX(0);
-  }
-}
-@keyframes pl-reveal-inner {
   to {
     transform: translateX(0);
   }
@@ -448,8 +512,8 @@ body {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  -webkit-mask-image: url("/brand/wordmark.svg");
-  mask-image: url("/brand/wordmark.svg");
+  -webkit-mask-image: url("/brand/myktech/svg/myktech-horizontal-ink.svg");
+  mask-image: url("/brand/myktech/svg/myktech-horizontal-ink.svg");
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -465,19 +529,18 @@ body {
   width: 15%;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.45) 32%,
-    #ffffff 50%,
-    rgba(255, 255, 255, 0.45) 68%,
-    rgba(255, 255, 255, 0) 100%
+    transparent 0%,
+    color-mix(in srgb, var(--color-gold) 55%, transparent) 32%,
+    var(--color-gold) 50%,
+    color-mix(in srgb, var(--color-gold) 55%, transparent) 68%,
+    transparent 100%
   );
   filter: blur(5px);
   opacity: 0;
   transform: translateX(-120%) skewX(-14deg);
-  /* SAME duration/delay/easing as the reveal above — that's what keeps the light
-     sitting on the edge it is supposedly creating. Given a different easing the
-     reveal races ahead and the flash trails uselessly behind it. */
-  animation: pl-ray 0.68s var(--ease-soft) 0.25s forwards;
+  /* SAME duration/delay/easing as the reveal above — that keeps the light on
+     the edge it is supposedly creating. */
+  animation: pl-ray 0.65s var(--ease-soft) 0.2s forwards;
 }
 @keyframes pl-ray {
   0% {
@@ -496,13 +559,12 @@ body {
   }
 }
 
-/* resolved state: the ring sits beneath an opaque black fill, so only the ring
-   is left showing around the letters */
+/* resolved state: the nav's exact mark (ink + gold spark) */
 .pl-final {
   position: absolute;
   inset: 0;
   opacity: 0;
-  animation: pl-resolve 0.38s var(--ease-soft) 0.98s forwards;
+  animation: pl-resolve 0.25s var(--ease-soft) 0.85s forwards;
 }
 @keyframes pl-resolve {
   to {
@@ -510,23 +572,32 @@ body {
   }
 }
 
-/* …then the whole panel lifts away. This is the animation the component
-   listens for to know the sequence is over. */
-.pl {
-  animation: pl-out 0.58s cubic-bezier(0.76, 0, 0.24, 1) 1.56s forwards;
+/* While the splash is up, its copy of the logo stands in for the nav's — two
+   at once would show as a double image during the flight. And the hero's intro
+   targets start hidden, so nothing flashes in the moments between the
+   background fading and the Hero's GSAP intro taking over (it uses fromTo, so
+   these starting values don't matter to it). `data-js` is stamped by the head
+   script: with JS off nothing here applies except the logo swap, and the
+   splash then simply stays parked in the nav slot. */
+html:not([data-display="standalone"]):has(.pl) .nav-logo {
+  opacity: 0;
 }
-@keyframes pl-out {
-  to {
-    transform: translateY(-100%);
-  }
+html[data-js]:not([data-display="standalone"]):has(.pl)
+  :is(.hero-eyebrow, .hero-sub, .hero-cta, .hero-meta) {
+  opacity: 0;
+}
+html[data-js]:not([data-display="standalone"]):has(.pl) .hero-line > span {
+  transform: translateY(115%);
 }
 
 /* Reduced motion: the global rule collapses every duration to ~0, but not the
-   delays — zero those too so the panel doesn't just sit there. */
+   delays — zero those too so the mark goes straight to the nav. */
 @media (prefers-reduced-motion: reduce) {
-  .pl,
-  .pl-white-wrap,
-  .pl-white-wrap .pl-layer,
+  .pl-bg,
+  .pl-travel,
+  .pl-stage,
+  .pl-ink-wrap,
+  .pl-ink-wrap .pl-layer,
   .pl-ray-band,
   .pl-final {
     animation-delay: 0s !important;
@@ -542,7 +613,7 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   Footer wordmark — the outlined mark inks in with the accent gradient under a
+   Footer wordmark — the minimal lettering inks in with white under a
    cursor-following spotlight (components/FooterWordmark.tsx).
 
    How the spotlight stays cheap: the gradient-filled mark is static, and on top
@@ -555,6 +626,7 @@ body {
 ---------------------------------------------------------------------------- */
 .fw {
   position: relative;
+  container-type: inline-size;
 }
 /* the always-there outlined ghost — on top, so it reads over the cover too */
 .fw-ghost {
@@ -570,9 +642,9 @@ body {
 .fw:hover .fw-reveal {
   opacity: 1;
 }
-/* .wm paints currentColor; layer the accent gradient over it */
+/* Keep the decorative reveal white in both site themes. */
 .fw-grad {
-  background-image: var(--accent);
+  background-color: var(--color-paper);
 }
 /* Clipped to fill ∪ ring (two mask layers composite by union), so it overhangs
    the fill's anti-aliased edge and no gradient fringe leaks around the letters.
@@ -581,8 +653,8 @@ body {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  -webkit-mask-image: url("/brand/wordmark.svg"), url("/brand/wordmark-outline.svg");
-  mask-image: url("/brand/wordmark.svg"), url("/brand/wordmark-outline.svg");
+  -webkit-mask-image: url("/brand/myktech/svg/myktech-wordmark-ink.svg"), url("/brand/myktech/svg/myktech-wordmark-outline.svg");
+  mask-image: url("/brand/myktech/svg/myktech-wordmark-ink.svg"), url("/brand/myktech/svg/myktech-wordmark-outline.svg");
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
@@ -623,6 +695,18 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .fw-reveal {
     transition: none;
+  }
+}
+/* The brand's outline treatment is reserved for artwork at least 600px wide.
+   Query the artwork container so touch and narrow mouse layouts agree. */
+@container (max-width: 599px) {
+  .fw-ghost {
+    -webkit-mask-image: var(--wm-solid);
+    mask-image: var(--wm-solid);
+    color: rgba(250, 250, 249, 0.65);
+  }
+  .fw-reveal {
+    display: none;
   }
 }
 

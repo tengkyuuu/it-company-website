@@ -31,6 +31,9 @@ const common: DeepPartial<typeof en> = {
     openMenu: "Buksan ang menu",
     closeMenu: "Isara ang menu",
     cta: "Kausapin kami",
+    menuStudio: "Studio",
+    menuReply: "Sagot",
+    menuReplyValue: "Sa loob ng isang araw ng trabaho",
   },
   theme: {
     toDark: "Lumipat sa dark mode",

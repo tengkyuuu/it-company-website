@@ -27,7 +27,7 @@
  */
 "use strict";
 
-var VERSION = "2026-11-04.3";
+var VERSION = "2026-11-04.6";
 var PREFIX = "rat-";
 var SHELL_CACHE = PREFIX + "shell-" + VERSION;
 var STATIC_CACHE = PREFIX + "static-" + VERSION;
@@ -36,12 +36,15 @@ var NAV_TIMEOUT_MS = 6000;
 var OFFLINE_URL = "/offline.html";
 var SHELL = [
   OFFLINE_URL,
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/icons/maskable-512.png",
-  "/icons/apple-touch-icon.png",
-  "/brand/wordmark.svg",
-  "/brand/wordmark-outline.svg",
+  "/brand/myktech/app-icons/icon-192.png",
+  "/brand/myktech/app-icons/icon-512.png",
+  "/brand/myktech/app-icons/maskable-512.png",
+  "/brand/myktech/app-icons/apple-touch-icon.png",
+  "/brand/myktech/svg/myktech-horizontal-ink.svg",
+  "/brand/myktech/svg/myktech-horizontal-outline.svg",
+  "/brand/myktech/svg/myktech-horizontal-accent-mask.svg",
+  "/brand/myktech/svg/myktech-wordmark-ink.svg",
+  "/brand/myktech/svg/myktech-wordmark-outline.svg",
 ];
 
 self.addEventListener("install", function (event) {

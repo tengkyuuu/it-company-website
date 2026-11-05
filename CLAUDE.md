@@ -1,6 +1,6 @@
-# MykTech — Company Website
+# MykTech() — Company Website
 
-Marketing website for **MykTech**, an IT company. Prototype. Goal: a sleek,
+Marketing website for **MykTech()**, an IT company. Prototype. Goal: a sleek,
 modern, *graphic-designer-grade* site that tells customers who we are and what we build.
 Clean and human — **not** "techy" (avoid circuit boards, matrix code, neon-on-black clichés).
 The impression to leave: *we make software and we innovate, with taste.*
@@ -20,7 +20,7 @@ The impression to leave: *we make software and we innovate, with taste.*
 
 ## Pages
 Nav: `Home · Services · Work · About · Contact`.
-1. **Home** `/` — hero reel, tech marquee, who we build for, services macropad, process, belief.
+1. **Home** `/` — hero reel, tech marquee, who we build for, featured services keycap, process, belief.
 2. **Services** `/services` — the single home for service detail; engagement models
    (`#engagements`, each with a "Good for" line). FAQ waits on the team's answers.
 3. **Work** `/projects` (nav label "Work", URL unchanged) + `/projects/[slug]` case studies.
@@ -50,13 +50,17 @@ something is published (`getPublishedSections()`); see "Products / Careers / Blo
 screenshots in `public/work/` (+ hero derivatives in `public/work/hero/`), data in `lib/work.ts`.
 **Team (real):** Jhade Banquiao (Project Lead), James Calunsag (Frontend), Haron Diniay
 (Backend), Ralph Andilab (Mobile), Sean Jacinto (AI Automation), Hasnain Fayyaz (Marketing).
-**Nav:** the `M✦YK / TECH` lockup (`components/Logo.tsx`), top-left.
+**Nav (2026-11-05, after spykercars.com):** burger (left) · the Ignition horizontal lockup
+(`components/Logo.tsx`) **centred**, 160px / 176px wide with its gold spark · theme toggle (right).
+Nothing else in the bar — no inline links, no "Get in touch", **no search button** (search is
+⌘K / Ctrl K / `/` only). The burger drops a full-width paper panel from the top: big numbered
+links + a side column (studio, live PHT clock, "Within one business day", Start a project).
 
 ## Landing page rhythm (each section structurally distinct — avoid repeating the card grid)
 **Hero** (`Hero` — 100svh, `CurvedReel` behind the headline, gold keycap) →
 **tech-stack marquee** (`TechMarquee`, velocity-reactive, monochrome logos via `simple-icons`) →
 **Who we build for** (`Audiences` — three editorial columns) → **Services** (`ServicesGalaxy` —
-theme-following band on `bg-surface`, sticky keycap macropad, one key per service) →
+theme-following surface on `bg-surface`, one sticky featured key with six navigation targets) →
 **Process** (`ProcessDeck` — sticky stacked cards) → belief band (`BeliefScrub` —
 words ink in with scroll) → footer.
 Removed: the testimonials carousel (famous design quotes, misleading as "client" quotes), the
@@ -76,72 +80,88 @@ arrives. Global: `ScrollProgress` gold bar fixed at top.
 The visual system is **v2 "Monochrome + Gold"** (shipped on branch `redesign-v2`, 2026-11-04);
 `DESIGN.md` is the spec.
 
-### Logo — a generated vector lockup, used as a CSS mask
-**The brand is MykTech** (renamed back from "R Ally's Tech" on 2026-11-04, client request). The
-logo keeps the house style of the R Ally's lockup, re-lettered (client's pick): an **oversized
-serif `M`**, a **four-point spark**, **`YK`** in tracked serif caps sitting just above the M's
-baseline, and **`TECH`** in tracked sans caps between two hairline rules beneath — the rules run
-under the spark *and* `YK` (under `YK` alone they were hyphen-length stubs). It is **generated,
-not artwork** — `scripts/build-wordmark.mjs` fetches the fonts from Google Fonts (`M` + `YK` =
-Cinzel 500, `TECH` = Geist 500), converts the glyphs to **outlines**, draws the spark / rules as
-paths, and composes one SVG. History: ransom-note "mykTech()" (eleven typefaces) → R Ally's house
-lockup (2026-10-12, adapted from the sister brand "Rally's Tours & Transfers") → this.
+### Logo — Ignition, a generated vector family
+**The brand is MykTech()** in ordinary writing (capital M and T, no spaces inside the
+parentheses). Myk is the founder's name; do not invent an acronym or origin story. Approved
+2026-11-04: **"Ignition — keycap, M/T, gold spark"**. The angled keycap carries an integrated
+M/T, with a gold four-point spark at its open corner. The wordmark is outlined **DM Serif
+Display Italic**, with adjusted spacing and a clean native k terminal. The website remains
+Geist Sans / Geist Mono; the serif is logo artwork only.
 
-- **To restyle**: edit the constants at the top of `scripts/build-wordmark.mjs` (everything is a
-  fraction of the initial's cap height), re-run `node scripts/build-wordmark.mjs`, paste the
-  printed ratio into `aspect-ratio` in `globals.css` (it appears **twice** — `.wm/.wm-outline` and
-  `.pl-stage`; currently `2958 / 1226`, also hardcoded in `app/opengraph-image.tsx`), then run
-  `node scripts/build-icons.mjs`, re-paste the monogram path + viewBox into `public/offline.html`,
-  and bump `VERSION` in `public/sw.js`.
-  Needs `npm install --no-save opentype.js` (build-time only — deliberately not a dependency,
-  same reasoning as Playwright in `scripts/verify.mjs`).
-- **Monochrome on purpose.** The mark takes `currentColor` like everything else (ink in light,
-  near-white in dark); gold appears only on the monogram in the icons.
-- Traps in the generator, all hit while building it:
-  - **Don't use opentype.js `toPathData()`.** Its rounding goes through a string, so a
-    float-error coordinate like `1.1e-13` (ink landing exactly on x = 0) is written as the
-    literal text `NaN` and the renderer silently stops drawing there — the old R lost its stem
-    and every later glyph vanished. The script serialises commands itself (`toD`).
-  - **These fonts build glyphs from overlapping contours.** Filling is fine; **stroking draws
-    every internal seam**. So the outline asset is the stroke with the filled silhouette
-    **masked back out** — only the half outside the letters survives. Hand-drawn shapes that
-    overlap a glyph must share the font's **winding direction**, or nonzero fill cancels and
-    punches a notch through the letter.
-  - The spark hangs off the initial's ink box; only an `R` tucks it over its bowl. The optional
-    hairline flick (`HAIRLINE`, now 0) is positioned for Cinzel's **R** only.
-- **`components/Logo.tsx`** is the only way to render it. Generated assets, painted as
-  a **CSS `mask` over `currentColor`** (not `<img>`), so the mark inherits the text colour and
-  follows light/dark and `.band` for free:
-  - `public/brand/wordmark.svg` — the filled silhouette
-  - `public/brand/wordmark-outline.svg` — a ring just **outside** the same silhouette. Use
-    `variant="outline"`. This exists because CSS `drop-shadow` is applied
-    *before* masking, so a shadow-based outline on a masked element gets clipped straight off.
-  - `public/brand/monogram.svg` — just the M + spark, cropped tight. Not loaded by any
-    page: it is the source for `scripts/build-icons.mjs` (favicon `app/icon.png` + the PWA icons,
-    flat gold on `#0c0a09`) and for the inline mark in `public/offline.html`.
-  - Sizing: the element carries the lockup's aspect ratio (~2.4:1) — set **one** axis (`h-10`,
-    `w-full`). The M is the full height and the name's caps are under half of it, so **below
-    ~36px tall the TECH line is no longer legible**.
-  - Used in `Nav` (`h-10`), `FooterWordmark`, `Preloader`, the admin chrome (`h-9`) and auth
-    cards (`h-11`), and the social image (`app/opengraph-image.tsx` reads the SVG from disk and
-    re-inks it).
-- ✅ **It's vector, so there is no upscale limit** — `FooterWordmark` is full-bleed.
-- Changing the mask files in place means returning visitors' service worker would serve the old
-  ones from its shell cache — **bump `VERSION` in `public/sw.js`** whenever the logo changes.
-- **The name has no apostrophe or brackets any more**, so the old quoting traps are gone: plain
-  `'MykTech'` in SQL, any dotenv quoting, and `MykTech <…>` as an email `From` (the earlier
-  `mykTech()` had to be quoted there — `()` are RFC 5322 comment delimiters). ⚠️ Env vars set
-  **outside the repo** (Vercel's `CONTACT_FROM_EMAIL` / `ADMIN_FROM_EMAIL`) may still carry the
-  old display name — they override the code default.
-- ⚠️ Never place the wordmark inside an `uppercase` / `text-transform` context — bitten twice
-  already (Hero badge, Preloader label). The mask can't be transformed, which is another reason
-  to prefer `Logo` over set type.
-- `public/brand/logo.png` (the old "KT" shield), `mykTech().png`, `wordmark.png` and
-  `wordmark-outline.png` are **old-brand artwork, all unreferenced** — kept, not deleted.
-- Technical identifiers keep the `mykt` spelling — `mykt-website`, `mykt.studio`,
-  `mykt-theme`, `mykt-preloaded`, `mykt:ready`. Renaming them would break a storage key, the
-  preloader event, and the domain. Leave them alone.
-- **"Rally's Equities" is a client project, not the brand** — it keeps its name in `lib/work.ts`.
+- **Source and rebuild:** `npm run build:brand` runs `scripts/build-brand.mjs` then
+  `scripts/build-icons.mjs`. It regenerates SVGs, transparent PNGs, social cover, brand board,
+  `lib/brand-geometry.ts`, the inline offline emblem, favicon and PWA/Apple icons. The stable
+  legacy command `node scripts/build-wordmark.mjs` delegates to the brand generator. Fonts are
+  local, with SIL Open Font Licenses in `public/brand/myktech/fonts/`; no live font fetch is
+  needed. The HTML usage guide, PDF and packaging are reviewed separately.
+- **Use `components/Logo.tsx` to render the website identity.** It paints vector CSS masks in
+  `currentColor`, following light/dark and `.band`. Set one dimension; the generated
+  `brandGeometry` supplies the other. `accent` overlays a flat gold spark for primary identity
+  placements; it has no effect on wordmark, micro or outline layouts. Nav uses the accent;
+  primary header, footer identity and admin placements use the gold spark. The preloader
+  resolves with that spark; the oversized footer uses the minimal monochrome wordmark.
+- **Six layouts, native canvas / minimum screen width / minimum print width:** horizontal
+  `561 / 112`, 160px / 36mm; wordmark `421 / 112`, 120px / 27mm; stacked `453 / 332`,
+  160px / 36mm; signature `561 / 148`, 320px / 72mm; symbol `252 / 220`, 40px / 10mm;
+  micro `252 / 220`, 16px / 5mm. Screen widths include canvas padding. Nav is 160px / 176px
+  wide. Use the complete emblem at 40px and above and the MT-only micro at 16–39px; the micro
+  intentionally omits cap and spark.
+- **Space and treatment:** clear space on every side is one eighth of the complete emblem's
+  visible width, including the spark. Safety padding in the SVG is not the full clear space.
+  Preserve proportions, the original keycap angle and supplied spacing. Keep the parentheses.
+  Do not reconstruct the wordmark with live type or add gradients, shadows or letter-by-letter
+  recoloring. `variant="outline"` is decorative, horizontal/wordmark only, at least 600px wide.
+  Footer and preloader container queries switch smaller artwork to solid fills.
+- **Supplied tones:** primary ink + gold, reversed warm white + gold, and ink / white / gold
+  monochrome. Logo gold shares the existing restrained accent palette; it does not introduce
+  a new website color or type system.
+- **Assets:** `public/brand/myktech/index.html` is the offline guide; `tokens.json` and
+  `manifest.json` are identity values and inventory. The kit contains 35 production SVGs and
+  33 PNGs, plus six internal accent-mask SVGs. PNG lockups are 2400px wide; symbol, micro and
+  avatar PNGs are 1024px wide. Use the SVGs for unlimited scaling and editable native vectors.
+- **Site masks:** all placements load the explicit Ignition paths in
+  `public/brand/myktech/svg/`, avoiding stale artwork at legacy mask URLs. The preloader uses
+  horizontal masks; the oversized footer uses wordmark-only masks. `public/brand/wordmark.svg`,
+  `wordmark-outline.svg` and `wordmark-accent.svg` remain compatibility exports. `monogram.svg`
+  and `monogram-micro.svg` feed application icons. PWA and Apple icons use the explicit
+  `public/brand/myktech/app-icons/` paths. OG imagery reads the generated SVG from disk.
+- Changing mask files in place means returning visitors can receive cached artwork:
+  **bump `VERSION` in `public/sw.js` whenever the logo changes**.
+- **Written name versus technical values:** use MykTech() in ordinary body copy. Keep existing
+  SQL identifiers, dotenv values, storage/event keys and email-header display names intact.
+  Parentheses are RFC 5322 comment delimiters, so do not mechanically add them to email `From`
+  headers. Vercel's `CONTACT_FROM_EMAIL` / `ADMIN_FROM_EMAIL` can override code defaults.
+- Technical identifiers keep `mykt`: `mykt-website`, `mykt.studio`, `mykt-theme`,
+  `mykt-preloaded`, `mykt:ready`. Renaming them can break storage, events or domains.
+- **"Rally's Equities" is a client project, not the brand** — keep its name in `lib/work.ts`.
+
+**Historical logo record (superseded, retained for context):** ransom-note `mykTech()` with eleven
+typefaces → R Ally's house lockup (2026-10-12, adapted from "Rally's Tours & Transfers") →
+MykTech re-lettering (2026-11-04, client request). That former mark used an oversized Cinzel
+500 M, a four-point spark, tracked YK and Geist 500 TECH between hairline rules. The short-lived
+premium split-M proposal was rejected before Ignition was selected. Neither earlier design is
+an approved alternate.
+
+Former generator lessons: `opentype.js` `toPathData()` could emit `NaN` for near-zero coordinates
+such as `1.1e-13`; custom command serialization avoids it. Overlapping glyph contours can expose
+internal seams when stroked, and opposing winding directions can cancel fill. The old outline
+therefore masked out the filled silhouette; CSS drop shadows applied before a mask were clipped.
+The former spark tucked over an R bowl and `HAIRLINE` (then 0) was positioned for Cinzel R only.
+The old manual workflow pasted `2958 / 1226` into CSS / preloader / OG code and copied the offline
+path by hand; generated geometry and the brand build now replace those steps. Earlier live-type
+wordmarks were twice altered by uppercase contexts (hero badge and preloader); use the supplied
+artwork. `public/brand/logo.png` (old KT shield), `mykTech().png`, `wordmark.png` and
+`wordmark-outline.png` are unreferenced legacy artwork, retained rather than deleted.
+
+For the former lockup only: the generator fetched Cinzel / Geist from Google Fonts and needed
+`npm install --no-save opentype.js` as a build-time tool, deliberately outside the runtime
+dependencies like the verification script's Playwright. Its rules extended under the spark
+and YK together because under YK alone they looked like hyphen-length stubs. Its M occupied the
+full height while the name's capitals were under half-height, so TECH failed below roughly
+36px tall. Former placements were Nav `h-10`, admin chrome `h-9` and auth cards `h-11`;
+those measurements and its approximately 2.4:1 ratio are historical, not Ignition sizing rules.
+The earlier MykTech rename removed parentheses and the related quoting traps; Ignition
+restores them in ordinary writing, with the email-header distinction documented above.
 
 ### Colour palette (v2 "Monochrome + Gold", 2026-11-04 — full spec in `DESIGN.md`)
 Warm stone neutrals at roughly **white 70% / black 20% / gold 10%**.
@@ -231,12 +251,26 @@ alone, and not `dark:` variants sprinkled through the markup.
 
 ### Opening sequence (`components/fx/Preloader.tsx`)
 Plays on **every full load** (client request — no sessionStorage gate; client-side route
-changes don't remount it). On `#0c0a09`: the gray mark → a raked band of white light sweeps
-left→right leaving the mark **white** behind it → it resolves to **black with a thin white
-outline** → the panel lifts away and dispatches `mykt:ready`. ~2.14s.
+changes don't remount it). Redesigned 2026-11-05 after spykercars.com: on the **page colour**
+(follows the theme): a faint mark → a gold band of light sweeps left→right inking it in → the
+gold spark resolves (now identical to the nav logo) → at 1.15s the mark **shrinks and flies to the
+nav's centre slot** while the background fades and the hero intro plays beneath it → lands at
+1.95s and unmounts; the real nav logo (`.nav-logo`, hidden by `html:has(.pl)`) takes over.
+`mykt:ready` fires at the **start** of the flight (READY_MS), not the end (TOTAL_MS).
+
+- **The landing spot is CSS arithmetic on the Nav's constants** — `--nav-h` (72px / 80px from
+  md, defined next to `.pl-*`), logo 160px / 176px, centred by the bar's `1fr auto 1fr` grid. The
+  stage has a fixed width per breakpoint (280 / 440 / 640px) because CSS can't divide lengths, and
+  scales **down** (never up, so the mask lands crisp). Change any of those in `Nav.tsx` and update
+  `.pl-*` too. Measured landing error: < 0.05px at 390 and 1440. The bar's hairline is an inset
+  shadow, not a border, because a border ate 1px of `--nav-h`.
+- **The hero intro is pre-hidden by CSS while `.pl` exists** (`html[data-js]:has(.pl)`), so the
+  copy doesn't flash as the background fades before GSAP takes over; `Hero` therefore uses
+  `fromTo` (a `from` would read the hidden state as its destination). `data-js` is stamped by the
+  head script (`ThemeScript`) — with JS off the splash just stays parked in the nav slot.
 
 Every state is the same wordmark mask in a different colour, so there is no font swap and no
-reflow. Two non-obvious rules, both learned the hard way here:
+reflow. Non-obvious rules, learned the hard way here:
 1. **The choreography is CSS, not GSAP** (`.pl-*` in `globals.css`). GSAP can't start until React
    hydrates, which left a ~0.75s dead pause on the gray frame, and the sequence only got ~4fps
    because hydration + the (v1) hero WebGL boot + the showreel preload owned the main thread. CSS
@@ -245,7 +279,7 @@ reflow. Two non-obvious rules, both learned the hard way here:
    here — the reveal is a wrapper/child counter-translate pair for exactly this reason.
 2. **The reveal and the light share one delay/duration/easing.** Give them different easings and
    the eased reveal races ahead, leaving the flash trailing behind the edge it's meant to create.
-3. Handover is scheduled from the animation's own clock (`root.getAnimations()[0].currentTime`),
+3. Handover is scheduled from the animation's own clock (`.pl-bg`'s `getAnimations()[0].currentTime`),
    **not** its `animationend` event — that event dispatches on the busy main thread and measured
    ~700ms late, holding `lenis-stopped` well after the panel had visually cleared.
    Read the animation off the element, not by keyframe name (a minifier may rename it).
@@ -299,17 +333,24 @@ reflow. Two non-obvious rules, both learned the hard way here:
   for": three editorial columns — Local businesses / Teams abroad / Founders with an idea — each
   ending "Usually starts as …" → `/services#engagements`; copy approved in
   `docs/part-b-copy.md`), `ServicesGalaxy` (**follows the theme** — `bg-surface text-ink`; does
-  NOT use `.band`, so no hardcoded `white/XX` alphas inside. Desktop: a sticky **3×2 macropad**,
-  one onyx `KeySwitch` per service with its `Icon` as the **legend on the cap's top face**; the
-  row crossing mid-viewport (IntersectionObserver) presses its key (`pressed` → `.is-pressed`,
-  gold glow) and the previous one releases; keys are `<button>`s that scroll to their row. Rows
+  NOT use `.band`, so no hardcoded `white/XX` alphas inside. Desktop: **one sticky featured
+  keycap** up to 356px wide / about 420px tall, further viewport-clamped; IntersectionObserver
+  swaps the active cap source without a crossfade.
+  Six 44px navigation buttons select a service and scroll to its row. `services/ServiceKeycap`
+  is an accessible button wrapping `KeySwitch` with `capSrc` and `size="100%"`. Six generated
+  cap-only onyx PBT images carry integrated champagne-gold icons aligned to the top face using
+  the user's green keycap reference. PNG masters and 1024 × 828 alpha AVIFs live in
+  `public/brand/services/caps/`; final prompts are in `caps/prompts.json` there. The original
+  separate `/brand/keyswitch.avif` housing remains stationary. Click/touch/keyboard activation
+  gives a 180ms press pulse with the original CSS press/glow; only the cap moves. No new tokens. Rows
   are title + one-line `blurb` only — full detail lives on Services — then "All services →".
-  Mobile: each row carries a 64px key), `ProcessDeck` (position-sticky card stack; GSAP scales
+  Mobile: each row carries a 96px key; reduced motion suppresses cap travel, keeps glow and uses
+  instant navigation scrolling), `ProcessDeck` (position-sticky card stack; GSAP scales
   covered cards back), `BeliefScrub` (scrubbed per-word opacity; words default visible so no-JS
   still reads).
 - Inner pages: Services = `services/ServiceIndex` (framer-motion accordion, outlined numerals)
-  + `services/ServicesGlyph` (one 250px onyx keycap that presses itself every 2.6 s and cycles its
-  legend through the six icons; paused off screen and under reduced motion) + engagement models
+  + `services/ServicesGlyph` (the same layered clickable keycap cycles through the six inlaid
+  symbols every 2.6 s while visible; reduced motion rests on the first symbol) + engagement models
   with a "Good for" line each (`#engagements`); About = values + `about/TeamRoster`
   (cursor-following gold monogram orb, rows recede on hover) + "Where we work" (studio, hours with
   live clock, languages English · Filipino · Bisaya); Contact = **form first** beside a sticky
@@ -810,13 +851,11 @@ reflow. Two non-obvious rules, both learned the hard way here:
   raw keys like "nav.file" to production).
 - `usePathname()` is `/en/…` while prerendering and `/…` in the browser — anything comparing
   paths must go through `stripLocale`, or it hydrates differently.
-- **Nav fit is link-count dependent.** Hamburger below `lg` with the five core links; once any
-  CMS section is published (6+ links) the inline row starts at **`xl`** with tighter padding; with
-  7+ links the desktop "Get in touch" button is dropped (it duplicates Contact, which is in the
-  row; it stays in the mobile sheet). Measured 2026-10-02 with all three sections published: 8
-  links + search + the (since removed) EN/FIL switcher + theme fit at 1280 px in both languages, hamburger at 1024. The bar is
-  capped at `max-w-6xl`, so wider screens add no room — re-check before adding a 9th item. Never put
-  extra controls in the mobile top bar (390 px overflow). Nav links also light up on detail pages
+- **Nav**: every link lives in the burger menu (since 2026-11-05), so the old link-count /
+  breakpoint juggling is gone — Products / Careers / Blog just add rows. While open the menu is a
+  `role="dialog"`: page frozen (`pauseSmoothScroll` + overflow), `main`/`footer` made `inert`, focus
+  to the first link, Esc / scrim / route change close it and focus returns to the burger. Keep
+  the top bar to burger · logo · toggle (390 px). Nav links also light up on detail pages
   (`/projects/x` → Work).
 
 ### Products / Careers / Blog — public pages
@@ -871,7 +910,8 @@ reflow. Two non-obvious rules, both learned the hard way here:
 - **Palette**: always-loaded part is only `components/search/SearchLauncher.tsx` (key + event
   listeners); `SearchPalette.tsx` is a separate chunk loaded on first open, inert until
   `whenReady()`. ⌘K/Ctrl+K anywhere, `/` when not typing; `openSearch()`
-  (`components/search/open.ts`, a window event) for buttons. Index from `lib/search.ts`
+  (`components/search/open.ts`, a window event) for buttons — though since 2026-11-05 no
+  button calls it: search is a hidden, keyboard-only feature (client request). Index from `lib/search.ts`
   (`buildSearchIndex(lang)`, ~1.7 KB gzipped, a test fails over 10 KB — it rides in every page's
   RSC payload) built in the `[lang]` layout; scoring in `lib/search-score.ts` (all tokens must
   match; title prefix > word-start > substring > keywords > body; accent-insensitive). While open,
@@ -957,7 +997,7 @@ both now gone.
   real AMD iGPU — 4x CPU: idle hero 27 → 64 fps, mouse-move input delay p95 54 → 19 ms, landing
   scroll 14 → 34 fps. **Rule going forward: nothing may run every frame while the visitor is
   doing nothing.** `BeliefScrub`'s per-word opacity is the next scroll-cost candidate.
-- **Remaining lever**: time-to-interactive is *hydration*-bound. A floor of ~2.14 s is the
+- **Remaining lever**: time-to-interactive is *hydration*-bound. A floor of ~1.15 s (hero starts) / 1.95 s (scroll unlocks) is the
   `Preloader`, which by client request has **no sessionStorage gate** and replays on every full
   load. Shortening it (or gating repeat loads within a session) is the biggest remaining win — but
   it's a client decision, not a technical one.

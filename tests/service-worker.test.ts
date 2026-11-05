@@ -143,12 +143,15 @@ describe("install / activate / update", () => {
     const shell = [...w.stores.entries()].find(([name]) => name.startsWith("rat-shell-"))?.[1];
     expect([...(shell?.keys() ?? [])].map((u) => new URL(u).pathname).sort()).toEqual(
       [
-        "/brand/wordmark-outline.svg",
-        "/brand/wordmark.svg",
-        "/icons/apple-touch-icon.png",
-        "/icons/icon-192.png",
-        "/icons/icon-512.png",
-        "/icons/maskable-512.png",
+        "/brand/myktech/svg/myktech-horizontal-accent-mask.svg",
+        "/brand/myktech/svg/myktech-horizontal-ink.svg",
+        "/brand/myktech/svg/myktech-horizontal-outline.svg",
+        "/brand/myktech/svg/myktech-wordmark-ink.svg",
+        "/brand/myktech/svg/myktech-wordmark-outline.svg",
+        "/brand/myktech/app-icons/apple-touch-icon.png",
+        "/brand/myktech/app-icons/icon-192.png",
+        "/brand/myktech/app-icons/icon-512.png",
+        "/brand/myktech/app-icons/maskable-512.png",
         "/offline.html",
       ].sort()
     );
@@ -294,10 +297,10 @@ describe("shell assets — stale-while-revalidate", () => {
     const w = loadWorker(async () => okText(`<svg>${version}</svg>`, "image/svg+xml"));
     await w.lifecycle("install");
     version = "v2";
-    const r = w.dispatchFetch(req("/brand/wordmark.svg"));
+    const r = w.dispatchFetch(req("/brand/myktech/svg/myktech-horizontal-ink.svg"));
     expect(await (await r.responded!).text()).toBe("<svg>v1</svg>");
     await r.settled();
-    const again = w.dispatchFetch(req("/brand/wordmark.svg"));
+    const again = w.dispatchFetch(req("/brand/myktech/svg/myktech-horizontal-ink.svg"));
     expect(await (await again.responded!).text()).toBe("<svg>v2</svg>");
   });
 

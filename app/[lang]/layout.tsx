@@ -110,11 +110,17 @@ export default async function LangLayout({ children, params }: Props) {
         // the document so the opening sequence never starts empty. CSS masks are
         // CORS-mode fetches, so the preload must be too or it won't be reused.
         <>
-          <link rel="preload" as="image" href="/brand/wordmark.svg" crossOrigin="anonymous" />
+          <link rel="preload" as="image" href="/brand/myktech/svg/myktech-horizontal-ink.svg" crossOrigin="anonymous" />
           <link
             rel="preload"
             as="image"
-            href="/brand/wordmark-outline.svg"
+            href="/brand/myktech/svg/myktech-horizontal-outline.svg"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preload"
+            as="image"
+            href="/brand/myktech/svg/myktech-horizontal-accent-mask.svg"
             crossOrigin="anonymous"
           />
         </>
