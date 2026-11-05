@@ -644,6 +644,12 @@ reflow. Non-obvious rules, learned the hard way here:
     - Old `/admin/auth/verify` and `/admin/auth/set-password` are gone; "Forgot password?" is
       the way to change a password. Unknown `/admin/*` URLs hit `app/admin/[...missing]` so they
       404 inside the admin segment (see that file for why — React #418 otherwise).
+    - **Email look** (`lib/admin-email.ts`): an ink header carrying `public/brand/email/header.gif` — the
+      opening sequence as a GIF (`npm run build:email-art`; frame 0 is the finished lockup, which is all
+      classic Outlook shows; plays 3x and rests). CSS entrance animations are progressive (Apple Mail
+      only). **No email address appears in invite/reset copy** — not the sender's, not the recipient's;
+      they say "the MykTech team" (`tests/admin-email.test.ts`). The image loads from `site.url`, so it
+      shows only once deployed. Sender domain: `mail.jamescalunsag.online`, verified in Resend 2026-11-05.
     - ⚠️ **Resend sandbox**: with `onboarding@resend.dev` Resend delivers only to the Resend
       account owner. Anyone else's invite returns an error, so the UI **always** offers the link
       to copy. Verify a domain, then set `ADMIN_FROM_EMAIL` (double-quoted — the apostrophe).
@@ -945,7 +951,7 @@ reflow. Non-obvious rules, learned the hard way here:
   without `NEXT_PUBLIC_SUPABASE_URL`.
 
 ### Tests (`npm test` — Vitest + PGlite)
-`tests/` — **41 suites, 905 tests** (2026-11-05). Philosophy (from the reference project): test
+`tests/` — **42 suites, 908 tests** (2026-11-05). Philosophy (from the reference project): test
 derived logic and data integrity, not rendering — the valuable tests catch a *silent* failure.
 - **PGlite runs the real `supabase/schema.sql`** (Postgres in WASM) with Supabase stubs
   (`tests/helpers/db.ts`: roles incl. `service_role` with `bypassrls`, `auth.users`/`sessions`,

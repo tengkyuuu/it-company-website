@@ -79,7 +79,6 @@ type TeamProfile = Pick<ProfileRow, "id" | "email" | "full_name" | "role"> & {
 };
 
 const actorOf = (me: Me) => ({ id: me.id, name: me.full_name || me.email || "Owner" });
-const inviterName = (me: Me) => me.full_name || me.email || "The owner";
 
 function adminClient(): AdminClient | null {
   try {
@@ -141,7 +140,6 @@ async function deliverInvite(
   const sent = await sendInviteEmail({
     to: email,
     inviteeName: name,
-    inviterName: inviterName(ctx.me),
     link,
     expiresIn: ttlLabel(INVITE_TTL_HOURS),
   });
@@ -566,7 +564,7 @@ export async function sendMemberReset(formData: FormData): Promise<InviteOutcome
     name: target.full_name,
     link,
     expiresIn: expiry,
-    requestedBy: inviterName(me),
+    byOwner: true,
   });
   if (sent.ok) {
     return { ok: true, emailed: true, link, message: `Password reset link emailed to ${email}.` };

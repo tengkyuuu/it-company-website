@@ -120,15 +120,31 @@ export function tokenLink(origin: string, rawToken: string) {
 // ---------------------------------------------------------------------------
 
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+const MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
 
 /**
- * Table-based, inline-styled, light palette only (#FAFAF9 paper, #0C0A09 ink,
- * #78716C secondary) — mail clients ignore <style> and dark-mode hints too
- * unevenly to rely on. The button is solid ink, like the site primary button (gold stays
- * reserved for the site itself).
+ * The animated header (scripts/build-email-art.mjs): the site's opening
+ * sequence as a GIF — gold light sweeps the wordmark in, the spark resolves,
+ * sparks twinkle. A GIF because it is the one animation every client plays;
+ * frame 0 is the finished lockup, which is all classic Outlook shows. Always
+ * the canonical origin: a mail client can't fetch a localhost image anyway.
+ */
+const headerArt = () => `${siteOrigin()}/brand/email/header.gif`;
+
+/**
+ * Table-based and inline-styled — mail clients ignore most <style> and treat
+ * dark-mode hints unevenly. The header is a deliberate ink band (like the
+ * site's .band), so it reads the same in light and dark mail apps; the body is
+ * paper and ink with flat gold accents.
+ *
+ * The <style> block is progressive: Apple Mail / iOS Mail run the entrance
+ * animations and the button glint, clients that strip it (Gmail, Outlook) show
+ * the same content still, and reduced motion switches them off. Nothing starts
+ * hidden without it.
  */
 function layout({
   preheader,
+  eyebrow,
   heading,
   bodyHtml,
   cta,
@@ -136,6 +152,7 @@ function layout({
   footnote,
 }: {
   preheader: string;
+  eyebrow: string;
   heading: string;
   bodyHtml: string;
   cta: string;
@@ -143,6 +160,7 @@ function layout({
   footnote: string;
 }) {
   const href = esc(link);
+  const home = esc(siteOrigin());
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -151,6 +169,17 @@ function layout({
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
 <title>${esc(heading)}</title>
+<style>
+@keyframes mk-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes mk-draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes mk-glint{0%,60%{background-position:-160% 0}100%{background-position:260% 0}}
+.mk-rise{animation:mk-rise .8s cubic-bezier(.22,1,.36,1) both}
+.mk-d1{animation-delay:.25s}.mk-d2{animation-delay:.4s}.mk-d3{animation-delay:.55s}.mk-d4{animation-delay:.7s}
+.mk-rule{transform-origin:left;animation:mk-draw 1s cubic-bezier(.22,1,.36,1) .5s both}
+.mk-btn{background-image:linear-gradient(100deg,transparent 40%,rgba(212,175,55,.5) 50%,transparent 60%);background-size:200% 100%;background-repeat:no-repeat;animation:mk-glint 3.4s ease-in-out 1.4s infinite}
+@media (prefers-reduced-motion:reduce){.mk-rise,.mk-rule,.mk-btn{animation:none!important}}
+@media (max-width:480px){.mk-card{padding:30px 22px!important}.mk-h1{font-size:26px!important}}
+</style>
 </head>
 <body style="margin:0;padding:0;background:#FAFAF9;-webkit-text-size-adjust:100%">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#FAFAF9">${esc(preheader)}</div>
@@ -159,29 +188,36 @@ function layout({
     <td align="center" style="padding:40px 16px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
         <tr>
-          <td style="padding:0 4px 18px;font:700 15px/1.2 ${FONT};color:#0C0A09">
-            ${esc(site.name)}<span style="font-weight:400;color:#78716C">&nbsp;&nbsp;·&nbsp;&nbsp;Admin panel</span>
+          <td bgcolor="#0C0A09" style="background:#0C0A09;border-radius:16px 16px 0 0;line-height:0;font-size:0">
+            <a href="${home}" target="_blank" rel="noopener" style="display:block;text-decoration:none">
+              <img src="${esc(headerArt())}" width="560" height="200" alt="${esc(site.name)}" style="display:block;width:100%;max-width:560px;height:auto;border:0;border-radius:16px 16px 0 0;background:#0C0A09;color:#F5F5F4;font:700 22px/200px ${FONT};text-align:center">
+            </a>
           </td>
         </tr>
         <tr>
-          <td style="background:#FFFFFF;border:1px solid #E7E5E4;border-radius:20px;padding:36px 32px">
-            <h1 style="margin:0 0 14px;font:700 24px/1.3 ${FONT};letter-spacing:-0.01em;color:#0C0A09">${esc(heading)}</h1>
-            ${bodyHtml}
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:28px 0 8px">
+          <td class="mk-card" style="background:#FFFFFF;border:1px solid #E7E5E4;border-top:0;border-radius:0 0 16px 16px;padding:40px 36px 36px">
+            <p class="mk-rise" style="margin:0 0 14px;font:500 11px/1.4 ${MONO};letter-spacing:.22em;text-transform:uppercase;color:#8C6D1F">${esc(eyebrow)}</p>
+            <h1 class="mk-rise mk-d1 mk-h1" style="margin:0 0 18px;font:600 30px/1.12 ${FONT};letter-spacing:-0.035em;color:#0C0A09">${esc(heading)}</h1>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td class="mk-rule" width="56" height="2" bgcolor="#D4AF37" style="width:56px;height:2px;background:#D4AF37;font-size:0;line-height:0">&nbsp;</td></tr></table>
+            <div class="mk-rise mk-d2">${bodyHtml}</div>
+            <table role="presentation" class="mk-rise mk-d3" cellpadding="0" cellspacing="0" border="0" style="margin:30px 0 6px">
               <tr>
                 <td bgcolor="#0C0A09" style="border-radius:999px;background:#0C0A09">
-                  <a href="${href}" target="_blank" rel="noopener" style="display:inline-block;padding:14px 28px;border-radius:999px;font:600 15px/1 ${FONT};color:#FFFFFF;text-decoration:none">${esc(cta)}</a>
+                  <a class="mk-btn" href="${href}" target="_blank" rel="noopener" style="display:inline-block;padding:16px 30px;border-radius:999px;font:600 15px/1 ${FONT};color:#FFFFFF;text-decoration:none">${esc(cta)}&nbsp;&nbsp;<span style="color:#D4AF37">&rarr;</span></a>
                 </td>
               </tr>
             </table>
-            <p style="margin:20px 0 0;font:13px/1.6 ${FONT};color:#78716C">
+            <p class="mk-rise mk-d4" style="margin:24px 0 0;padding-top:20px;border-top:1px solid #E7E5E4;font:13px/1.6 ${FONT};color:#78716C">
               Button not working? Paste this link into your browser:<br>
               <a href="${href}" target="_blank" rel="noopener" style="color:#0C0A09;word-break:break-all">${href}</a>
             </p>
           </td>
         </tr>
         <tr>
-          <td style="padding:20px 4px 0;font:12px/1.6 ${FONT};color:#78716C">${footnote}</td>
+          <td style="padding:22px 6px 0;font:12px/1.6 ${FONT};color:#78716C">${footnote}</td>
+        </tr>
+        <tr>
+          <td style="padding:14px 6px 0;font:500 10px/1.4 ${MONO};letter-spacing:.2em;text-transform:uppercase;color:#A8A29E">${esc(site.name)}&nbsp;&nbsp;·&nbsp;&nbsp;Dipolog City, Philippines</td>
         </tr>
       </table>
     </td>
@@ -192,7 +228,8 @@ function layout({
 }
 
 const p = (html: string) =>
-  `<p style="margin:0 0 14px;font:15px/1.65 ${FONT};color:#0C0A09">${html}</p>`;
+  `<p style="margin:0 0 14px;font:15px/1.7 ${FONT};color:#44403C">${html}</p>`;
+const strong = (html: string) => `<strong style="color:#0C0A09">${html}</strong>`;
 
 async function send(message: {
   to: string;
@@ -234,42 +271,47 @@ async function send(message: {
 /** Every invite grants admin since Phase 1 (editor is retired; owner isn't invitable). */
 const ADMIN_BLURB = "you’ll be able to edit projects, services and the site’s content";
 
+/**
+ * No email addresses anywhere in these two emails — not the sender's, not the
+ * recipient's. They speak for the studio ("the MykTech() team"), and a
+ * forwarded email shouldn't carry anyone's address.
+ */
 export async function sendInviteEmail(args: {
   to: string;
   inviteeName: string | null;
-  inviterName: string;
   link: string;
   /** e.g. "7 days" — from ttlLabel(), so the copy matches the real expiry */
   expiresIn: string;
 }): Promise<SendResult> {
-  const { to, inviteeName, inviterName, link, expiresIn } = args;
+  const { to, inviteeName, link, expiresIn } = args;
   const hello = inviteeName ? `Hi ${inviteeName.split(" ")[0]},` : "Hi,";
 
   const html = layout({
-    preheader: `${inviterName} invited you to the ${site.name} panel.`,
-    heading: `You’re invited to the ${site.name} panel`,
+    preheader: `You’ve been invited to help run the ${site.name} website.`,
+    eyebrow: "Admin panel · Invitation",
+    heading: "You’re invited to the panel",
     bodyHtml:
       p(esc(hello)) +
       p(
-        `${esc(inviterName)} has invited you to help run the ${esc(site.name)} website as <strong>an Admin</strong> — ${ADMIN_BLURB}.`
+        `The ${esc(site.name)} team has invited you to help run the website as ${strong("an Admin")} — ${ADMIN_BLURB}.`
       ) +
       p(
-        `Open the link to choose your own password — nobody else ever sees it. The link works once and expires in <strong>${esc(expiresIn)}</strong>; if it has, ask ${esc(inviterName)} to send a fresh one.`
+        `Open the link to choose your own password — nobody else ever sees it. It works once and expires in ${strong(esc(expiresIn))}; if it has, ask the team for a fresh one.`
       ),
     cta: "Accept invite & set password",
     link,
-    footnote: `You’re getting this because ${esc(inviterName)} added ${esc(to)} to the ${esc(site.name)} admin panel. Not expecting it? Ignore this email — nothing happens unless you open the link.`,
+    footnote: `You’re getting this because the ${esc(site.name)} team added you to the admin panel. Not expecting it? Ignore this email — nothing happens unless you open the link.`,
   });
 
   const text = [
     hello,
     "",
-    `${inviterName} has invited you to help run the ${site.name} website as an Admin — ${ADMIN_BLURB}.`,
+    `The ${site.name} team has invited you to help run the website as an Admin — ${ADMIN_BLURB}.`,
     "",
     "Accept the invite and choose your own password:",
     link,
     "",
-    `The link works once and expires in ${expiresIn}. If it has, ask ${inviterName} to send a fresh one.`,
+    `The link works once and expires in ${expiresIn}. If it has, ask the team for a fresh one.`,
     "",
     `Not expecting this? Ignore it — nothing happens unless you open the link.`,
     `— ${site.name}`,
@@ -277,7 +319,7 @@ export async function sendInviteEmail(args: {
 
   return send({
     to,
-    subject: `${inviterName} invited you to the ${site.name} panel`,
+    subject: `You’re invited to the ${site.name} admin panel`,
     html,
     text,
   });
@@ -289,23 +331,24 @@ export async function sendPasswordResetEmail(args: {
   link: string;
   /** e.g. "1 hour" — from ttlLabel() */
   expiresIn: string;
-  /** set when the owner sent it from the Team page, rather than "Forgot password?" */
-  requestedBy?: string | null;
+  /** true when the owner sent it from the Team page, rather than "Forgot password?" */
+  byOwner?: boolean;
 }): Promise<SendResult> {
-  const { to, name, link, expiresIn, requestedBy } = args;
+  const { to, name, link, expiresIn, byOwner } = args;
   const hello = name ? `Hi ${name.split(" ")[0]},` : "Hi,";
-  const who = requestedBy
-    ? `${requestedBy} sent you a link to reset the password for ${to} on the ${site.name} admin panel.`
-    : `Someone (hopefully you) asked to reset the password for ${to} on the ${site.name} admin panel.`;
+  const who = byOwner
+    ? `The ${site.name} team sent you a link to reset your admin panel password.`
+    : `Someone (hopefully you) asked to reset your ${site.name} admin panel password.`;
 
   const html = layout({
     preheader: `Reset your ${site.name} panel password.`,
+    eyebrow: "Admin panel · Password",
     heading: "Reset your password",
     bodyHtml:
       p(esc(hello)) +
       p(esc(who)) +
       p(
-        `You choose the new password yourself. Saving it signs your account out everywhere else. The link works once and expires in <strong>${esc(expiresIn)}</strong>.`
+        `You choose the new password yourself. Saving it signs your account out everywhere else. The link works once and expires in ${strong(esc(expiresIn))}.`
       ),
     cta: "Choose a new password",
     link,

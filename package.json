@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:brand": "node scripts/build-brand.mjs && node scripts/build-icons.mjs",
+    "build:email-art": "node scripts/build-email-art.mjs",
     "start": "next start",
     "lint": "next lint",
     "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",
