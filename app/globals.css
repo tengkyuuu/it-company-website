@@ -1392,6 +1392,12 @@ html.reveal-ready [data-animate] {
    --------------------------------------------------------------------------- */
 .admin-shell {
   font-feature-settings: "ss01", "cv11";
+  /* a touch crisper than the public site (client, 2026-11-05: "a little bit
+     more sharp, just a bit") — one step down each; pills stay pills */
+  --radius-lg: 0.375rem; /*  6px (site 8) */
+  --radius-xl: 0.5rem; /*  8px (site 10) */
+  --radius-2xl: 0.625rem; /* 10px (site 14) */
+  --radius-3xl: 0.75rem; /* 12px (site 16) */
 }
 /* focus: a crisp 2px ink outline offset from the box, no soft glow */
 .admin-shell :where(a, button, input, select, textarea, summary):focus-visible {
@@ -1424,3 +1430,14 @@ a:focus-visible > .admin-tile::after {
   }
 }
 
+
+/* Admin overview (components/admin/OverviewView.tsx): blocks settle in once,
+   staggered by --d. Reuses the auth frame's rise; off under reduced motion. */
+.ov-in {
+  animation: ai-rise 0.7s var(--ease-soft) var(--d, 0s) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ov-in {
+    animation: none;
+  }
+}

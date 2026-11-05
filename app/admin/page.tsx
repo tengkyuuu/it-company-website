@@ -4,9 +4,8 @@ import { isSupabaseConfigured, type LeadRow } from "@/lib/supabase/types";
 import { services as staticServices } from "@/lib/services";
 import { team as staticTeam } from "@/lib/team";
 import { isJobClosed, manilaToday } from "@/lib/cms";
-import { Card, Notice, Pill } from "@/components/admin/ui";
 import SetupNotice from "@/components/admin/SetupNotice";
-import ActivityList from "@/components/admin/ActivityList";
+import OverviewView, { type OverviewRow } from "@/components/admin/OverviewView";
 import { loadActivity } from "./_lib/history";
 import { describeDbError, isMissingTable } from "./_lib/server";
 import { LEAD_KIND_LABEL, LEAD_LITE_COLUMNS, threadLeads, type LeadLite } from "./_lib/inbox";
@@ -75,103 +74,127 @@ export default async function AdminHome() {
   // team management is the owner's alone; admins edit content
   const isOwner = profile?.role === "owner";
 
-  /** what a tile shows when its query failed */
-  const failed = (error: DbError) =>
-    isMissingTable(error)
-      ? { value: "Not set up", sub: "Run supabase/schema.sql" }
-      : { value: "—", sub: "Couldn’t load" };
+  const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const errRow = (name: string, href: string, error: DbError): OverviewRow => ({
+    name,
+    href,
+    count: null,
+    detail: isMissingTable(error) ? "Not set up — run supabase/schema.sql" : "Couldn’t load",
+    state: "error",
+  });
 
-  const tiles: { label: string; value: string; sub: string; href: string; attention?: boolean }[] = [
-    {
-      label: "Inbox",
-      href: "/admin/inbox",
-      ...(leadsRes.error
-        ? failed(leadsRes.error)
+  // one row per section of the public site; empty ones are shown apart as "not on the site yet"
+  const rows: OverviewRow[] = [
+    projectsRes.error
+      ? errRow("Projects", "/admin/projects", projectsRes.error)
+      : projects.length === 0
+        ? {
+            name: "Projects",
+            href: "/admin/projects",
+            count: null,
+            detail: "Built into the site — import them to edit here",
+            state: "builtin",
+            action: { href: "/admin/projects", label: "Import" },
+          }
         : {
-            value: `${openThreads.length} open`,
-            sub: `${threads.length} total`,
-            attention: openThreads.length > 0,
-          }),
-    },
-    {
-      label: "Projects",
-      href: "/admin/projects",
-      ...(projectsRes.error
-        ? failed(projectsRes.error)
-        : projects.length === 0
-          ? { value: "Built-in", sub: "Not imported yet" }
-          : {
-              value: `${projects.filter((p) => p.published).length} live`,
-              sub: `${projects.filter((p) => !p.published).length} draft`,
-            }),
-    },
-    {
-      label: "Products",
-      href: "/admin/products",
-      ...(productsRes.error
-        ? failed(productsRes.error)
-        : products.length === 0
-          ? { value: "None yet", sub: "Hidden on the site" }
-          : {
-              value: `${products.filter((p) => p.published).length} live`,
-              sub: `${products.filter((p) => !p.published).length} draft`,
-            }),
-    },
-    {
-      label: "Services",
-      href: "/admin/services",
-      ...(servicesRes.error
-        ? failed(servicesRes.error)
-        : services.length === 0
-          ? { value: "Built-in", sub: `${staticServices.length} from lib/services.ts` }
-          : {
-              value: `${services.filter((s) => s.published).length} live`,
-              sub: `${services.filter((s) => !s.published).length} hidden`,
-            }),
-    },
-    {
-      label: "Blog",
-      href: "/admin/blog",
-      ...(postsRes.error
-        ? failed(postsRes.error)
-        : posts.length === 0
-          ? { value: "None yet", sub: "Hidden on the site" }
-          : {
-              value: `${posts.filter((p) => p.published).length} published`,
-              sub: `${posts.filter((p) => !p.published).length} draft`,
-            }),
-    },
-    {
-      label: "Careers",
-      href: "/admin/careers",
-      ...(jobsRes.error
-        ? failed(jobsRes.error)
-        : jobs.length === 0
-          ? { value: "None yet", sub: "Hidden on the site" }
-          : {
-              value: `${openJobs} open`,
-              sub: `${jobs.filter((j) => !j.published).length} draft · ${jobs.filter((j) => j.published && j.closed).length} closed`,
-            }),
-    },
-    {
-      label: "Roster",
-      href: "/admin/roster",
-      ...(rosterRes.error
-        ? failed(rosterRes.error)
-        : roster.length === 0
-          ? { value: "Built-in", sub: `${staticTeam.length} from lib/team.ts` }
-          : {
-              value: `${roster.filter((m) => m.published).length} shown`,
-              sub: `${roster.filter((m) => !m.published).length} hidden`,
-            }),
-    },
-    {
-      label: "Panel logins",
-      href: "/admin/team",
-      ...(teamRes.error
-        ? failed(teamRes.error)
-        : { value: String(teamRes.count ?? 0), sub: teamRes.count === 1 ? "account" : "accounts" }),
-    },
+            name: "Projects",
+            href: "/admin/projects",
+            count: projects.filter((p) => p.published).length,
+            detail: `live · ${plural(projects.filter((p) => !p.published).length, "draft")}`,
+            state: "live",
+            action: { href: "/admin/projects/new", label: "Add" },
+          },
+    servicesRes.error
+      ? errRow("Services", "/admin/services", servicesRes.error)
+      : services.length === 0
+        ? {
+            name: "Services",
+            href: "/admin/services",
+            count: staticServices.length,
+            detail: "built into the site — not editable here yet",
+            state: "builtin",
+          }
+        : {
+            name: "Services",
+            href: "/admin/services",
+            count: services.filter((x) => x.published).length,
+            detail: `live · ${services.filter((x) => !x.published).length} hidden`,
+            state: "live",
+          },
+    rosterRes.error
+      ? errRow("Roster", "/admin/roster", rosterRes.error)
+      : roster.length === 0
+        ? {
+            name: "Roster",
+            href: "/admin/roster",
+            count: staticTeam.length,
+            detail: "people, built into the site",
+            state: "builtin",
+          }
+        : {
+            name: "Roster",
+            href: "/admin/roster",
+            count: roster.filter((m) => m.published).length,
+            detail: `on the About page · ${roster.filter((m) => !m.published).length} hidden`,
+            state: "live",
+          },
+    productsRes.error
+      ? errRow("Products", "/admin/products", productsRes.error)
+      : products.length === 0
+        ? {
+            name: "Products",
+            href: "/admin/products",
+            count: null,
+            detail: "The page stays hidden until one is published.",
+            state: "empty",
+            action: { href: "/admin/products/new", label: "Add the first" },
+          }
+        : {
+            name: "Products",
+            href: "/admin/products",
+            count: products.filter((x) => x.published).length,
+            detail: `live · ${plural(products.filter((x) => !x.published).length, "draft")}`,
+            state: "live",
+            action: { href: "/admin/products/new", label: "Add" },
+          },
+    postsRes.error
+      ? errRow("Blog", "/admin/blog", postsRes.error)
+      : posts.length === 0
+        ? {
+            name: "Blog",
+            href: "/admin/blog",
+            count: null,
+            detail: "The page stays hidden until a post is published.",
+            state: "empty",
+            action: { href: "/admin/blog/new", label: "Write the first" },
+          }
+        : {
+            name: "Blog",
+            href: "/admin/blog",
+            count: posts.filter((x) => x.published).length,
+            detail: `published · ${plural(posts.filter((x) => !x.published).length, "draft")}`,
+            state: "live",
+            action: { href: "/admin/blog/new", label: "Write" },
+          },
+    jobsRes.error
+      ? errRow("Careers", "/admin/careers", jobsRes.error)
+      : jobs.length === 0
+        ? {
+            name: "Careers",
+            href: "/admin/careers",
+            count: null,
+            detail: "The page stays hidden until a role is open.",
+            state: "empty",
+            action: { href: "/admin/careers/new", label: "Post a role" },
+          }
+        : {
+            name: "Careers",
+            href: "/admin/careers",
+            count: openJobs,
+            detail: `open · ${jobs.filter((j) => !j.published).length} draft · ${jobs.filter((j) => j.published && j.closed).length} closed`,
+            state: "live",
+            action: { href: "/admin/careers/new", label: "Post" },
+          },
   ];
 
   const anyFailed = [
@@ -185,214 +208,83 @@ export default async function AdminHome() {
     postsRes,
   ].find((r) => r.error && !isMissingTable(r.error));
 
-  const quick = [
-    { href: "/admin/projects/new", label: "Add a project" },
-    { href: "/admin/blog/new", label: "Write a post" },
-    { href: "/admin/careers/new", label: "Post a role" },
-    { href: "/admin/products/new", label: "Add a product" },
-    { href: "/admin/services", label: "Edit services" },
-    { href: "/admin/settings", label: "Edit contact details" },
-    ...(isOwner ? [{ href: "/admin/team", label: "Invite a teammate" }] : []),
-  ];
+  const liveProjects = projects.filter((p) => p.published).length;
+  const lastEdit = projects[0]?.updated_at as string | undefined;
+  const lastAgo = lastEdit ? ago(lastEdit) : null;
+  const summary =
+    (liveProjects > 0 ? `${plural(liveProjects, "project")} live on the site` : "No projects live yet") +
+    (lastAgo ? ` · last edit ${lastAgo === "now" ? "just now" : `${lastAgo} ago`}` : "") +
+    ".";
 
   return (
-    <div className="space-y-6">
-      <header>
-        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slatey">
-          Overview
-        </p>
-        <h1 className="font-display text-3xl font-semibold tracking-[-0.03em] md:text-4xl">
-          {greeting()}
-          {profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}.
-        </h1>
-        <p className="mt-1 text-sm text-ink/55">
-          Everything you publish here appears on the public site straight away.
-        </p>
-      </header>
-
-      {anyFailed?.error && (
-        <Notice tone="error" title="Some numbers couldn’t be loaded">
-          {describeDbError(anyFailed.error)} The public site is unaffected — it falls
-          back to the built-in content.
-        </Notice>
-      )}
-
-      {/* eight tiles: 4 rows of 2 on phones, 2 rows of 4 on desktop */}
-      <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-mist bg-mist lg:grid-cols-4">
-        {tiles.map((t) => (
-          <li key={t.label}>
-            <Link
-              href={t.href}
-              className="group block h-full"
-            >
-              <Card className="admin-tile h-full !rounded-none !border-0 !p-5 group-hover:bg-paper">
-                <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-slatey">
-                  {t.label}
-                  {t.attention && (
-                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
-                  )}
-                </p>
-                <p className="mt-4 font-display text-3xl font-semibold tabular-nums tracking-[-0.03em]">
-                  {t.value}
-                </p>
-                <p className="mt-0.5 text-xs text-ink/50">{t.sub}</p>
-              </Card>
-            </Link>
-          </li>
-        ))}
-      </ul>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold tracking-tight">
-              Needs a reply
-            </h2>
-            <Link
-              href="/admin/inbox"
-              className="text-sm text-ink/55 transition-colors hover:text-ink"
-            >
-              Inbox →
-            </Link>
-          </div>
-          {leadsRes.error ? (
-            <p className="text-sm text-ink/55">The inbox couldn’t be loaded.</p>
-          ) : openThreads.length === 0 ? (
-            <p className="text-sm text-ink/55">
-              {threads.length === 0
-                ? "No enquiries, applications or conversations yet."
-                : "All caught up — nothing open."}
-            </p>
-          ) : (
-            <ul className="divide-y divide-mist">
-              {openThreads.slice(0, 5).map(({ head }) => (
-                <li key={head.id} className="flex items-start gap-3 py-2.5">
-                  <Pill tone={head.kind === "chat" ? "muted" : "live"}>
-                    {LEAD_KIND_LABEL[head.kind] ?? head.kind}
-                  </Pill>
-                  <Link
-                    href={`/admin/inbox?kind=${head.kind}`}
-                    className="min-w-0 flex-1 text-sm transition-colors hover:text-accent"
-                  >
-                    <span className="block truncate font-medium">
-                      {head.kind === "chat" ? "Website visitor" : head.name || head.email || "(no name)"}
-                    </span>
-                    <span className="block truncate text-ink/55">{head.message || "(empty)"}</span>
-                  </Link>
-                  <time
-                    dateTime={head.created_at}
-                    className="shrink-0 font-mono text-[11px] text-ink/45"
-                  >
-                    {ago(head.created_at)}
-                  </time>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold tracking-tight">
-              Recently edited
-            </h2>
-            <Link
-              href="/admin/projects"
-              className="text-sm text-ink/55 transition-colors hover:text-ink"
-            >
-              All →
-            </Link>
-          </div>
-          {projectsRes.error ? (
-            <p className="text-sm text-ink/55">Projects couldn’t be loaded.</p>
-          ) : projects.length === 0 ? (
-            <p className="text-sm text-ink/55">
-              No projects in the database yet.{" "}
-              <Link href="/admin/projects" className="text-accent">
-                Import the existing ones
-              </Link>{" "}
-              to get started.
-            </p>
-          ) : (
-            <ul className="divide-y divide-mist">
-              {projects.slice(0, 5).map((p) => (
-                <li key={p.id} className="flex items-center gap-3 py-2.5">
-                  <Link
-                    href={`/admin/projects/${p.id}`}
-                    className="min-w-0 flex-1 truncate text-sm transition-colors hover:text-accent"
-                  >
-                    {p.name}
-                  </Link>
-                  {!p.img && <Pill tone="draft">No screenshot</Pill>}
-                  <Pill tone={p.published ? "live" : "draft"}>
-                    {p.published ? "Live" : "Draft"}
-                  </Pill>
-                  <time
-                    dateTime={p.updated_at}
-                    className="hidden shrink-0 font-mono text-[11px] text-ink/45 sm:block"
-                  >
-                    {ago(p.updated_at)}
-                  </time>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
-
-      <Card>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold tracking-tight">
-            Recent activity
-          </h2>
-          <Link
-            href="/admin/activity"
-            className="text-sm text-ink/55 transition-colors hover:text-ink"
-          >
-            All activity →
-          </Link>
-        </div>
-        {!activity || !activity.ok ? (
-          <p className="py-2 text-sm text-ink/55">
-            {activity && !activity.ok && activity.notSetUp
-              ? "The activity log isn’t set up yet — re-run supabase/schema.sql."
-              : "Activity couldn’t be loaded."}
-          </p>
-        ) : activity.items.length === 0 ? (
-          <p className="py-2 text-sm text-ink/55">
-            Nothing yet — edits, publishing and invites will show up here.
-          </p>
-        ) : (
-          <ActivityList items={activity.items} compact />
-        )}
-      </Card>
-
-      <Card>
-        <h2 className="mb-4 font-display text-lg font-semibold tracking-tight">
-          Quick actions
-        </h2>
-        <div className="flex flex-wrap gap-2.5">
-          {quick.map((a) => (
-            <Link
-              key={a.href}
-              href={a.href}
-              className="rounded-full border border-mist px-4 py-2 text-sm transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-paper"
-            >
-              {a.label}
-            </Link>
-          ))}
-          <a
-            href="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full border border-mist px-4 py-2 text-sm transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-paper"
-          >
-            View the site ↗
-          </a>
-        </div>
-      </Card>
-    </div>
+    <OverviewView
+      date={manilaDate()}
+      greeting={greeting()}
+      firstName={profile?.full_name ? profile.full_name.split(" ")[0] : null}
+      waiting={leadsRes.error ? null : openThreads.length}
+      summary={summary}
+      failedMessage={anyFailed?.error ? describeDbError(anyFailed.error) : null}
+      rows={rows}
+      replies={
+        leadsRes.error
+          ? { state: "error" }
+          : {
+              state: "ok",
+              total: threads.length,
+              open: openThreads.slice(0, 5).map(({ head }) => ({
+                id: head.id,
+                href: `/admin/inbox?kind=${head.kind}`,
+                who: head.kind === "chat" ? "Website visitor" : head.name || head.email || "(no name)",
+                kind: LEAD_KIND_LABEL[head.kind] ?? head.kind,
+                message: head.message || "(empty)",
+                at: head.created_at,
+                ago: ago(head.created_at),
+              })),
+            }
+      }
+      edited={
+        projectsRes.error
+          ? { state: "error" }
+          : projects.length === 0
+            ? { state: "empty" }
+            : {
+                state: "ok",
+                items: projects.slice(0, 5).map((p) => ({
+                  id: String(p.id),
+                  name: p.name as string,
+                  live: Boolean(p.published),
+                  noShot: !p.img,
+                  at: p.updated_at as string,
+                  ago: ago(p.updated_at as string),
+                })),
+              }
+      }
+      activity={
+        !activity || !activity.ok
+          ? { state: activity && !activity.ok && activity.notSetUp ? "notSetUp" : "error" }
+          : activity.items.length === 0
+            ? { state: "empty" }
+            : { state: "ok", items: activity.items }
+      }
+      shortcuts={[
+        { href: "/admin/settings", label: "Contact details & availability" },
+        { href: "/admin/activity", label: "Everything that changed" },
+        ...(isOwner
+          ? [{ href: "/admin/team", label: teamRes.error ? "Team" : `Team · ${plural(teamRes.count ?? 0, "login")}` }]
+          : []),
+      ]}
+    />
   );
+}
+
+/** "Thursday, 5 November" in Manila — the panel runs on studio time. */
+function manilaDate() {
+  return new Intl.DateTimeFormat("en-PH", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "Asia/Manila",
+  }).format(new Date());
 }
 
 function greeting() {

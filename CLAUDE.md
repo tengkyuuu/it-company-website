@@ -649,8 +649,14 @@ reflow. Non-obvious rules, learned the hard way here:
       the letters, plays once) + four-point sparks; staggered entrances; `SetPasswordForm` adds a strength
       meter (gold only at Strong), a "Passwords match" tick and an animated success state whose bar fills
       over the same 1.4 s as the redirect. All off under reduced motion.
+    - **Overview** (`/admin`, 2026-11-05): `app/admin/page.tsx` runs the queries and passes finished strings to the
+      pure `components/admin/OverviewView.tsx`. One status sentence (greeting + "N conversations waiting"), a
+      numeral-first ledger of what is on the site, empty sections apart under "Not on the site yet", the
+      activity log; right column = Needs a reply (first on phones), Recently edited, shortcuts. No stat-tile
+      grid and no pill cloud — they read as generic dashboard filler. `.ov-in` = one-time staggered rise.
     - **Panel look** (2026-11-05): corners stay rounded (a square-corner pass was tried and rolled back
-      at the client's request). Focus = a 2px ink outline (`.admin-shell` in `globals.css`), not a gold
+      at the client's request), but one step crisper than the site: `.admin-shell` overrides `--radius-lg/xl/2xl/3xl`
+      to 6 / 8 / 10 / 12px (site 8 / 10 / 14 / 16); pills stay pills. Focus = a 2px ink outline (`.admin-shell` in `globals.css`), not a gold
       glow; the active nav item is just *italic* (no bar, no fill); h1s are `text-3xl`; the overview's
       stat tiles are one joined hairline grid with a gold line drawing across on hover (`.admin-tile`).
     - **Email look** (`lib/admin-email.ts`): an ink header carrying `public/brand/email/header.gif` — the
