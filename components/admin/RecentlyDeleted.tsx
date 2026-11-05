@@ -23,18 +23,18 @@ export default function RecentlyDeleted({
 }) {
   if (!items.length) return null;
   return (
-    <details className="group rounded-2xl border border-mist/70 bg-surface">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-2xl border border-mist bg-surface">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 focus:outline-none [&::-webkit-details-marker]:hidden">
         <span className="flex items-baseline gap-2">
           <span className="text-sm font-medium">Recently deleted</span>
           <span className="font-mono text-[11px] tabular-nums text-slatey">{items.length}</span>
         </span>
-        <span className="shrink-0 rounded-full border border-mist/70 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink/70 transition-colors group-hover:border-mist group-hover:text-ink">
+        <span className="shrink-0 rounded-full border border-mist px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink/70 transition-colors group-hover:border-ink/40 group-hover:text-ink">
           <span className="group-open:hidden">Show</span>
           <span className="hidden group-open:inline">Hide</span>
         </span>
       </summary>
-      <ul className="divide-y divide-mist/70 border-t border-mist/70">
+      <ul className="divide-y divide-mist border-t border-mist">
         {items.map((item) => (
           <DeletedRow key={item.revisionId} item={item} noun={noun} />
         ))}

@@ -50,7 +50,7 @@ export default async function EditJobPage({
       <header>
         <BackLink href="/admin/careers">Careers</BackLink>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-2xl font-semibold tracking-tight">{job.title}</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">{job.title}</h1>
           {!job.published ? (
             <Pill tone="draft">Draft</Pill>
           ) : closed ? (

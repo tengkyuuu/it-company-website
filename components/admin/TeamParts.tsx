@@ -12,7 +12,7 @@ const tones = {
   ok: "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   warn: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200",
   error: "border-red-500/35 bg-red-500/10 text-red-700 dark:text-red-300",
-  muted: "border-mist/70 bg-paper text-ink/70",
+  muted: "border-mist bg-paper text-ink/70",
 } as const;
 
 export type Tone = keyof typeof tones;
@@ -88,12 +88,12 @@ export function LinkBox({ link, autoCopy = false }: { link: string; autoCopy?: b
         value={link}
         aria-label="Link to pass on"
         onFocus={(e) => e.currentTarget.select()}
-        className="min-w-0 flex-1 rounded-lg border border-mist/70 bg-paper px-3 py-2 font-mono text-[11px] text-ink/70 focus:border-accent-to focus:outline-none"
+        className="min-w-0 flex-1 rounded-lg border border-mist bg-paper px-3 py-2 font-mono text-[11px] text-ink/70 focus:border-ink focus:outline-none"
       />
       <button
         type="button"
         onClick={() => copy(true)}
-        className="shrink-0 rounded-full border border-mist/70 bg-surface px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-mist"
+        className="shrink-0 rounded-full border border-mist bg-surface px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-ink/40"
       >
         {state === "copied" ? "Copied ✓" : state === "manual" ? "Press ⌘/Ctrl+C" : "Copy link"}
       </button>
@@ -114,7 +114,7 @@ export function RowButton({
       className={`rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
         danger
           ? "border-red-500/40 text-red-600 hover:bg-red-500/10 dark:text-red-300"
-          : "border-mist/70 text-ink/70 hover:border-mist hover:text-ink"
+          : "border-mist text-ink/70 hover:border-ink/40 hover:text-ink"
       }`}
     >
       {children}

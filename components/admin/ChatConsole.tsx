@@ -201,7 +201,7 @@ export default function ChatConsole({
   };
 
   const btn =
-    "rounded-full border border-mist/70 px-3.5 py-1.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 disabled:cursor-not-allowed disabled:opacity-50";
+    "rounded-full border border-mist px-3.5 py-1.5 text-sm transition-colors hover:border-ink/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div className="space-y-4">
@@ -209,7 +209,7 @@ export default function ChatConsole({
       <section
         aria-label="Chat status"
         className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-surface p-5 ${
-          session.status === "waiting" ? "border-amber-500/45" : "border-mist/70"
+          session.status === "waiting" ? "border-amber-500/45" : "border-mist"
         }`}
       >
         <div className="min-w-0">
@@ -270,7 +270,7 @@ export default function ChatConsole({
       {/* transcript */}
       <div
         ref={scroller}
-        className="max-h-[min(62vh,680px)] overflow-y-auto rounded-2xl border border-mist/70 bg-surface p-5"
+        className="max-h-[min(62vh,680px)] overflow-y-auto rounded-2xl border border-mist bg-surface p-5"
       >
         {messages.length === 0 ? (
           <p className="text-sm text-ink/55">No messages yet.</p>
@@ -292,7 +292,7 @@ export default function ChatConsole({
                   <p
                     className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
                       visitor
-                        ? "rounded-tl-md border border-mist/70 bg-paper text-ink/85"
+                        ? "rounded-tl-md border border-mist bg-paper text-ink/85"
                         : m.role === "human"
                           ? "rounded-tr-md bg-ink text-paper"
                           : "rounded-tr-md bg-ink/[0.06] text-ink/75"

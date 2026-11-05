@@ -37,7 +37,7 @@ export default async function NewProjectPage() {
         >
           ← Projects
         </Link>
-        <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-[-0.03em]">
           New project
         </h1>
         <p className="mt-1 text-sm text-ink/55">

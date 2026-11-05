@@ -22,7 +22,7 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">
           Site settings
         </h1>
         <p className="mt-1 text-sm text-ink/55">

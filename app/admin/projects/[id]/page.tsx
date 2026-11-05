@@ -48,7 +48,7 @@ export default async function EditProjectPage({
           ← Projects
         </Link>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">
             {project.name}
           </h1>
           <Pill tone={project.published ? "live" : "draft"}>

@@ -193,7 +193,7 @@ export default async function TeamPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Team</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">Team</h1>
         <p className="mt-1 text-sm text-ink/55">
           Who can sign in and manage the site. Accounts are invite-only.
         </p>

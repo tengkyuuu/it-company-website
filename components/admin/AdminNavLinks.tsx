@@ -45,7 +45,7 @@ export default function AdminNavLinks({ badges = {} }: { badges?: Record<string,
     <nav
       ref={listRef}
       aria-label="Admin sections"
-      className="-mx-5 flex gap-1 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:flex-col md:gap-0.5 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden"
+      className="-mx-5 flex gap-1 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:flex-col md:gap-0 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden"
     >
       {links.map((l) => {
         // /admin must not light up for every nested route; the others match
@@ -60,15 +60,15 @@ export default function AdminNavLinks({ badges = {} }: { badges?: Record<string,
             key={l.href}
             href={l.href}
             aria-current={active ? "page" : undefined}
-            className={`flex shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 ${
+            className={`flex shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-xl px-4 py-2 text-sm transition-colors duration-300 ${
               active
-                ? "bg-ink/[0.07] font-medium text-ink"
+                ? "italic text-ink"
                 : "text-ink/60 hover:bg-ink/[0.04] hover:text-ink"
             }`}
           >
             {l.label}
             {count > 0 && (
-              <span className="min-w-[1.25rem] rounded-full bg-ink px-1.5 py-px text-center font-mono text-[10px] tabular-nums text-paper">
+              <span className="min-w-[1.25rem] rounded-full bg-gold px-1.5 py-px text-center font-mono text-[10px] tabular-nums text-black">
                 {count > 99 ? "99+" : count}
                 <span className="sr-only">{l.href === "/admin/chats" ? " waiting for a person" : " open"}</span>
               </span>

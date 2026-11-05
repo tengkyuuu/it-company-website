@@ -12,7 +12,7 @@ import { formatDay, manilaDate } from "../_lib/catalog";
 export const metadata = { title: "Blog", robots: { index: false } };
 
 const primaryLink =
-  "rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper";
+  "rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none";
 
 /**
  * Blog posts, in the order the public index shows them: newest published
@@ -51,7 +51,7 @@ export default async function AdminBlogPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">Blog</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">Blog</h1>
           <p className="mt-1 text-sm text-ink/55">
             {posts.length
               ? `${posts.length} post${posts.length === 1 ? "" : "s"} · ${published} published · ${drafts} draft${drafts === 1 ? "" : "s"}`
@@ -106,7 +106,7 @@ export default async function AdminBlogPage() {
                 <div className="flex flex-wrap items-center gap-4">
                   <div
                     aria-hidden
-                    className="hidden h-12 w-20 shrink-0 overflow-hidden rounded-lg border border-mist/70 bg-ink/[0.06] sm:block"
+                    className="hidden h-12 w-20 shrink-0 overflow-hidden rounded-lg border border-mist bg-ink/[0.06] sm:block"
                   >
                     {p.cover_image && (
                       // eslint-disable-next-line @next/next/no-img-element

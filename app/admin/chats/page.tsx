@@ -68,7 +68,7 @@ export default async function AdminChatsPage() {
     <div className="space-y-6">
       <ChatAutoRefresh />
       <header>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Live chat</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">Live chat</h1>
         <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink/55">
           The site assistant’s conversations. Open one to read it, take it over and reply as
           yourself — the assistant stays quiet until you hand it back. Visitors see your first
@@ -109,8 +109,8 @@ export default async function AdminChatsPage() {
               <li key={s.id}>
                 <Link
                   href={`/admin/chats/${s.id}`}
-                  className={`block rounded-2xl border bg-surface p-5 transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 ${
-                    status === "waiting" ? "border-amber-500/45" : "border-mist/70"
+                  className={`block rounded-2xl border bg-surface p-5 transition-colors hover:border-ink/40 focus:outline-none ${
+                    status === "waiting" ? "border-amber-500/45" : "border-mist"
                   }`}
                 >
                   <div className="flex flex-wrap items-center gap-2">

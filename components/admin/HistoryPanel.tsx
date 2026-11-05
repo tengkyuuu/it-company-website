@@ -59,7 +59,7 @@ export default function HistoryPanel({
   };
 
   const body = (
-    <div className={variant === "card" ? "border-t border-mist/70 px-5 pb-6 pt-5 md:px-7" : "mt-4"}>
+    <div className={variant === "card" ? "border-t border-mist px-5 pb-6 pt-5 md:px-7" : "mt-4"}>
       {status.kind === "loading" && (
         <p className="flex items-center gap-2 text-sm text-ink/55">
           <Spinner /> Loading history…
@@ -91,7 +91,7 @@ export default function HistoryPanel({
                 Refresh
               </button>
             </div>
-            <ol className="relative ml-1.5 space-y-6 border-l border-mist/70 pl-5">
+            <ol className="relative ml-1.5 space-y-6 border-l border-mist pl-5">
               {status.entries.map((entry, i) => (
                 <HistoryItem key={entry.id} entry={entry} newest={i === 0} />
               ))}
@@ -104,7 +104,7 @@ export default function HistoryPanel({
   if (variant === "inline") {
     return (
       <details className="group w-full" onToggle={onToggle}>
-        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-mist/70 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink/70 transition-colors hover:border-mist hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 [&::-webkit-details-marker]:hidden">
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-mist px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink/70 transition-colors hover:border-ink/40 hover:text-ink focus:outline-none [&::-webkit-details-marker]:hidden">
           History
           <span aria-hidden className="transition-transform group-open:rotate-180">
             ▾
@@ -116,15 +116,15 @@ export default function HistoryPanel({
   }
 
   return (
-    <details className="group rounded-2xl border border-mist/70 bg-surface" onToggle={onToggle}>
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 md:px-7 [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-2xl border border-mist bg-surface" onToggle={onToggle}>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 focus:outline-none md:px-7 [&::-webkit-details-marker]:hidden">
         <span className="min-w-0">
           <span className="block font-display text-lg font-semibold tracking-tight">History</span>
           <span className="mt-0.5 block text-sm text-ink/55">
             Earlier versions of {what} — who changed what, and when.
           </span>
         </span>
-        <span className="shrink-0 rounded-full border border-mist/70 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink/70 transition-colors group-hover:border-mist group-hover:text-ink">
+        <span className="shrink-0 rounded-full border border-mist px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink/70 transition-colors group-hover:border-ink/40 group-hover:text-ink">
           <span className="group-open:hidden">Show</span>
           <span className="hidden group-open:inline">Hide</span>
         </span>

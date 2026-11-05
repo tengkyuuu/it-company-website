@@ -49,7 +49,7 @@ export default function ActivityList({
   compact?: boolean;
 }) {
   return (
-    <ul className="divide-y divide-mist/70">
+    <ul className="divide-y divide-mist">
       {items.map((item) => (
         <li key={item.id} className={`flex items-start gap-3 ${compact ? "py-2.5" : "py-3.5"}`}>
           <span aria-hidden className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${DOT[item.group]}`} />

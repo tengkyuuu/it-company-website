@@ -48,7 +48,7 @@ export default async function AdminChatSessionPage({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <Link
           href="/admin/chats"
-          className="rounded-lg text-sm text-ink/60 transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+          className="rounded-lg text-sm text-ink/60 transition-colors hover:text-ink focus:outline-none "
         >
           ← All chats
         </Link>

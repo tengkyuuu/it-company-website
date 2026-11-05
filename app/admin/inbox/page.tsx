@@ -183,7 +183,7 @@ export default async function AdminInboxPage({
   };
 
   const tab = (active: boolean) =>
-    `rounded-full px-3.5 py-1.5 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 ${
+    `rounded-full px-3.5 py-1.5 text-sm transition-colors focus:outline-none ${
       active ? "bg-ink/[0.07] font-medium text-ink" : "text-ink/60 hover:bg-ink/[0.04] hover:text-ink"
     }`;
 
@@ -210,7 +210,7 @@ export default async function AdminInboxPage({
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Inbox</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">Inbox</h1>
         <p className="mt-1 text-sm text-ink/55">
           Contact submissions and job applications, newest first — reply to them from here.
           Enquiries are emailed too; this is the record.
@@ -297,7 +297,7 @@ export default async function AdminInboxPage({
           </span>
           <Link
             href={href({ kind: "application" })}
-            className="rounded-full border border-mist/70 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+            className="rounded-full border border-mist px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest transition-colors hover:border-ink/40 focus:outline-none "
           >
             All roles
           </Link>
@@ -355,7 +355,7 @@ export default async function AdminInboxPage({
                     />
                   ) : (
                     <details className="group mt-3">
-                      <summary className="cursor-pointer list-none rounded-lg text-sm text-ink/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 [&::-webkit-details-marker]:hidden">
+                      <summary className="cursor-pointer list-none rounded-lg text-sm text-ink/75 focus:outline-none [&::-webkit-details-marker]:hidden">
                         <span className="font-medium text-ink">Opened with:</span>{" "}
                         <span className="break-words">{lead.message || "(empty)"}</span>
                         <span className="ml-2 whitespace-nowrap font-mono text-[10px] uppercase tracking-widest text-ink/45">
@@ -377,7 +377,7 @@ export default async function AdminInboxPage({
                               <p
                                 className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
                                   visitor
-                                    ? "rounded-tl-md border border-mist/70 bg-paper text-ink/80"
+                                    ? "rounded-tl-md border border-mist bg-paper text-ink/80"
                                     : "rounded-tr-md bg-ink/[0.06] text-ink/75"
                                 }`}
                               >

@@ -19,7 +19,7 @@ import { Field, Input, Select } from "./ui";
  */
 
 const chipBase =
-  "inline-flex cursor-pointer select-none items-center rounded-full border border-mist/70 px-3.5 py-1.5 text-sm text-ink/70 transition-colors hover:border-mist peer-checked:border-ink peer-checked:bg-ink peer-checked:text-paper peer-focus-visible:ring-2 peer-focus-visible:ring-accent-to/40";
+  "inline-flex cursor-pointer select-none items-center rounded-full border border-mist px-3.5 py-1.5 text-sm text-ink/70 transition-colors hover:border-ink/40 peer-checked:border-ink peer-checked:bg-ink peer-checked:text-paper peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink";
 
 /** A row of toggle chips backed by real checkboxes (one repeated name). */
 export function CheckChips({
@@ -76,7 +76,7 @@ export function CheckChips({
 }
 
 const rowButton =
-  "rounded-full border border-mist/70 px-3 py-1.5 text-xs text-ink/65 transition-colors hover:border-mist hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40";
+  "rounded-full border border-mist px-3 py-1.5 text-xs text-ink/65 transition-colors hover:border-ink/40 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none";
 
 let seq = 0;
 const key = () => `r${++seq}`;
@@ -186,7 +186,7 @@ export function GalleryEditor({
       {rows.map((g, i) => (
         // keyed by a stable id, so reordering moves each ImageField (and its
         // upload state) with its row instead of swapping values underneath it
-        <div key={g.key} className="rounded-2xl border border-mist/70 p-4">
+        <div key={g.key} className="rounded-2xl border border-mist p-4">
           <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
             <ImageField
               name="gallery_src"

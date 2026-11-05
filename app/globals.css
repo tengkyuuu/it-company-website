@@ -1240,3 +1240,187 @@ html.reveal-ready [data-animate] {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Panel auth frame (components/admin/AuthCard.tsx) — the opening sequence's
+   ink-in, replayed on the logo; staggered entrances; a drawn gold rule; four-
+   point sparks that twinkle once. transform/opacity only, plays once, rests.
+   --------------------------------------------------------------------------- */
+.ai-mark {
+  position: relative;
+  display: block;
+}
+.ai-mark .wm {
+  display: block;
+}
+.ai-faint {
+  opacity: 0.14;
+}
+.ai-ink,
+.ai-ray,
+.ai-final {
+  position: absolute;
+  inset: 0;
+}
+/* wrapper slides in while its child slides the other way: a left→right wipe
+   with the mark standing still, all transforms */
+.ai-ink {
+  overflow: hidden;
+  animation: ai-wipe 0.9s var(--ease-soft) 0.3s both;
+}
+.ai-ink > span {
+  display: block;
+  animation: ai-wipe-back 0.9s var(--ease-soft) 0.3s both;
+}
+@keyframes ai-wipe {
+  from { transform: translateX(-101%); }
+  to { transform: none; }
+}
+@keyframes ai-wipe-back {
+  from { transform: translateX(101%); }
+  to { transform: none; }
+}
+.ai-ray {
+  overflow: hidden;
+  pointer-events: none;
+  /* the light only exists inside the letters (same mask as the splash's ray) */
+  -webkit-mask: url("/brand/myktech/svg/myktech-horizontal-ink.svg") center / contain no-repeat;
+  mask: url("/brand/myktech/svg/myktech-horizontal-ink.svg") center / contain no-repeat;
+}
+.ai-ray > span {
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: 0;
+  width: 16%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-gold) 55%, transparent) 32%,
+    var(--color-gold) 50%,
+    color-mix(in srgb, var(--color-gold) 55%, transparent) 68%,
+    transparent 100%
+  );
+  filter: blur(5px);
+  opacity: 0;
+  transform: translateX(-120%) skewX(-14deg);
+  /* same duration/delay/easing as the wipe, so the light rides its edge */
+  animation: ai-ray 0.9s var(--ease-soft) 0.3s both;
+}
+@keyframes ai-ray {
+  0% { opacity: 0; transform: translateX(-120%) skewX(-14deg); }
+  15% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(640%) skewX(-14deg); }
+}
+.ai-final {
+  opacity: 0;
+  animation: ai-fade 0.35s ease-out 1.05s both;
+}
+@keyframes ai-fade {
+  to { opacity: 1; }
+}
+.ai-rise {
+  animation: ai-rise 0.8s var(--ease-soft) var(--d, 0s) both;
+}
+@keyframes ai-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+.ai-rule {
+  transform-origin: left;
+  animation: ai-draw 0.9s var(--ease-soft) var(--d, 0s) both;
+}
+@keyframes ai-draw {
+  from { transform: scaleX(0); }
+  to { transform: none; }
+}
+.ai-spark {
+  opacity: 0;
+  transform: scale(0) rotate(-45deg);
+  animation: ai-twinkle 1.1s var(--ease-soft) both;
+}
+@keyframes ai-twinkle {
+  0% { opacity: 0; transform: scale(0) rotate(-45deg); }
+  45% { opacity: 1; transform: scale(1.25) rotate(0deg); }
+  100% { opacity: 0.55; transform: scale(0.8) rotate(0deg); }
+}
+/* password form: strength bars, the match tick, the success tick + progress */
+.ai-bar {
+  transform-origin: left;
+  transition: transform 0.45s var(--ease-soft), background-color 0.3s ease;
+}
+.ai-tick path {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: ai-tick 0.5s var(--ease-soft) 0.1s forwards;
+}
+@keyframes ai-tick {
+  to { stroke-dashoffset: 0; }
+}
+.ai-pop {
+  animation: ai-pop 0.6s var(--ease-soft) both;
+}
+@keyframes ai-pop {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+.ai-progress {
+  transform-origin: left;
+  animation: ai-draw var(--ai-ms, 1.4s) linear both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-ink,
+  .ai-ink > span,
+  .ai-final,
+  .ai-rise,
+  .ai-rule,
+  .ai-pop,
+  .ai-progress {
+    animation: none !important;
+  }
+  .ai-final { opacity: 1; }
+  .ai-ray { display: none; }
+  .ai-spark { animation: none !important; opacity: 0.55; transform: scale(0.8); }
+  .ai-tick path { animation: none !important; stroke-dashoffset: 0; }
+  .ai-bar { transition: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   Admin panel details (2026-11-05). Corners stay rounded — a square-corner
+   pass was tried and rolled back at the client's request.
+   --------------------------------------------------------------------------- */
+.admin-shell {
+  font-feature-settings: "ss01", "cv11";
+}
+/* focus: a crisp 2px ink outline offset from the box, no soft glow */
+.admin-shell :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+/* stat tile: a gold hairline draws across the top edge on hover */
+.admin-tile {
+  position: relative;
+  transition: background-color 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.admin-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--color-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+a:hover > .admin-tile::after,
+a:focus-visible > .admin-tile::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-tile::after {
+    transition: none;
+  }
+}
+

@@ -24,7 +24,7 @@ export const metadata = { title: "Activity", robots: { index: false } };
 const PAGE = 30;
 
 const selectClass =
-  "w-full rounded-xl border border-mist/70 bg-paper px-3.5 py-2.5 text-sm text-ink transition-colors focus:border-accent-to focus:outline-none focus:ring-2 focus:ring-accent-to/25";
+  "w-full rounded-xl border border-mist bg-paper px-3.5 py-2.5 text-sm text-ink transition-colors focus:border-ink focus:outline-none";
 const labelClass = "mb-1.5 block font-mono text-[11px] uppercase tracking-widest text-slatey";
 
 type Search = { section?: string; actor?: string; group?: string; before?: string };
@@ -54,7 +54,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Activity</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">Activity</h1>
         <p className="mt-1 text-sm text-ink/55">
           Who changed what, and when — content edits, publishing, restores, team and sign-in
           events. Times are Manila time.
@@ -106,14 +106,14 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           <div className="flex items-center gap-2">
             <button
               type="submit"
-              className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+              className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none "
             >
               Filter
             </button>
             {filtered && (
               <Link
                 href="/admin/activity"
-                className="rounded-full border border-mist/70 px-4 py-2.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+                className="rounded-full border border-mist px-4 py-2.5 text-sm transition-colors hover:border-ink/40 focus:outline-none "
               >
                 Clear
               </Link>
@@ -147,7 +147,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           {before ? (
             <Link
               href={query({})}
-              className="rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+              className="rounded-full border border-mist px-4 py-2 text-sm transition-colors hover:border-ink/40 focus:outline-none "
             >
               ← Newest
             </Link>
@@ -157,7 +157,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           {page.nextBefore && (
             <Link
               href={query({ before: String(page.nextBefore) })}
-              className="rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+              className="rounded-full border border-mist px-4 py-2 text-sm transition-colors hover:border-ink/40 focus:outline-none "
             >
               Older →
             </Link>

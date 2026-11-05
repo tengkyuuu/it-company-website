@@ -180,7 +180,7 @@ export default function ImageField({
           if (f && !busy) void upload(f);
         }}
         className={`relative mb-3 overflow-hidden rounded-xl border bg-paper transition-colors ${
-          dragging ? "border-accent-to ring-2 ring-accent-to/25" : value ? "border-mist/70" : "border-dashed border-mist"
+          dragging ? "border-ink" : value ? "border-mist" : "border-dashed border-mist"
         }`}
       >
         <div className="relative flex aspect-[1536/743] items-center justify-center">
@@ -221,8 +221,8 @@ export default function ImageField({
 
       <div className="flex flex-wrap items-center gap-2">
         <label
-          className={`inline-flex items-center gap-2 rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors focus-within:ring-2 focus-within:ring-accent-to/40 ${
-            busy ? "cursor-wait opacity-70" : "cursor-pointer hover:border-mist"
+          className={`inline-flex items-center gap-2 rounded-full border border-mist px-4 py-2 text-sm transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink ${
+            busy ? "cursor-wait opacity-70" : "cursor-pointer hover:border-ink/40"
           }`}
         >
           {busy ? (
@@ -255,7 +255,7 @@ export default function ImageField({
           <button
             type="button"
             onClick={() => change("")}
-            className="rounded-full border border-mist/70 px-4 py-2 text-sm text-ink/70 transition-colors hover:border-mist hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+            className="rounded-full border border-mist px-4 py-2 text-sm text-ink/70 transition-colors hover:border-ink/40 hover:text-ink focus:outline-none "
           >
             Remove
           </button>
@@ -265,7 +265,7 @@ export default function ImageField({
           <button
             type="button"
             onClick={() => change(initial)}
-            className="rounded-full px-3 py-2 text-sm text-ink/55 transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+            className="rounded-full px-3 py-2 text-sm text-ink/55 transition-colors hover:text-ink focus:outline-none "
           >
             Undo
           </button>
