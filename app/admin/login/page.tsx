@@ -1,5 +1,4 @@
-import Link from "next/link";
-import Logo from "@/components/Logo";
+import AuthCard from "@/components/admin/AuthCard";
 import LoginForm from "@/components/admin/LoginForm";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -63,29 +62,12 @@ export default async function LoginPage({
   const setupHint = noOwner && !ownerEmail();
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm">
-        <Link href="/" className="inline-block">
-          <Logo accent label="MykTech() — back to the site" className="w-56" />
-        </Link>
-        <h1 className="mt-8 font-display text-2xl font-semibold tracking-tight">
-          Sign in to the panel
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-ink/55">
-          Manage projects, the team and the site’s content.
-        </p>
-
-        <div className="mt-8 rounded-2xl border border-mist/70 bg-surface p-6">
-          <LoginForm next={target} canCreateOwner={canCreateOwner} setupHint={setupHint} />
-        </div>
-
-        <Link
-          href="/"
-          className="mt-8 inline-flex items-center gap-2 text-sm text-ink/50 transition-colors hover:text-ink"
-        >
-          <span aria-hidden>←</span> Back to the site
-        </Link>
-      </div>
-    </div>
+    <AuthCard
+      eyebrow="Admin panel"
+      title="Sign in to the panel"
+      intro={<p>Manage projects, the team and the site’s content.</p>}
+    >
+      <LoginForm next={target} canCreateOwner={canCreateOwner} setupHint={setupHint} />
+    </AuthCard>
   );
 }

@@ -13,7 +13,7 @@ export default function NewJobPage() {
     <div className="space-y-6">
       <header>
         <BackLink href="/admin/careers">Careers</BackLink>
-        <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">New role</h1>
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-[-0.03em]">New role</h1>
         <p className="mt-1 text-sm text-ink/55">
           Save it as a draft first — it only appears on the careers page once published.
         </p>

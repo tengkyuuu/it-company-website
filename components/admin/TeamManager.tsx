@@ -126,7 +126,7 @@ export function TeamList({
         </div>
       )}
 
-      <ul className="divide-y divide-mist/70">
+      <ul className="divide-y divide-mist">
         {rows.map((r) => {
           const isMe = r.id === me;
           const manageable = canManage && hasServiceKey && !isMe && r.role !== "owner";
@@ -144,7 +144,7 @@ export function TeamList({
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-xs font-bold ${
                   r.status === "active"
                     ? "bg-accent text-paper"
-                    : "border border-mist/70 text-ink/50"
+                    : "border border-mist text-ink/50"
                 }`}
               >
                 {label.slice(0, 1).toUpperCase()}

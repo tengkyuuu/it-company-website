@@ -46,7 +46,7 @@ export default function MemberForm({
 
   return (
     <details ref={detailsRef} className="group w-full md:w-auto">
-      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-mist/70 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink/70 transition-colors hover:border-mist hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 [&::-webkit-details-marker]:hidden">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-mist px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-widest text-ink/70 transition-colors hover:border-ink/40 hover:text-ink focus:outline-none [&::-webkit-details-marker]:hidden">
         {editing ? "Edit" : "Add member"}
         <span aria-hidden className="transition-transform group-open:rotate-45">
           +

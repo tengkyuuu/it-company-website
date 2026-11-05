@@ -121,7 +121,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-mist/70 bg-surface p-6 md:p-7 ${className}`}
+      className={`rounded-2xl border border-mist bg-surface p-6 md:p-7 ${className}`}
     >
       {children}
     </div>
@@ -163,7 +163,7 @@ export function Label({
 }
 
 const fieldBase =
-  "w-full rounded-xl border border-mist/70 bg-paper px-3.5 py-2.5 text-sm text-ink placeholder:text-ink/35 transition-colors focus:border-accent-to focus:outline-none focus:ring-2 focus:ring-accent-to/25 aria-[invalid=true]:border-red-500/60";
+  "w-full rounded-xl border border-mist bg-paper px-3.5 py-2.5 text-sm text-ink placeholder:text-ink/35 transition-colors focus:border-ink focus:outline-none aria-[invalid=true]:border-red-500/60";
 
 /**
  * Lets <Field> wire its label, hint and error to the control inside it without
@@ -223,7 +223,7 @@ export function PasswordInput({
         aria-pressed={visible}
         aria-label={visible ? "Hide password" : "Show password"}
         title={visible ? "Hide password" : "Show password"}
-        className="absolute inset-y-1.5 right-1.5 inline-flex items-center rounded-lg border border-mist/70 bg-surface px-2.5 text-[11px] font-medium text-ink/70 transition-colors hover:border-mist hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+        className="absolute inset-y-1.5 right-1.5 inline-flex items-center rounded-lg border border-mist bg-surface px-2.5 text-[11px] font-medium text-ink/70 transition-colors hover:border-ink/40 hover:text-ink focus:outline-none "
       >
         {visible ? "Hide" : "Show"}
       </button>
@@ -306,12 +306,12 @@ export function Toggle({
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-mist/70 bg-paper px-3.5 py-2.5 focus-within:border-accent-to focus-within:ring-2 focus-within:ring-accent-to/25">
+    <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-mist bg-paper px-3.5 py-2.5 focus-within:border-ink">
       <input
         type="checkbox"
         name={name}
         defaultChecked={defaultChecked}
-        className="h-4 w-4 shrink-0 accent-[var(--color-accent-to)]"
+        className="h-4 w-4 shrink-0 accent-[var(--color-ink)]"
       />
       <span className="text-sm">{children}</span>
     </label>
@@ -339,10 +339,10 @@ export function SubmitButton({
   const pending = pendingProp ?? status.pending;
 
   const styles = {
-    solid: "bg-ink text-paper hover:bg-ink-900",
-    outline: "border border-mist/70 text-ink hover:border-mist",
+    solid: "bg-ink text-paper hover:bg-ink/85",
+    outline: "border border-mist text-ink hover:border-ink",
     danger:
-      "border border-red-500/40 text-red-600 hover:bg-red-500/10 dark:text-red-400",
+      "border border-red-500/40 text-red-600 hover:border-red-500 hover:bg-red-500/10 dark:text-red-400",
   }[variant];
 
   return (
@@ -353,7 +353,7 @@ export function SubmitButton({
       // button mid-submit (that ordering bug allowed double submits)
       disabled={pending || rest.disabled}
       aria-busy={pending || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-60 ${styles} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-[background-color,border-color,color,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] active:translate-y-px focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 ${styles} ${className}`}
     >
       {pending && (
         <span
@@ -407,7 +407,7 @@ export function Notice({
   children?: React.ReactNode;
 }) {
   const styles = {
-    info: "border-mist/70 bg-surface",
+    info: "border-mist bg-surface",
     warn: "border-amber-500/40 bg-amber-500/[0.07]",
     error: "border-red-500/35 bg-red-500/[0.06]",
   }[tone];
@@ -436,15 +436,14 @@ export function Pill({
   children: React.ReactNode;
   tone?: "muted" | "live" | "draft";
 }) {
-  const styles = {
-    muted: "border-mist/70 text-ink/55",
-    live: "border-emerald-500/40 text-emerald-700 dark:text-emerald-300",
-    draft: "border-amber-500/40 text-amber-700 dark:text-amber-300",
+  const mark = {
+    muted: "bg-ink/30",
+    live: "bg-emerald-500",
+    draft: "bg-amber-500",
   }[tone];
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-widest ${styles}`}
-    >
+    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-mist bg-paper px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-ink/70">
+      <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${mark}`} />
       {children}
     </span>
   );

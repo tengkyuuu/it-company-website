@@ -80,7 +80,7 @@ export default function LeadReply({
   };
 
   const btn =
-    "inline-flex items-center gap-1.5 rounded-full border border-mist/70 px-3.5 py-1.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 disabled:cursor-not-allowed disabled:opacity-50";
+    "inline-flex items-center gap-1.5 rounded-full border border-mist px-3.5 py-1.5 text-sm transition-colors hover:border-ink/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div className="mt-3 space-y-3">
@@ -89,7 +89,7 @@ export default function LeadReply({
           {history.map((h) => (
             <li key={h.id} className="rounded-xl border border-mist/60 bg-paper px-3.5 py-2.5">
               <details className="group">
-                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 text-xs text-ink/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2 text-xs text-ink/60 focus:outline-none [&::-webkit-details-marker]:hidden">
                   <span
                     className={`rounded-full border px-2 py-px font-mono text-[10px] uppercase tracking-widest ${
                       h.status === "sent"

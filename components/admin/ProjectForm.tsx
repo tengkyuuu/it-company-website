@@ -74,7 +74,7 @@ function ColorField({
             setValue(e.target.value);
             onValueChange?.();
           }}
-          className="h-11 w-14 shrink-0 cursor-pointer rounded-lg border border-mist/70 bg-paper p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+          className="h-11 w-14 shrink-0 cursor-pointer rounded-lg border border-mist bg-paper p-1 focus:outline-none "
           aria-label={`${label} swatch`}
         />
         <Input
@@ -591,7 +591,7 @@ export default function ProjectForm({
 
       {/* sticky so the save button and its result are always in reach on a
           long form — the banner sits right where the eye is after clicking */}
-      <div className="sticky bottom-0 z-10 -mx-1 space-y-3 rounded-2xl border border-mist/70 bg-paper/90 p-3 backdrop-blur-xl md:p-4">
+      <div className="sticky bottom-0 z-10 -mx-1 space-y-3 rounded-2xl border border-mist bg-paper/90 p-3 backdrop-blur-xl md:p-4">
         <ConflictBanner autosave={autosave} />
         {/* the conflict banner says it better — no duplicate red line */}
         <Banner result={autosave.conflict ? null : shown} />
@@ -608,7 +608,7 @@ export default function ProjectForm({
             onClick={(e) => {
               if (!autosave.confirmLeave()) e.preventDefault();
             }}
-            className="rounded-full border border-mist/70 px-5 py-2.5 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+            className="rounded-full border border-mist px-5 py-2.5 text-sm transition-colors hover:border-ink/40 focus:outline-none "
           >
             {project ? "Back" : "Cancel"}
           </Link>

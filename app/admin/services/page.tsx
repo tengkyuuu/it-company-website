@@ -45,7 +45,7 @@ export default async function AdminServicesPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">
             Services
           </h1>
           <p className="mt-1 text-sm text-ink/55">
@@ -124,7 +124,7 @@ export default async function AdminServicesPage() {
                   </div>
                   <ServiceForm mode="edit" service={s} />
                 </div>
-                <div className="mt-4 border-t border-mist/70 pt-4">
+                <div className="mt-4 border-t border-mist pt-4">
                   <HistoryPanel entityType="services" entityId={s.id} noun="service" variant="inline" />
                 </div>
               </Card>

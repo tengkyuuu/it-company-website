@@ -35,14 +35,14 @@ export default function ConflictBanner({ autosave }: { autosave: Autosave }) {
         <button
           type="button"
           onClick={autosave.reloadTheirs}
-          className="rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+          className="rounded-full border border-mist px-4 py-2 text-sm transition-colors hover:border-ink/40 focus:outline-none "
         >
           Reload their version
         </button>
         <button
           type="button"
           onClick={autosave.keepMine}
-          className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+          className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none "
         >
           Keep mine
         </button>

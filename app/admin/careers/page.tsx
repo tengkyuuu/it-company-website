@@ -13,7 +13,7 @@ import { employmentLabel, formatDay, workplaceLabel } from "../_lib/catalog";
 export const metadata = { title: "Careers", robots: { index: false } };
 
 const primaryLink =
-  "rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper";
+  "rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none";
 
 /**
  * Open positions. A published role whose closing date has passed reads
@@ -56,7 +56,7 @@ export default async function AdminCareersPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">Careers</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">Careers</h1>
           <p className="mt-1 text-sm text-ink/55">
             {jobs.length
               ? `${open} open · ${closedCount} closed · ${drafts} draft${drafts === 1 ? "" : "s"}`

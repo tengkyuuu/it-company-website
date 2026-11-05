@@ -37,7 +37,7 @@ export default async function EditProductPage({
       <header>
         <BackLink href="/admin/products">Products</BackLink>
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-2xl font-semibold tracking-tight">{product.name}</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">{product.name}</h1>
           <Pill tone={product.published ? "live" : "draft"}>
             {product.published ? "Published" : "Draft"}
           </Pill>

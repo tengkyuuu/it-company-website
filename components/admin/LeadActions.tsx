@@ -37,7 +37,7 @@ export default function LeadActions({
   };
 
   const btn =
-    "rounded-full border border-mist/70 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 disabled:cursor-not-allowed disabled:opacity-50";
+    "rounded-full border border-mist px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest transition-colors hover:border-ink/40 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div className="flex flex-col items-start gap-1.5 sm:items-end">

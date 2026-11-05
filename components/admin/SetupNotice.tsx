@@ -60,7 +60,7 @@ export default function SetupNotice() {
                   .env.local
                 </code>{" "}
                 (and Vercel):
-                <pre className="mt-3 overflow-x-auto rounded-xl border border-mist/70 bg-paper p-4 font-mono text-xs leading-relaxed">
+                <pre className="mt-3 overflow-x-auto rounded-xl border border-mist bg-paper p-4 font-mono text-xs leading-relaxed">
                   {`NEXT_PUBLIC_CMS_ENABLED=true
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
@@ -83,7 +83,7 @@ SUPABASE_SERVICE_ROLE_KEY=`}
           <li key={step.title} className="flex gap-4">
             <span
               aria-hidden
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-mist/70 font-mono text-xs"
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-mist font-mono text-xs"
             >
               {i + 1}
             </span>

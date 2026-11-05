@@ -32,6 +32,8 @@ export default function SetPasswordForm({
   const [result, setResult] = useState<AuthResult | null>(null);
   const [pending, setPending] = useState(false);
   const [next, setNext] = useState<string | null>(null);
+  const [pw, setPw] = useState("");
+  const [again, setAgain] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const isReset = purpose === "reset";
 
@@ -91,16 +93,28 @@ export default function SetPasswordForm({
   if (result?.ok && next) {
     const toLogin = next.startsWith("/admin/login");
     return (
-      <div className="space-y-4" role="status" aria-live="polite">
-        <p className="font-display text-lg font-semibold tracking-tight">{result.message}</p>
-        <p className="text-sm leading-relaxed text-ink/60">
-          {toLogin ? "Taking you to sign in…" : "Taking you to the panel…"}
-        </p>
+      <div className="space-y-5" role="status" aria-live="polite">
+        <span className="ai-pop inline-flex rounded-full size-12 items-center justify-center bg-ink text-paper">
+          <svg aria-hidden viewBox="0 0 24 24" className="ai-tick size-6" fill="none">
+            <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <div>
+          <p className="font-display text-lg font-semibold tracking-tight">{result.message}</p>
+          <p className="mt-1 text-sm leading-relaxed text-ink/60">
+            {toLogin ? "Taking you to sign in…" : "Taking you to the panel…"}
+          </p>
+        </div>
+        {/* fills over the same 1.4 s as the redirect timer above */}
+        <span aria-hidden className="block h-0.5 overflow-hidden bg-mist">
+          <span className="ai-progress block h-full bg-gold" style={{ "--ai-ms": "1.4s" } as React.CSSProperties} />
+        </span>
         <a
           href={next}
-          className="inline-flex w-full items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-medium text-paper transition-colors hover:bg-ink-900"
+          className="group inline-flex w-full items-center justify-center rounded-full gap-2 bg-ink px-5 py-3 text-sm font-medium text-paper transition-colors hover:bg-ink-900"
         >
           {toLogin ? "Go to sign in" : "Go to the panel now"}
+          <span aria-hidden className="transition-transform duration-300 group-hover:translate-x-1">→</span>
         </a>
       </div>
     );
@@ -148,8 +162,11 @@ export default function SetPasswordForm({
           minLength={8}
           maxLength={72}
           autoComplete="new-password"
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
         />
       </Field>
+      <Strength password={pw} />
 
       <Field label="Confirm password" error={fieldError("confirm")}>
         <PasswordInput
@@ -158,12 +175,77 @@ export default function SetPasswordForm({
           minLength={8}
           maxLength={72}
           autoComplete="new-password"
+          value={again}
+          onChange={(e) => setAgain(e.target.value)}
         />
       </Field>
+      <Match password={pw} confirm={again} />
 
-      <SubmitButton pending={pending} pendingLabel="Saving…" className="w-full !py-3">
+      <SubmitButton pending={pending} pendingLabel="Saving…" className="group w-full !py-3">
         {isReset ? "Save new password" : "Save and enter the panel"}
+        {!pending && (
+          <span aria-hidden className="ml-2 inline-block transition-transform duration-300 group-hover:translate-x-1">
+            →
+          </span>
+        )}
       </SubmitButton>
     </form>
+  );
+}
+
+/**
+ * A rough guide, not a rule — the server only enforces 8–72 characters.
+ * Gold only at "Strong", so the meter is the form's one gold moment.
+ */
+function score(pw: string) {
+  if (!pw) return 0;
+  if (pw.length < 8) return 1;
+  let s = 2;
+  if (pw.length >= 12) s++;
+  const mixed = /[a-z]/.test(pw) && /[A-Z]/.test(pw) && /\d/.test(pw);
+  if (mixed || /[^A-Za-z0-9]/.test(pw)) s++;
+  return Math.min(s, 4);
+}
+const LABELS = ["", "Too short", "Okay", "Good", "Strong"];
+
+function Strength({ password }: { password: string }) {
+  const s = score(password);
+  return (
+    <div className="-mt-1.5" aria-live="polite">
+      <div className="grid grid-cols-4 gap-1.5" aria-hidden>
+        {[1, 2, 3, 4].map((i) => (
+          <span key={i} className="h-1 overflow-hidden bg-mist">
+            <span
+              className={`ai-bar block h-full ${
+                s === 4 ? "bg-gold" : s === 1 ? "bg-ink/35" : "bg-ink"
+              }`}
+              style={{ transform: `scaleX(${i <= s ? 1 : 0})`, transitionDelay: `${(i - 1) * 60}ms` }}
+            />
+          </span>
+        ))}
+      </div>
+      <p className="mt-1.5 h-4 font-mono text-[10px] uppercase tracking-[0.18em] text-slatey">
+        {s > 0 && <span>Strength · {LABELS[s]}</span>}
+      </p>
+    </div>
+  );
+}
+
+function Match({ password, confirm }: { password: string; confirm: string }) {
+  const show = confirm.length > 0;
+  const ok = show && confirm === password && password.length >= 8;
+  const off = show && !ok && confirm.length >= password.length;
+  return (
+    <p className="-mt-1.5 flex h-4 items-center gap-1.5 text-xs" aria-live="polite">
+      {ok && (
+        <>
+          <svg aria-hidden viewBox="0 0 24 24" className="ai-tick size-3.5 text-ink" fill="none">
+            <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="text-ink/70">Passwords match</span>
+        </>
+      )}
+      {off && <span className="text-slatey">Doesn’t match yet</span>}
+    </p>
   );
 }

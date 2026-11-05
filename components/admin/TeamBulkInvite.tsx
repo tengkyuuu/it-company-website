@@ -243,7 +243,7 @@ export default function TeamBulkInvite({ roster }: { roster: RosterRow[] }) {
         <div className="mt-6 space-y-3">
           <Banner result={result} />
           {result.results.length > 0 && (
-            <ul className="divide-y divide-mist/70 rounded-xl border border-mist/70">
+            <ul className="divide-y divide-mist rounded-xl border border-mist">
               {result.results.map((r, i) => (
                 <li key={`${r.email}-${i}`} className="space-y-2 px-4 py-3">
                   <div className="flex flex-wrap items-center gap-2 text-sm">

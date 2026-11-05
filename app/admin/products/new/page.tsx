@@ -14,7 +14,7 @@ export default function NewProductPage() {
     <div className="space-y-6">
       <header>
         <BackLink href="/admin/products">Products</BackLink>
-        <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">New product</h1>
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-[-0.03em]">New product</h1>
         <p className="mt-1 text-sm text-ink/55">
           Save it as a draft first — it only appears on the site once published.
         </p>

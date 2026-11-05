@@ -644,6 +644,15 @@ reflow. Non-obvious rules, learned the hard way here:
     - Old `/admin/auth/verify` and `/admin/auth/set-password` are gone; "Forgot password?" is
       the way to change a password. Unknown `/admin/*` URLs hit `app/admin/[...missing]` so they
       404 inside the admin segment (see that file for why — React #418 otherwise).
+    - **Auth screens** (login, invite/reset confirm, no-access) share `components/admin/AuthCard.tsx`:
+      desktop split with an ink `.band` where the logo inks in under a gold sweep (`.ai-*` CSS, masked to
+      the letters, plays once) + four-point sparks; staggered entrances; `SetPasswordForm` adds a strength
+      meter (gold only at Strong), a "Passwords match" tick and an animated success state whose bar fills
+      over the same 1.4 s as the redirect. All off under reduced motion.
+    - **Panel look** (2026-11-05): corners stay rounded (a square-corner pass was tried and rolled back
+      at the client's request). Focus = a 2px ink outline (`.admin-shell` in `globals.css`), not a gold
+      glow; the active nav item is just *italic* (no bar, no fill); h1s are `text-3xl`; the overview's
+      stat tiles are one joined hairline grid with a gold line drawing across on hover (`.admin-tile`).
     - **Email look** (`lib/admin-email.ts`): an ink header carrying `public/brand/email/header.gif` — the
       opening sequence as a GIF (`npm run build:email-art`; frame 0 is the finished lockup, which is all
       classic Outlook shows; plays 3x and rests). CSS entrance animations are progressive (Apple Mail

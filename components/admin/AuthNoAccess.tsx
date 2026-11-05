@@ -74,7 +74,7 @@ export default function AuthNoAccess({
       <form action={signOut}>
         <button
           type="submit"
-          className="inline-flex w-full items-center justify-center rounded-full border border-mist/70 px-5 py-3 text-sm font-medium text-ink transition-colors hover:border-mist"
+          className="inline-flex w-full items-center justify-center rounded-full border border-mist px-5 py-3 text-sm font-medium text-ink transition-colors hover:border-ink/40"
         >
           Sign out
         </button>

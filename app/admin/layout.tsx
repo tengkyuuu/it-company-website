@@ -31,7 +31,9 @@ export const metadata: Metadata = {
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <DocumentShell lang="en">
-      <AdminLayout>{children}</AdminLayout>
+      <div className="admin-shell">
+        <AdminLayout>{children}</AdminLayout>
+      </div>
     </DocumentShell>
   );
 }
@@ -68,14 +70,14 @@ async function AdminLayout({
         Skip to content
       </a>
 
-      <header className="sticky top-0 z-30 border-b border-mist/70 bg-paper/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-mist bg-paper">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3.5 sm:gap-4">
           <Link
             href="/admin"
-            className="flex shrink-0 items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+            className="flex shrink-0 items-center gap-3 rounded-lg"
           >
             <Logo accent label="MykTech() — admin home" className="w-44" />
-            <span className="hidden font-mono text-[10px] uppercase tracking-[0.2em] text-slatey sm:inline">
+            <span className="hidden border border-mist px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.2em] text-slatey sm:inline">
               Admin
             </span>
           </Link>
@@ -85,7 +87,7 @@ async function AdminLayout({
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden rounded text-sm text-ink/60 transition-colors hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 sm:inline"
+              className="hidden rounded text-sm text-ink/60 transition-colors hover:text-ink sm:inline"
             >
               View site ↗
             </a>
@@ -101,7 +103,7 @@ async function AdminLayout({
             <form action={signOut}>
               <button
                 type="submit"
-                className="whitespace-nowrap rounded-full border border-mist/70 px-3.5 py-1.5 text-xs transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+                className="whitespace-nowrap rounded-full border border-mist px-3.5 py-1.5 text-xs transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-paper"
               >
                 Sign out
               </button>
@@ -112,7 +114,7 @@ async function AdminLayout({
 
       {/* minmax(0,1fr): an auto/1fr track grows to its widest child, which let
           the mobile tab strip push the page into horizontal scroll at 390px */}
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-5 px-5 py-6 md:grid-cols-[200px_minmax(0,1fr)] md:gap-10 md:py-12">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-5 px-5 py-6 md:grid-cols-[216px_minmax(0,1fr)] md:gap-12 md:py-12">
         <aside className="min-w-0 md:sticky md:top-24 md:self-start">
           <AdminNav />
         </aside>

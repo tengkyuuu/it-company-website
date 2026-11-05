@@ -34,7 +34,7 @@ export default async function AdminProjectsPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">
             Projects
           </h1>
           <p className="mt-1 text-sm text-ink/55">
@@ -46,7 +46,7 @@ export default async function AdminProjectsPage() {
         {!error && (
           <Link
             href="/admin/projects/new"
-            className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+            className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none "
           >
             New project
           </Link>
@@ -95,7 +95,7 @@ export default async function AdminProjectsPage() {
                 <div className="flex flex-wrap items-center gap-4">
                   <div
                     aria-hidden
-                    className="hidden h-12 w-20 shrink-0 overflow-hidden rounded-lg border border-mist/70 bg-ink/10 sm:block"
+                    className="hidden h-12 w-20 shrink-0 overflow-hidden rounded-lg border border-mist bg-ink/10 sm:block"
                     // the project's own deep color, like its plate on the landing page
                     style={p.dots?.[2] ? { background: p.dots[2] } : undefined}
                   >

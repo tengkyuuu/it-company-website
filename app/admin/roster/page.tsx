@@ -42,7 +42,7 @@ export default async function AdminRosterPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">
+          <h1 className="font-display text-3xl font-semibold tracking-[-0.03em]">
             Public roster
           </h1>
           <p className="mt-1 text-sm text-ink/55">
@@ -113,7 +113,7 @@ export default async function AdminRosterPage() {
                   </div>
                   <MemberForm mode="edit" member={m} />
                 </div>
-                <div className="mt-4 border-t border-mist/70 pt-4">
+                <div className="mt-4 border-t border-mist pt-4">
                   <HistoryPanel entityType="team_members" entityId={m.id} noun="roster entry" variant="inline" />
                 </div>
               </Card>

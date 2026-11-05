@@ -16,7 +16,7 @@ export default async function NewPostPage() {
     <div className="space-y-6">
       <header>
         <BackLink href="/admin/blog">Blog</BackLink>
-        <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight">New post</h1>
+        <h1 className="mt-3 font-display text-3xl font-semibold tracking-[-0.03em]">New post</h1>
         <p className="mt-1 text-sm text-ink/55">
           Save it as a draft first — it only appears on the blog once published.
         </p>

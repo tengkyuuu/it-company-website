@@ -25,10 +25,10 @@ export async function safely<T extends { ok: boolean }>(
 }
 
 export const smallButton =
-  "inline-flex items-center gap-1.5 rounded-full border border-mist/70 px-3.5 py-1.5 text-xs font-medium text-ink/75 transition-colors hover:border-mist hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center gap-1.5 rounded-full border border-mist px-3.5 py-1.5 text-xs font-medium text-ink/75 transition-colors hover:border-ink/40 hover:text-ink focus:outline-none disabled:cursor-not-allowed disabled:opacity-60";
 
 export const solidButton =
-  "inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-xs font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-xs font-medium text-paper transition-colors hover:bg-ink-900 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60";
 
 export function Spinner() {
   return (
@@ -47,7 +47,7 @@ export function Thumb({ url, label }: { url: string | null; label?: string }) {
   const src = safeSrc(url);
   if (!src) {
     return (
-      <span className="inline-flex h-12 w-20 items-center justify-center rounded-lg border border-dashed border-mist/70 font-mono text-[10px] text-slatey">
+      <span className="inline-flex h-12 w-20 items-center justify-center rounded-lg border border-dashed border-mist font-mono text-[10px] text-slatey">
         {url ? "unsafe" : "none"}
       </span>
     );
@@ -58,7 +58,7 @@ export function Thumb({ url, label }: { url: string | null; label?: string }) {
       src={src}
       alt={label ?? ""}
       loading="lazy"
-      className="h-12 w-20 rounded-lg border border-mist/70 bg-ink/[0.06] object-cover object-top"
+      className="h-12 w-20 rounded-lg border border-mist bg-ink/[0.06] object-cover object-top"
     />
   );
 }
@@ -74,7 +74,7 @@ function Swatches({ colors }: { colors: string[] }) {
           <span
             key={`${c}-${i}`}
             title={c}
-            className="h-4 w-4 rounded-full border border-mist/70"
+            className="h-4 w-4 rounded-full border border-mist"
             style={{ background: c }}
           />
         ) : (
@@ -218,7 +218,7 @@ function PreviewValue({ field }: { field: PreviewField }) {
       return field.value ? (
         <div
           data-lenis-prevent
-          className="max-h-56 overflow-auto whitespace-pre-wrap rounded-lg border border-mist/70 bg-surface p-3 text-sm leading-relaxed"
+          className="max-h-56 overflow-auto whitespace-pre-wrap rounded-lg border border-mist bg-surface p-3 text-sm leading-relaxed"
         >
           {field.value}
         </div>
@@ -229,7 +229,7 @@ function PreviewValue({ field }: { field: PreviewField }) {
       return field.items.length ? (
         <ul className="flex flex-wrap gap-1.5">
           {field.items.map((s, i) => (
-            <li key={i} className="rounded-full border border-mist/70 px-2 py-0.5 text-xs">
+            <li key={i} className="rounded-full border border-mist px-2 py-0.5 text-xs">
               {s}
             </li>
           ))}
@@ -282,7 +282,7 @@ export function RevisionPreview({ revisionId }: { revisionId: number }) {
     return <p className="mt-3 text-sm text-red-700 dark:text-red-300">{state.message}</p>;
   }
   return (
-    <div className="mt-3 rounded-xl border border-mist/70 bg-paper p-4">
+    <div className="mt-3 rounded-xl border border-mist bg-paper p-4">
       <p className="font-mono text-[10px] uppercase tracking-widest text-slatey">
         {state.backup ? "Backup" : "Version"} from {state.when} · {state.actor}
       </p>

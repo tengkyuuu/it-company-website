@@ -198,7 +198,10 @@ export default async function AdminHome() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">
+        <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slatey">
+          Overview
+        </p>
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.03em] md:text-4xl">
           {greeting()}
           {profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}.
         </h1>
@@ -215,21 +218,21 @@ export default async function AdminHome() {
       )}
 
       {/* eight tiles: 4 rows of 2 on phones, 2 rows of 4 on desktop */}
-      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-mist bg-mist lg:grid-cols-4">
         {tiles.map((t) => (
           <li key={t.label}>
             <Link
               href={t.href}
-              className="group block h-full rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+              className="group block h-full"
             >
-              <Card className="h-full !p-5 transition-colors group-hover:border-mist">
+              <Card className="admin-tile h-full !rounded-none !border-0 !p-5 group-hover:bg-paper">
                 <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-slatey">
                   {t.label}
                   {t.attention && (
-                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-accent-to" />
+                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gold" />
                   )}
                 </p>
-                <p className="mt-2 font-display text-2xl font-semibold tabular-nums tracking-tight">
+                <p className="mt-4 font-display text-3xl font-semibold tabular-nums tracking-[-0.03em]">
                   {t.value}
                 </p>
                 <p className="mt-0.5 text-xs text-ink/50">{t.sub}</p>
@@ -261,7 +264,7 @@ export default async function AdminHome() {
                 : "All caught up — nothing open."}
             </p>
           ) : (
-            <ul className="divide-y divide-mist/70">
+            <ul className="divide-y divide-mist">
               {openThreads.slice(0, 5).map(({ head }) => (
                 <li key={head.id} className="flex items-start gap-3 py-2.5">
                   <Pill tone={head.kind === "chat" ? "muted" : "live"}>
@@ -311,7 +314,7 @@ export default async function AdminHome() {
               to get started.
             </p>
           ) : (
-            <ul className="divide-y divide-mist/70">
+            <ul className="divide-y divide-mist">
               {projects.slice(0, 5).map((p) => (
                 <li key={p.id} className="flex items-center gap-3 py-2.5">
                   <Link
@@ -373,7 +376,7 @@ export default async function AdminHome() {
             <Link
               key={a.href}
               href={a.href}
-              className="rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+              className="rounded-full border border-mist px-4 py-2 text-sm transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-paper"
             >
               {a.label}
             </Link>
@@ -382,7 +385,7 @@ export default async function AdminHome() {
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full border border-mist/70 px-4 py-2 text-sm transition-colors hover:border-mist focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+            className="rounded-full border border-mist px-4 py-2 text-sm transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-paper"
           >
             View the site ↗
           </a>

@@ -56,7 +56,7 @@ export default function StorageSweep() {
   const count = scan?.items.length ?? 0;
 
   return (
-    <section id="storage" className="scroll-mt-24 rounded-2xl border border-mist/70 bg-surface p-6 md:p-7">
+    <section id="storage" className="scroll-mt-24 rounded-2xl border border-mist bg-surface p-6 md:p-7">
       <h2 className="font-display text-lg font-semibold tracking-tight">Unused images</h2>
       <p className="mt-1 max-w-prose text-sm leading-relaxed text-ink/55">
         Uploaded screenshots and covers that nothing uses any more — not a project, product or
@@ -106,7 +106,7 @@ export default function StorageSweep() {
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40"
+                      className="block rounded-lg focus:outline-none "
                       title={`${item.path} · ${item.size} · uploaded ${item.uploaded}`}
                     >
                       <Thumb url={item.url} label={item.path} />
@@ -124,7 +124,7 @@ export default function StorageSweep() {
                   <button
                     type="button"
                     onClick={() => setConfirming(true)}
-                    className="inline-flex items-center gap-2 rounded-full border border-red-500/40 px-4 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-to/40 dark:text-red-400"
+                    className="inline-flex items-center gap-2 rounded-full border border-red-500/40 px-4 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/10 focus:outline-none dark:text-red-400"
                   >
                     Clean up {count} image{count === 1 ? "" : "s"}
                   </button>
@@ -146,7 +146,7 @@ export default function StorageSweep() {
                         type="button"
                         disabled={cleaning}
                         onClick={() => void cleanUp()}
-                        className="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-red-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {cleaning && <Spinner />}
                         {cleaning ? "Deleting…" : "Delete them"}
